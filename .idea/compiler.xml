@@ -7,10 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="ProbabilisticLogicLearner" />
+        <module name="program-notifier" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="ProbabilisticLogicLearner" target="1.8" />
+      <module name="program-notifier" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

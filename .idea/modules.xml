@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ProbabilisticLogicLearner.iml" filepath="$PROJECT_DIR$/ProbabilisticLogicLearner.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ProgramNotifier/program-notifier.iml" filepath="$PROJECT_DIR$/../ProgramNotifier/program-notifier.iml" />
     </modules>
   </component>
 </project>
