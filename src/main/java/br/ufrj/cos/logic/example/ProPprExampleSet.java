@@ -19,34 +19,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic.example;
+
+import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.util.LanguageUtils;
+
+import java.util.List;
 
 /**
- * Created on 14/04/17.
+ * Created on 17/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class Term {
+public class ProPprExampleSet {
 
-    protected String name;
+    protected Atom goal;
+    protected List<Example> examples;
 
-    public Term(String name) {
-        this.name = name;
+    public ProPprExampleSet(Atom goal, List<Example> examples) {
+        this.goal = goal;
+        this.examples = examples;
     }
 
-    public String getName() {
-        return name;
+    public Atom getGoal() {
+        return goal;
+    }
+
+    public List<Example> getExamples() {
+        return examples;
     }
 
     @Override
-    public int hashCode() {
-        return this.toString().hashCode();
+    public String toString() {
+        return LanguageUtils.formatExampleToProPprString(this);
     }
-
-    @Override
-    public abstract boolean equals(Object obj);
-
-    @Override
-    public abstract String toString();
 
 }

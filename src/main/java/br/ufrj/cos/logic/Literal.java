@@ -19,34 +19,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class Features extends ArrayList<Atom> {
+public class Literal extends Atom {
 
-    public Features(int initialCapacity) {
-        super(initialCapacity);
+    protected boolean negated = false;
+
+    public Literal(String name, List<Term> terms, boolean negated) {
+        super(name, terms);
+        this.negated = negated;
     }
 
-    public Features() {
+    public Literal(String name, boolean negated) {
+        super(name);
+        this.negated = negated;
     }
 
-    public Features(Collection<? extends Atom> c) {
-        super(c);
+    public Literal(String name, List<Term> terms) {
+        super(name, terms);
+    }
+
+    public Literal(String name) {
+        super(name);
+    }
+
+    public Literal(Atom atom, boolean negated) {
+        super(atom.getName(), atom.getTerms());
+        this.negated = negated;
     }
 
     @Override
     public String toString() {
-        return LanguageUtils.getListToString(this);
-    }
+        if (negated) {
+            return LanguageUtils.NEGATION_PREFIX + " " + super.toString();
+        }
 
+        return super.toString();
+    }
 }

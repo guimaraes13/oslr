@@ -1,0 +1,210 @@
+options {
+	JAVA_UNICODE_ESCAPE = false;
+	UNICODE_INPUT = true;
+	STATIC = false;
+}
+
+PARSER_BEGIN(ExampleParser)
+
+/*
+ * Probabilist Logic Learner is a system to learn probabilistic logic 
+ * programs from data and use its learned programs to make inference 
+ * and answer queries.
+ *
+ * Copyright (C) 2017 Victor Guimarães
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package br.ufrj.cos.logic.parser.example;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import br.ufrj.cos.logic.example.*;
+import br.ufrj.cos.logic.*;
+
+/**
+ * Created on 15/04/17.
+ *
+ * @author Victor Guimarães
+ */
+public class ExampleParser {
+
+	protected List probLogFormatExamples;
+	protected List proPprFormatExamples;
+
+	public List getProbLogFormatExamples() {
+		return probLogFormatExamples;
+	}
+
+	public List getProPprFormatExamples() {
+		return proPprFormatExamples;
+	}
+
+}
+
+PARSER_END(ExampleParser)
+
+SKIP : {
+	" "
+|	"\t"
+|	"\r"
+|	"\n"
+|	< "%" (~["\r", "\n"])* >
+}
+
+TOKEN : {
+	<PROBLOG_EXAMPLE_PREFIX: "evidence">
+|	<TRUE_SIGN: "true">
+|	<FALSE_SIGN: "false">
+|	<OPEN_PREDICATE_ARGUMENT: "(">
+|	<CLOSE_PREDICATE_ARGUMENT: ")">
+|	<LIST_SEPARATOR: ",">
+|	<POSTIVE_SIGN: "+">
+|	<NEGATIVE_SIGN: "-">
+|	<END_OF_LINE_CHARACTER: ".">
+|	<VARIABLE: ["A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
+|	<CONSTANT: ["a"-"z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
+|	<QUOTED: 
+    	"\"" 
+    	(
+        	"\\" ~[]	//any escaped character
+	        |			//or
+	        ~["\""]		//any non-quote character
+	    )+ 
+	    "\""
+	>
+}
+
+void parseExamples() :
+{
+
+}
+{
+	{
+		probLogFormatExamples = new ArrayList();
+		proPprFormatExamples = new ArrayList();
+	}
+
+	(
+		readProbLogExample(probLogFormatExamples)
+		|
+		readProPprExample(proPprFormatExamples)
+	)* <EOF>
+}
+
+void readProbLogExample(List examples) :
+{
+	Atom atom;
+	boolean positive;
+
+}
+{
+	<PROBLOG_EXAMPLE_PREFIX> <OPEN_PREDICATE_ARGUMENT> atom = readAtom() <LIST_SEPARATOR> 
+	(
+		<TRUE_SIGN>
+		{positive = true;}
+		|
+		<FALSE_SIGN>
+		{positive = false;}
+	)
+	<CLOSE_PREDICATE_ARGUMENT> <END_OF_LINE_CHARACTER>
+	{examples.add(new Example(atom, positive));}
+}
+
+void readProPprExample(List proPprExamples) :
+{
+	Atom goal;
+	Atom example;
+	boolean positive;
+	List examples = new ArrayList();
+}
+{
+	goal = readAtom()
+	(
+		(
+			<POSTIVE_SIGN>
+			{positive = true;}
+			|
+			<NEGATIVE_SIGN>
+			{positive = false;}
+		)
+		example = readAtom()
+		{examples.add(new Example(example, positive));}
+	)+
+	{proPprExamples.add(new ProPprExampleSet(goal, examples));}
+}
+
+Atom readAtom() :
+{
+	String predicate;
+	List terms = new ArrayList();
+}
+{
+	predicate = readPredicate()
+	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms) (<LIST_SEPARATOR> readTerm(terms))*  <CLOSE_PREDICATE_ARGUMENT>]
+	{
+		return new Atom(predicate, terms);
+	}
+}
+
+String readPredicate() :
+{
+	Token predicate;
+}
+{
+	predicate = <CONSTANT>
+	{return predicate.image;}
+}
+
+void readTerm(List<Term> terms) :
+{
+	Term term;
+}
+{
+	( 	
+		term = readConstant()
+		{terms.add(term);} 
+		|
+		term = readVariable()
+		{terms.add(term);}
+	)
+}
+
+Term readConstant() :
+{
+	Token constant;
+}
+{
+	(
+		constant = <CONSTANT>
+		|
+		constant = <QUOTED>
+		// removing surrounding quotes
+		{token.image = token.image.substring(1, token.image.length() - 1);}
+	)
+	{return new Constant(token.image);}
+}
+
+Term readVariable() :
+{
+	Token variable;
+}
+{
+	variable = <VARIABLE>
+	{
+		return new Variable(variable.image);
+	}
+}

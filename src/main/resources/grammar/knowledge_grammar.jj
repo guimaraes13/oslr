@@ -1,0 +1,264 @@
+options {
+	JAVA_UNICODE_ESCAPE = false;
+	UNICODE_INPUT = true;
+	STATIC = false;
+}
+
+PARSER_BEGIN(KnowledgeParser)
+
+/*
+ * Probabilist Logic Learner is a system to learn probabilistic logic 
+ * programs from data and use its learned programs to make inference 
+ * and answer queries.
+ *
+ * Copyright (C) 2017 Victor Guimarães
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package br.ufrj.cos.logic.parser.knowledge;
+
+import br.ufrj.cos.logic.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created on 15/04/17.
+ *
+ * @author Victor Guimarães
+ */
+public class KnowledgeParser {
+
+}
+
+PARSER_END(KnowledgeParser)
+
+SKIP : {
+	" "
+|	"\t"
+|	"\r"
+|	"\n"
+|	< "%" (~["\r", "\n"])* >
+}
+
+TOKEN : {
+	<DECIMAL: (( ["0"-"9"] )* ".")? ( ["0"-"9"] )+ >
+|	<NEGATION: "not">
+|	<VARIABLE: ["A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
+|	<CONSTANT: ["a"-"z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
+|	<OPEN_PREDICATE_ARGUMENT: "(">
+|	<CLOSE_PREDICATE_ARGUMENT: ")">
+|	<LIST_SEPARATOR: ",">
+|	<WEIGHT_SEPARATOR: "::">
+|	<OPEN_FEATURES: "{">
+|	<CLOSE_FEATURES: "}">
+|	<IMPLICATION_SIGN: ":-">
+|	<END_OF_LINE_CHARACTER: ".">
+|	<QUOTED: 
+    	"\"" 
+    	(
+        	"\\" ~[]	//any escaped character
+	        |			//or
+	        ~["\""]		//any non-quote character
+	    )+ 
+	    "\""
+	>
+}
+
+List parseKnowledge() :
+{
+	List clauses;
+}
+{
+	{
+		clauses = new ArrayList();
+	}
+
+	( readKnowledgeLine(clauses) )* <EOF>
+
+	{
+		return clauses;
+	}
+}
+
+void readKnowledgeLine(List clauses) :
+{
+	Clause clause = null;
+
+	boolean weighted = false;
+	double weight = -1;
+	
+	Atom atom;
+	List body;
+
+	// boolean featured = false;
+	List features = null;
+	Map variableMap;
+}
+{
+	{variableMap = new HashMap();}
+	// gets the first atom, weighted or not
+	// Do not use readFeature() because, if the line is a clause, the weight belongs to the clause, not to the atom
+	[weight = readDecimal() <WEIGHT_SEPARATOR> {weighted = true;}] 
+	atom = readAtom(variableMap)
+	(
+		// end of line character, it is just an atom, returns it
+		<END_OF_LINE_CHARACTER>
+		{
+			if (weighted) {
+				atom = new WeightedAtom(weight, atom);
+			}
+			clause = atom;
+		}
+		| 
+		// implication sign, it a horn clause (body might still be empty)
+		<IMPLICATION_SIGN>
+		{
+			body = new ArrayList();
+		}
+		// reads the body (if exists)
+		[readLiteral(body, variableMap) (<LIST_SEPARATOR> readLiteral(body, variableMap))*]
+		(
+			// gets feature(s), if exists
+			[
+				<OPEN_FEATURES>
+				{
+					features = new ArrayList();
+				}
+				[readFeature(features, variableMap) (<LIST_SEPARATOR> readFeature(features, variableMap))*]
+				<CLOSE_FEATURES>
+			]
+			// end of line character, it is a Horn clause, with a possibly empty body, returns it
+			<END_OF_LINE_CHARACTER> 
+		)
+		{
+			if (features != null) {
+				clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
+			} else if (weighted) {
+				clause = new WeightedClause(weight, atom, new Conjunction(body));
+			} else {
+				clause = new HornClause(atom, new Conjunction(body));
+			}
+		}
+	)
+	{
+		clauses.add(clause);
+	}
+}
+
+double readDecimal() :
+{
+	Token decimal;
+}
+{
+	decimal = <DECIMAL> {return Double.parseDouble(decimal.image);}
+}
+
+Atom readAtom(Map variableMap) :
+{
+	String predicate;
+	List terms = new ArrayList();
+}
+{
+	predicate = readPredicate()
+	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms, variableMap) (<LIST_SEPARATOR> readTerm(terms, variableMap))*  <CLOSE_PREDICATE_ARGUMENT>]
+	{
+		return new Atom(predicate, terms);
+	}
+}
+
+void readFeature(List features, Map variableMap) :
+{
+	boolean weighted = false;
+	double weight = -1;
+	Atom atom = null;
+}
+{
+	[weight = readDecimal() <WEIGHT_SEPARATOR> {weighted = true;}]
+	atom = readAtom(variableMap)
+	{
+		if (weighted) {
+			atom = new WeightedAtom(weight, atom);
+		}
+		features.add(atom);
+	}
+}
+
+String readPredicate() :
+{
+	Token predicate;
+}
+{
+	predicate = <CONSTANT>
+	{return predicate.image;}
+}
+
+void readTerm(List<Term> terms, Map variableMap) :
+{
+	Term term;
+}
+{
+	( 	
+		term = readConstant()
+		{terms.add(term);} 
+		|
+		term = readVariable(variableMap)
+		{terms.add(term);}
+	)
+}
+
+Term readConstant() :
+{
+	Token constant;
+}
+{
+	(
+		constant = <CONSTANT>
+		|
+		constant = <QUOTED>
+		// removing surrounding quotes
+		{token.image = token.image.substring(1, token.image.length() - 1);}
+	)
+	{return new Constant(token.image);}
+}
+
+Term readVariable(Map variableMap) :
+{
+	Token variable;
+}
+{
+	variable = <VARIABLE>
+	{
+		if (!variableMap.containsKey(variable.image)) {
+			variableMap.put(variable.image, new Variable(variable.image));
+		}
+
+		return (Variable) variableMap.get(variable.image);
+	}
+}
+
+
+void readLiteral(List<Literal> literals, Map variableMap) :
+{
+	boolean negated = false;
+	Atom atom;
+}
+{
+	[<NEGATION> {negated = true;}]
+	atom = readAtom(variableMap)
+	{literals.add(new Literal(atom, negated));}
+}

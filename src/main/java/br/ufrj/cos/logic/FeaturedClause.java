@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
@@ -51,12 +51,37 @@ public class FeaturedClause extends HornClause {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof FeaturedClause)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        FeaturedClause that = (FeaturedClause) o;
+
+        return features != null ? features.equals(that.features) : that.features == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (features != null ? features.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder(super.toString());
         if (stringBuilder.toString().endsWith(LanguageUtils.CLAUSE_END_OF_LINE)) {
             stringBuilder.delete(stringBuilder.length() - LanguageUtils.CLAUSE_END_OF_LINE.length(),
                                  stringBuilder.length());
         }
+        stringBuilder.append(" ");
 
         stringBuilder.append(LanguageUtils.FEATURES_OPEN_ARGUMENT_CHARACTER);
         stringBuilder.append(features.toString());

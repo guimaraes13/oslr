@@ -21,6 +21,8 @@
 
 package br.ufrj.cos.language;
 
+import br.ufrj.cos.logic.*;
+import br.ufrj.cos.logic.example.Example;
 import br.ufrj.cos.util.LanguageUtils;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -60,7 +62,7 @@ public class LanguageTest {
         return String.format("%s%s%s%s",
                              atomName,
                              LanguageUtils.PREDICATE_OPEN_ARGUMENT_CHARACTER,
-                             LanguageUtils.getListToString(terms),
+                             LanguageUtils.listToString(terms),
                              LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
     }
 
@@ -153,6 +155,22 @@ public class LanguageTest {
     }
 
     @Test
+    public void POSITIVE_EXAMPLE_TEST() {
+        Atom atom = new Atom(ATOM_NAME, terms);
+        String atomString = LanguageUtils.POSITIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
+        Example example = new Example(atom, true);
+        Assert.assertEquals(atomString, example.toString());
+    }
+
+    @Test
+    public void NEGATIVE_EXAMPLE_TEST() {
+        Atom atom = new Atom(ATOM_NAME, terms);
+        String atomString = LanguageUtils.NEGATIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
+        Example example = new Example(atom, false);
+        Assert.assertEquals(atomString, example.toString());
+    }
+
+    @Test
     public void WEIGHTED_HORN_CLAUSE_TEST() {
         double weight = 0.8;
         Atom head = new Atom(ATOM_NAME, terms);
@@ -164,7 +182,6 @@ public class LanguageTest {
         String hornString = getWeightPrefix(weight) + getFormattedHornClause(head, literal1, literal2);
 
         Assert.assertEquals(hornString, hornClause.toString());
-        System.out.println(hornClause);
     }
 
 }

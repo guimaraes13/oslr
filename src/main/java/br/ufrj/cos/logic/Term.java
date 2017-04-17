@@ -19,27 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class Variable extends Term {
+public abstract class Term {
 
-    public Variable(String name) {
-        super(name);
+    protected String name;
+
+    public Term(String name) {
+        this.name = name;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-    }
-
-    @Override
-    public String toString() {
+    public String getName() {
         return name;
     }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract String toString();
 
 }

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 /**
  * Created on 14/04/17.
@@ -29,5 +29,12 @@ package br.ufrj.cos.language;
 public abstract class Clause {
 
     @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
     public abstract String toString();
+
 }

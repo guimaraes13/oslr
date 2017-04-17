@@ -19,42 +19,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class WeightedAtom extends Atom {
+public class Conjunction extends ArrayList<Literal> {
 
-    protected double weight = 1.0;
-
-    public WeightedAtom(String name, List<Term> terms) {
-        super(name, terms);
+    public Conjunction(int initialCapacity) {
+        super(initialCapacity);
     }
 
-    public WeightedAtom(String name) {
-        super(name);
+    public Conjunction() {
+        super();
     }
 
-    public WeightedAtom(double weight, String name, List<Term> terms) {
-        super(name, terms);
-        this.weight = weight;
+    public Conjunction(Collection<? extends Literal> c) {
+        super(c);
     }
 
-    public WeightedAtom(double weight, String name) {
-        super(name);
-        this.weight = weight;
+    public Conjunction(Literal... literals) {
+        super(literals.length);
+
+        for (Literal literal : literals) {
+            add(literal);
+        }
     }
 
     @Override
     public String toString() {
-        return weight + " " + LanguageUtils.WEIGHT_SIGN + " " + super.toString();
+        return LanguageUtils.listToString(this);
     }
 
 }

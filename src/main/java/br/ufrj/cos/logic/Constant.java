@@ -19,45 +19,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
-
-import java.util.List;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class Literal extends Atom {
+public class Constant extends Term {
 
-    protected boolean negated = false;
-
-    public Literal(String name, List<Term> terms, boolean negated) {
-        super(name, terms);
-        this.negated = negated;
-    }
-
-    public Literal(String name, boolean negated) {
-        super(name);
-        this.negated = negated;
-    }
-
-    public Literal(String name, List<Term> terms) {
-        super(name, terms);
-    }
-
-    public Literal(String name) {
+    public Constant(String name) {
         super(name);
     }
 
     @Override
-    public String toString() {
-        if (negated) {
-            return LanguageUtils.NEGATION_PREFIX + " " + super.toString();
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Constant)) {
+            return false;
         }
 
-        return super.toString();
+        Constant constant = (Constant) o;
+
+        return name.equals(constant.name);
+    }
+
+    @Override
+    public String toString() {
+        if (LanguageUtils.doesNameContainsSpecialCharacters(name)) {
+            return LanguageUtils.surroundConstant(name);
+        }
+
+        return name;
     }
 }

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
@@ -31,31 +31,22 @@ import java.util.Collection;
  *
  * @author Victor Guimarães
  */
-public class Conjunction extends ArrayList<Literal> {
+public class Features extends ArrayList<Atom> {
 
-    public Conjunction(int initialCapacity) {
+    public Features(int initialCapacity) {
         super(initialCapacity);
     }
 
-    public Conjunction() {
-        super();
+    public Features() {
     }
 
-    public Conjunction(Collection<? extends Literal> c) {
+    public Features(Collection<? extends Atom> c) {
         super(c);
-    }
-
-    public Conjunction(Literal... literals) {
-        super(literals.length);
-
-        for (Literal literal : literals) {
-            add(literal);
-        }
     }
 
     @Override
     public String toString() {
-        return LanguageUtils.getListToString(this);
+        return LanguageUtils.listToString(this);
     }
 
 }

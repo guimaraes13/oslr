@@ -21,9 +21,12 @@
 
 package br.ufrj.cos.util;
 
-import br.ufrj.cos.language.Atom;
-import br.ufrj.cos.language.HornClause;
-import br.ufrj.cos.language.Term;
+import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Conjunction;
+import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.logic.example.Example;
+import br.ufrj.cos.logic.example.ProPprExampleSet;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -37,14 +40,21 @@ public class LanguageUtils {
 
     public static final String PREDICATE_OPEN_ARGUMENT_CHARACTER = "(";
     public static final String PREDICATE_CLOSE_ARGUMENT_CHARACTER = ")";
+
     public static final String LIST_ARGUMENTS_SEPARATOR = ", ";
     public static final String CLAUSE_END_OF_LINE = ".";
-    public static final String CONSTANT_SURROUNDING_CHARACTER = "\"";
+
     public static final String IMPLICATION_SIGN = ":-";
     public static final String NEGATION_PREFIX = "not";
     public static final String WEIGHT_SIGN = "::";
+
     public static final String FEATURES_OPEN_ARGUMENT_CHARACTER = "{";
     public static final String FEATURES_CLOSE_ARGUMENT_CHARACTER = "}";
+
+    public static final String CONSTANT_SURROUNDING_CHARACTER = "\"";
+    public static final String POSITIVE_EXAMPLE_SIGN = "+";
+    public static final String NEGATIVE_EXAMPLE_SIGN = "-";
+    public static final String EXAMPLE_SEPARATOR_CHARACTER = "\t";
     public static Pattern SIMPLE_CONSTANT_PATTERN = Pattern.compile("[a-z][a-zA-Z0-9_]*");
 
     public static String formatAtomToString(Atom atom) {
@@ -53,14 +63,14 @@ public class LanguageUtils {
         stringBuilder.append(atom.getName());
         if (terms != null && !terms.isEmpty()) {
             stringBuilder.append(PREDICATE_OPEN_ARGUMENT_CHARACTER);
-            stringBuilder.append(getListToString(terms));
+            stringBuilder.append(listToString(terms));
             stringBuilder.append(PREDICATE_CLOSE_ARGUMENT_CHARACTER);
         }
 
         return stringBuilder.toString().trim();
     }
 
-    public static String getListToString(List<?> objects) {
+    public static String listToString(List<?> objects) {
         StringBuilder stringBuilder = new StringBuilder();
         objects.forEach(o -> stringBuilder.append(o.toString()).append(LIST_ARGUMENTS_SEPARATOR));
         stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
@@ -80,8 +90,35 @@ public class LanguageUtils {
     }
 
     public static String formatHornClause(HornClause hornClause) {
-        return hornClause.getHead() + " " + IMPLICATION_SIGN +
-                " " + hornClause.getBody().toString() + CLAUSE_END_OF_LINE;
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(hornClause.getHead());
+        stringBuilder.append(" ");
+        stringBuilder.append(IMPLICATION_SIGN);
+        stringBuilder.append(" ");
+        Conjunction body = hornClause.getBody();
+        if (body != null && !body.isEmpty()) {
+            stringBuilder.append(body.toString());
+        } else {
+            stringBuilder.append(Atom.TRUE_ATOM.toString());
+        }
+        stringBuilder.append(CLAUSE_END_OF_LINE);
+
+        return stringBuilder.toString();
+    }
+
+    public static String formatExampleToProPprString(Example example) {
+        return (example.isPositive() ? POSITIVE_EXAMPLE_SIGN : NEGATIVE_EXAMPLE_SIGN) + formatAtomToString(example);
+    }
+
+    public static String formatExampleToProPprString(ProPprExampleSet proPprExampleSet) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(proPprExampleSet.getGoal());
+        for (Example example : proPprExampleSet.getExamples()) {
+            stringBuilder.append(EXAMPLE_SEPARATOR_CHARACTER);
+            stringBuilder.append(formatExampleToProPprString(example));
+        }
+
+        return stringBuilder.toString();
     }
 
 }

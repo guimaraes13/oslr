@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
@@ -48,6 +48,32 @@ public class WeightedClause extends HornClause {
     public WeightedClause(double weight, Atom head, Conjunction body) {
         super(head, body);
         this.weight = weight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof WeightedClause)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        WeightedClause that = (WeightedClause) o;
+
+        return Double.compare(that.weight, weight) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        long temp;
+        temp = Double.doubleToLongBits(weight);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
     }
 
     @Override

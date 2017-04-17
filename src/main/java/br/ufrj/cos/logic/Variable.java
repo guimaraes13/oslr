@@ -19,40 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
-
-import br.ufrj.cos.util.LanguageUtils;
+package br.ufrj.cos.logic;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class HornClause extends Clause {
+public class Variable extends Term {
 
-    protected Atom head;
-    protected Conjunction body;
-
-    public HornClause(Atom head) {
-        this.head = head;
+    public Variable(String name) {
+        super(name);
     }
 
-    public HornClause(Atom head, Conjunction body) {
-        this.head = head;
-        this.body = body;
-    }
-
-    public Atom getHead() {
-        return head;
-    }
-
-    public Conjunction getBody() {
-        return body;
+    @Override
+    public boolean equals(Object o) {
+        return this == o;
     }
 
     @Override
     public String toString() {
-        return LanguageUtils.formatHornClause(this);
+        return name;
     }
 
 }

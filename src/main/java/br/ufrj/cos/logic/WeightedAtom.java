@@ -19,41 +19,47 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
+
+import java.util.List;
 
 /**
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
-public class Constant extends Term {
+public class WeightedAtom extends Atom {
 
-    public Constant(String name) {
+    protected double weight = 1.0;
+
+    public WeightedAtom(String name, List<Term> terms) {
+        super(name, terms);
+    }
+
+    public WeightedAtom(String name) {
         super(name);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Constant)) {
-            return false;
-        }
+    public WeightedAtom(double weight, Atom atom) {
+        super(atom.getName(), atom.getTerms());
+        this.weight = weight;
+    }
 
-        Constant constant = (Constant) o;
+    public WeightedAtom(double weight, String name, List<Term> terms) {
+        super(name, terms);
+        this.weight = weight;
+    }
 
-        return name.equals(constant.name);
+    public WeightedAtom(double weight, String name) {
+        super(name);
+        this.weight = weight;
     }
 
     @Override
     public String toString() {
-        if (LanguageUtils.doesNameContainsSpecialCharacters(name)) {
-            return LanguageUtils.surroundConstant(name);
-        }
-
-        return name;
+        return weight + " " + LanguageUtils.WEIGHT_SIGN + " " + super.toString();
     }
+
 }

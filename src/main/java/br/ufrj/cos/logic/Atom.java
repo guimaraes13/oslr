@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.language;
+package br.ufrj.cos.logic;
 
 import java.util.List;
 
@@ -55,6 +55,30 @@ public class Atom extends Clause {
 
     public List<Term> getTerms() {
         return terms;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Atom)) {
+            return false;
+        }
+
+        Atom atom = (Atom) o;
+
+        if (!name.equals(atom.name)) {
+            return false;
+        }
+        return terms != null ? terms.equals(atom.terms) : atom.terms == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + (terms != null ? terms.hashCode() : 0);
+        return result;
     }
 
     @Override
