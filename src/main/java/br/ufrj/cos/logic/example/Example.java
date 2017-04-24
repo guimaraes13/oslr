@@ -71,15 +71,20 @@ public class Example extends Atom {
         if (!(o instanceof Example)) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
 
-        Example that = (Example) o;
+        Example example = (Example) o;
 
-        return positive == that.positive;
+        return positive == example.positive;
     }
 
     @Override
     public int hashCode() {
-        return (positive ? 1 : 0);
+        int result = super.hashCode();
+        result = 31 * result + (positive ? 1 : 0);
+        return result;
     }
 
     @Override

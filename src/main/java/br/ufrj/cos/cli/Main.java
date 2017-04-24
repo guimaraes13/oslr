@@ -19,12 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.main;
+package br.ufrj.cos.cli;
 
 import br.ufrj.cos.util.TimeMeasure;
 import edu.cmu.ml.proppr.Grounder;
+import edu.cmu.ml.proppr.QueryAnswerer;
 import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
+import edu.cmu.ml.proppr.prove.InnerProductWeighter;
 import edu.cmu.ml.proppr.util.*;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
@@ -33,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created on 25/03/17.
@@ -47,79 +50,49 @@ public class Main {
         Locale.setDefault(new Locale("en", "us"));
 
 //        Smokers Experiment
-//        String prefix = "/Users/Victor/Desktop/ProPPR_Smokers";
-//        String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
-//
-//        String[] groundingArguments = new String[]{
-//                "--programFiles",
-//                new File(prefix, "smokers.wam").getAbsolutePath() + ":" +
-//                        new File(prefix, "smokers.graph").getAbsolutePath() + ":" +
-//                        new File(prefix, "smokers.cfacts").getAbsolutePath(),
-//                "--queries",
-//                new File(prefix, "smokers_train.data").getAbsolutePath(),
-//                "--grounded",
-//                grounded,
-//                "--prover",
-//                "dpr"
-//        };
-//
-//        String[] trainingArguments = new String[]{
-//                "--train",
-//                grounded,
-//                "--params",
-//                new File(prefix, "smokers.wts").getAbsolutePath(),
-//        };
-
-//      Google Near 1M Experiment
-        String prefix = "/Users/Victor/IdeaProjects/ProPPR/examples/top-1M-near-X";
-        String grounded = new File(prefix, "top-1M-near-google.train.examples.grounded").getAbsolutePath();
+        String prefix = "/Users/Victor/Desktop/ProPPR_Smokers";
+        String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
 
         String[] groundingArguments = new String[]{
                 "--programFiles",
-                new File(prefix, "top-1M-near-google-recursive.wam").getAbsolutePath()
-                        + ":" + new File(prefix, "top-1M-near-google-fact.graph").getAbsolutePath(),
-//                        + ":" + new File(prefix, "smokers.cfacts").getAbsolutePath(),
+                new File(prefix, "smokers2.wam").getAbsolutePath() + ":" +
+                        new File(prefix, "smokers.graph").getAbsolutePath() + ":" +
+                        new File(prefix, "smokers.cfacts").getAbsolutePath(),
                 "--queries",
-                new File(prefix, "top-1M-near-google.train.examples").getAbsolutePath(),
+                new File(prefix, "smokers_train.data").getAbsolutePath(),
                 "--grounded",
                 grounded,
                 "--prover",
-                "dpr"
+                "dpr:0.03:0.2",
+//                "alph=0.3"
+//                "--epochs",
+//                "20"
         };
 
         String[] trainingArguments = new String[]{
                 "--train",
                 grounded,
                 "--params",
-                new File(prefix, "top-1M-near-google.wts").getAbsolutePath(),
+                new File(prefix, "smokers.wts").getAbsolutePath(),
         };
 
-        String dataSet = "beatles";
-//        Baseball Near 1M Experiment
-        prefix = "/Users/Victor/IdeaProjects/ProPPR/examples/top-1M-near-X";
-        grounded = new File(prefix, "top-1M-near-" + dataSet + ".train.examples.grounded").getAbsolutePath();
-
-        groundingArguments = new String[]{
+        String[] inferenceArguments = new String[]{
                 "--programFiles",
-                new File(prefix, "top-1M-near-" + dataSet + "-recursive.wam").getAbsolutePath()
-                        + ":" + new File(prefix, "top-1M-near-" + dataSet + "-fact.graph").getAbsolutePath(),
-//                        + ":" + new File(prefix, "smokers.cfacts").getAbsolutePath(),
+                new File(prefix, "smokers2.wam").getAbsolutePath() + ":" +
+                        new File(prefix, "smokers.graph").getAbsolutePath() + ":" +
+                        new File(prefix, "smokers.cfacts").getAbsolutePath(),
                 "--queries",
-                new File(prefix, "top-1M-near-" + dataSet + ".train.examples").getAbsolutePath(),
-                "--grounded",
-                grounded,
+                new File(prefix, "smokers_train.data").getAbsolutePath(),
+                "--solutions",
+                new File(prefix, "pre.training.solutions.txt").getAbsolutePath(),
                 "--prover",
                 "dpr"
         };
 
-        trainingArguments = new String[]{
-                "--train",
-                grounded,
-                "--params",
-                new File(prefix, "top-1M-near-" + dataSet + ".wts").getAbsolutePath(),
-        };
-
-        runExperiment(dataSet, groundingArguments, trainingArguments);
+//        grounder(1e-2, 0.1, new String[]{"--help"});
+        grounder(1e-2, 0.1, groundingArguments);
+//        trainer(1e-2, 0.1, trainingArguments);
+//        inference(1e-2, 0.1, inferenceArguments);
     }
 
     protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
@@ -149,8 +122,8 @@ public class Main {
 
             Grounder.ExampleGrounderConfiguration c = new Grounder.ExampleGrounderConfiguration(args, inputFiles, outputFiles, constants, modules);
 
-            c.apr.epsilon = epsilon;
-            c.apr.alpha = alpha;
+//            c.apr.epsilon = epsilon;
+//            c.apr.alpha = alpha;
 
             System.out.println(c.toString());
 
@@ -218,6 +191,52 @@ public class Main {
             t.printStackTrace();
             System.exit(-1);
         }
+    }
+
+    public static void inference(double epsilon, double alpha, String[] args) {
+        org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(QueryAnswerer.class);
+        double MIN_FEATURE_TRANSFER = .1;
+        try {
+            int inputFiles = Configuration.USE_QUERIES | Configuration.USE_PARAMS;
+            int outputFiles = Configuration.USE_ANSWERS;
+            int modules = Configuration.USE_PROVER | Configuration.USE_SQUASHFUNCTION;
+            int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER;
+            QueryAnswerer.QueryAnswererConfiguration c = new QueryAnswerer.QueryAnswererConfiguration(
+                    args,
+                    inputFiles, outputFiles, constants, modules);
+            c.apr.epsilon = epsilon;
+            c.apr.alpha = alpha;
+//			c.squashingFunction = new Exp();
+            System.out.println(c.toString());
+            QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c.topk);
+            if (log.isInfoEnabled()) {
+                log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
+            }
+            if (c.paramsFile != null) {
+                ParamsFile file = new ParamsFile(c.paramsFile);
+                qa.addParams(c.prover, new SimpleParamVector<String>(Dictionary.load(file, new ConcurrentHashMap<String, Double>())), c.squashingFunction);
+                file.check(c);
+            }
+            long start = System.currentTimeMillis();
+            qa.findSolutions(c.queryFile, c.solutionsFile, c.maintainOrder);
+            if (c.prover.getWeighter() instanceof InnerProductWeighter) {
+                InnerProductWeighter w = (InnerProductWeighter) c.prover.getWeighter();
+                int n = w.getWeights().size();
+                int m = w.seenKnownFeatures() + w.seenUnknownFeatures();
+                if (((double) w.seenKnownFeatures() / n) < MIN_FEATURE_TRANSFER) {
+                    log.warn("Only saw " + w.seenKnownFeatures() + " of " + n + " known features (" + ((double) w.seenKnownFeatures() / n * 100) + "%) -- test data may be too different from training data");
+                }
+                if (w.seenUnknownFeatures() > w.seenKnownFeatures()) {
+                    log.warn("Saw more unknown features (" + w.seenUnknownFeatures() + ") than known features (" + w.seenKnownFeatures() + ") -- test data may be too different from training data");
+                }
+            }
+            System.out.println("Query-answering time: " + (System.currentTimeMillis() - start));
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(-1);
+        }
+
     }
 
 }
