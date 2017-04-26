@@ -28,6 +28,10 @@ package br.ufrj.cos.logic;
  */
 public abstract class Clause {
 
+    public abstract boolean isGrounded();
+
+    public abstract boolean isFact();
+
     @Override
     public abstract boolean equals(Object obj);
 

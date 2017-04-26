@@ -40,6 +40,11 @@ public class Atom extends Clause {
     protected String name;
     protected List<Term> terms;
 
+    public Atom(Atom atom) {
+        this.name = atom.name;
+        this.terms = atom.terms;
+    }
+
     public Atom(String name, List<Term> terms) {
         this.name = name;
         this.terms = terms;
@@ -55,6 +60,21 @@ public class Atom extends Clause {
 
     public List<Term> getTerms() {
         return terms;
+    }
+
+    @Override
+    public boolean isGrounded() {
+        for (Term term : terms) {
+            if (!(term instanceof Constant)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isFact() {
+        return true;
     }
 
     @Override

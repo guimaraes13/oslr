@@ -21,8 +21,8 @@
 
 package br.ufrj.cos.language;
 
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.logic.*;
-import br.ufrj.cos.logic.example.Example;
 import br.ufrj.cos.util.LanguageUtils;
 import junit.framework.Assert;
 import org.junit.Test;

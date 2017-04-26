@@ -68,7 +68,7 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
     };
     static final long[] jjtoMore = {
             0x0L,
-    };
+};
     private final int[] jjrounds = new int[15];
     private final int[] jjstateSet = new int[2 * 15];
     private final StringBuilder jjimage = new StringBuilder();
@@ -81,9 +81,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
     int curLexState = 0;
     int defaultLexState = 0;
     int jjnewStateCnt;
-    int jjround;
-    int jjmatchedPos;
-    int jjmatchedKind;
+int jjround;
+int jjmatchedPos;
+int jjmatchedKind;
     private StringBuilder image = jjimage;
     private int jjimageLen;
     private int lengthOfMatch;
@@ -93,9 +93,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
      */
     public KnowledgeParserTokenManager(SimpleCharStream stream) {
 
-       if (SimpleCharStream.staticFlag) {
-          throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
-       }
+        if (SimpleCharStream.staticFlag) {
+            throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
+        }
 
         input_stream = stream;
     }
@@ -131,9 +131,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                     jjmatchedKind = 9;
                     return 7;
                 }
-               if ((active0 & 0x20000L) != 0L) {
-                  return 3;
-               }
+                if ((active0 & 0x20000L) != 0L) {
+                    return 3;
+                }
                 return -1;
             case 1:
                 if ((active0 & 0x80L) != 0L) {
@@ -189,14 +189,14 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
         }
         switch (curChar) {
             case 45:
-               if ((active0 & 0x10000L) != 0L) {
-                  return jjStopAtPos(1, 16);
-               }
+                if ((active0 & 0x10000L) != 0L) {
+                    return jjStopAtPos(1, 16);
+                }
                 break;
             case 58:
-               if ((active0 & 0x2000L) != 0L) {
-                  return jjStopAtPos(1, 13);
-               }
+                if ((active0 & 0x2000L) != 0L) {
+                    return jjStopAtPos(1, 13);
+                }
                 break;
             case 111:
                 return jjMoveStringLiteralDfa2_0(active0, 0x80L);
@@ -207,9 +207,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
     }
 
     private int jjMoveStringLiteralDfa2_0(long old0, long active0) {
-       if (((active0 &= old0)) == 0L) {
-          return jjStartNfa_0(0, old0);
-       }
+        if (((active0 &= old0)) == 0L) {
+            return jjStartNfa_0(0, old0);
+        }
         try {
             curChar = input_stream.readChar();
         } catch (java.io.IOException e) {
@@ -218,9 +218,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
         }
         switch (curChar) {
             case 116:
-               if ((active0 & 0x80L) != 0L) {
-                  return jjStartNfaWithStates_0(2, 7, 7);
-               }
+                if ((active0 & 0x80L) != 0L) {
+                    return jjStartNfaWithStates_0(2, 7, 7);
+                }
                 break;
             default:
                 break;
@@ -246,18 +246,18 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
         jjstateSet[0] = startState;
         int kind = 0x7fffffff;
         for (; ; ) {
-           if (++jjround == 0x7fffffff) {
-              ReInitRounds();
-           }
+            if (++jjround == 0x7fffffff) {
+                ReInitRounds();
+            }
             if (curChar < 64) {
                 long l = 1L << curChar;
                 do {
                     switch (jjstateSet[--i]) {
                         case 0:
                             if ((0x3ff000000000000L & l) != 0L) {
-                               if (kind > 6) {
-                                  kind = 6;
-                               }
+                                if (kind > 6) {
+                                    kind = 6;
+                                }
                                 {
                                     jjCheckNAddStates(0, 2);
                                 }
@@ -266,21 +266,21 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                             } else if (curChar == 46) {
                                 jjCheckNAdd(3);
                             } else if (curChar == 37) {
-                               if (kind > 5) {
-                                  kind = 5;
-                               }
+                                if (kind > 5) {
+                                    kind = 5;
+                                }
                                 {
                                     jjCheckNAdd(1);
                                 }
                             }
                             break;
                         case 1:
-                           if ((0xffffffffffffdbffL & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 5) {
-                              kind = 5;
-                           }
+                            if ((0xffffffffffffdbffL & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 5) {
+                                kind = 5;
+                            }
                         {
                             jjCheckNAdd(1);
                         }
@@ -291,32 +291,32 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                             }
                             break;
                         case 3:
-                           if ((0x3ff000000000000L & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 6) {
-                              kind = 6;
-                           }
+                            if ((0x3ff000000000000L & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 6) {
+                                kind = 6;
+                            }
                         {
                             jjCheckNAdd(3);
                         }
                         break;
                         case 5:
-                           if ((0x3ff200000000000L & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 8) {
-                              kind = 8;
-                           }
+                            if ((0x3ff200000000000L & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 8) {
+                                kind = 8;
+                            }
                             jjstateSet[jjnewStateCnt++] = 5;
                             break;
                         case 7:
-                           if ((0x3ff200000000000L & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 9) {
-                              kind = 9;
-                           }
+                            if ((0x3ff200000000000L & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 9) {
+                                kind = 9;
+                            }
                             jjstateSet[jjnewStateCnt++] = 7;
                             break;
                         case 8:
@@ -334,17 +334,17 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                             }
                             break;
                         case 12:
-                           if (curChar == 34 && kind > 18) {
-                              kind = 18;
-                           }
+                            if (curChar == 34 && kind > 18) {
+                                kind = 18;
+                            }
                             break;
                         case 13:
-                           if ((0x3ff000000000000L & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 6) {
-                              kind = 6;
-                           }
+                            if ((0x3ff000000000000L & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 6) {
+                                kind = 6;
+                            }
                         {
                             jjCheckNAddStates(0, 2);
                         }
@@ -364,75 +364,75 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                     switch (jjstateSet[--i]) {
                         case 0:
                             if ((0x7fffffe00000000L & l) != 0L) {
-                               if (kind > 9) {
-                                  kind = 9;
-                               }
+                                if (kind > 9) {
+                                    kind = 9;
+                                }
                                 {
                                     jjCheckNAdd(7);
                                 }
                             } else if ((0x7fffffeL & l) != 0L) {
-                               if (kind > 8) {
-                                  kind = 8;
-                               }
+                                if (kind > 8) {
+                                    kind = 8;
+                                }
                                 {
                                     jjCheckNAdd(5);
                                 }
                             }
                             break;
                         case 1:
-                           if (kind > 5) {
-                              kind = 5;
-                           }
+                            if (kind > 5) {
+                                kind = 5;
+                            }
                             jjstateSet[jjnewStateCnt++] = 1;
                             break;
                         case 4:
-                           if ((0x7fffffeL & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 8) {
-                              kind = 8;
-                           }
+                            if ((0x7fffffeL & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 8) {
+                                kind = 8;
+                            }
                         {
                             jjCheckNAdd(5);
                         }
                         break;
                         case 5:
-                           if ((0x7fffffe87fffffeL & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 8) {
-                              kind = 8;
-                           }
+                            if ((0x7fffffe87fffffeL & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 8) {
+                                kind = 8;
+                            }
                         {
                             jjCheckNAdd(5);
                         }
                         break;
                         case 6:
-                           if ((0x7fffffe00000000L & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 9) {
-                              kind = 9;
-                           }
+                            if ((0x7fffffe00000000L & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 9) {
+                                kind = 9;
+                            }
                         {
                             jjCheckNAdd(7);
                         }
                         break;
                         case 7:
-                           if ((0x7fffffe87fffffeL & l) == 0L) {
-                              break;
-                           }
-                           if (kind > 9) {
-                              kind = 9;
-                           }
+                            if ((0x7fffffe87fffffeL & l) == 0L) {
+                                break;
+                            }
+                            if (kind > 9) {
+                                kind = 9;
+                            }
                         {
                             jjCheckNAdd(7);
                         }
                         break;
                         case 9:
-                           if (curChar == 92) {
-                              jjstateSet[jjnewStateCnt++] = 10;
-                           }
+                            if (curChar == 92) {
+                                jjstateSet[jjnewStateCnt++] = 10;
+                            }
                             break;
                         case 10:
                         case 11: {
@@ -452,12 +452,12 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                 do {
                     switch (jjstateSet[--i]) {
                         case 1:
-                           if (!jjCanMove_0(hiByte, i1, i2, l1, l2)) {
-                              break;
-                           }
-                           if (kind > 5) {
-                              kind = 5;
-                           }
+                            if (!jjCanMove_0(hiByte, i1, i2, l1, l2)) {
+                                break;
+                            }
+                            if (kind > 5) {
+                                kind = 5;
+                            }
                             jjstateSet[jjnewStateCnt++] = 1;
                             break;
                         case 10:
@@ -467,11 +467,11 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                             }
                             break;
                         default:
-                           if (i1 == 0 || l1 == 0 || i2 == 0 || l2 == 0) {
-                              break;
-                           } else {
-                              break;
-                           }
+                            if (i1 == 0 || l1 == 0 || i2 == 0 || l2 == 0) {
+                                break;
+                            } else {
+                                break;
+                            }
                     }
                 } while (i != startsAt);
             }
@@ -481,9 +481,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
                 kind = 0x7fffffff;
             }
             ++curPos;
-           if ((i = jjnewStateCnt) == (startsAt = 15 - (jjnewStateCnt = startsAt))) {
-              return curPos;
-           }
+            if ((i = jjnewStateCnt) == (startsAt = 15 - (jjnewStateCnt = startsAt))) {
+                return curPos;
+            }
             try {
                 curChar = input_stream.readChar();
             } catch (java.io.IOException e) {
@@ -505,9 +505,7 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
         beginColumn = input_stream.getBeginColumn();
         endLine = input_stream.getEndLine();
         endColumn = input_stream.getEndColumn();
-        t = Token.newToken(jjmatchedKind);
-        t.kind = jjmatchedKind;
-        t.image = curTokenImage;
+        t = Token.newToken(jjmatchedKind, curTokenImage);
 
         t.beginLine = beginLine;
         t.endLine = endLine;
@@ -517,9 +515,7 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
         return t;
     }
 
-    /**
-     * Get the next Token.
-     */
+    /** Get the next Token. */
     public Token getNextToken() {
         Token matchedToken;
         int curPos = 0;
@@ -537,9 +533,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
 
             try {
                 input_stream.backup(0);
-               while (curChar <= 32 && (0x100002600L & (1L << curChar)) != 0L) {
-                  curChar = input_stream.BeginToken();
-               }
+                while (curChar <= 32 && (0x100002600L & (1L << curChar)) != 0L) {
+                    curChar = input_stream.BeginToken();
+                }
             } catch (java.io.IOException e1) {
                 continue EOFLoop;
             }
@@ -547,9 +543,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
             jjmatchedPos = 0;
             curPos = jjMoveStringLiteralDfa0_0();
             if (jjmatchedKind != 0x7fffffff) {
-               if (jjmatchedPos + 1 < curPos) {
-                  input_stream.backup(curPos - jjmatchedPos - 1);
-               }
+                if (jjmatchedPos + 1 < curPos) {
+                    input_stream.backup(curPos - jjmatchedPos - 1);
+                }
                 if ((jjtoToken[jjmatchedKind >> 6] & (1L << (jjmatchedKind & 077))) != 0L) {
                     matchedToken = jjFillToken();
                     return matchedToken;
@@ -567,12 +563,12 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
             } catch (java.io.IOException e1) {
                 EOFSeen = true;
                 error_after = curPos <= 1 ? "" : input_stream.GetImage();
-               if (curChar == '\n' || curChar == '\r') {
-                  error_line++;
-                  error_column = 0;
-               } else {
-                  error_column++;
-               }
+                if (curChar == '\n' || curChar == '\r') {
+                    error_line++;
+                    error_column = 0;
+                } else {
+                    error_column++;
+                }
             }
             if (!EOFSeen) {
                 input_stream.backup(1);
@@ -645,9 +641,9 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
     private void ReInitRounds() {
         int i;
         jjround = 0x80000001;
-       for (i = 15; i-- > 0; ) {
-          jjrounds[i] = 0x80000000;
-       }
+        for (i = 15; i-- > 0; ) {
+            jjrounds[i] = 0x80000000;
+        }
     }
 
     /**
@@ -664,10 +660,10 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
      * Switch to specified lex state.
      */
     public void SwitchTo(int lexState) {
-       if (lexState >= 1 || lexState < 0) {
-          throw new TokenMgrError("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenMgrError.INVALID_LEXICAL_STATE);
-       } else {
-          curLexState = lexState;
-       }
+        if (lexState >= 1 || lexState < 0) {
+            throw new TokenMgrError("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenMgrError.INVALID_LEXICAL_STATE);
+        } else {
+            curLexState = lexState;
+        }
     }
 }

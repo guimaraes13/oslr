@@ -48,7 +48,7 @@ public abstract class CommandLineInterface {
             CommandLine commandLine = parser.parse(options, arguments);
             parseOptions(commandLine);
         } catch (ParseException | CommandLineInterrogationException e) {
-            logger.error("Parsing failed, reason: ", e);
+            logger.error("Parsing failed, reason:\t", e);
         }
     }
 

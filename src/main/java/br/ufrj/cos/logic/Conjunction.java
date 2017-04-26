@@ -53,6 +53,15 @@ public class Conjunction extends ArrayList<Literal> {
         }
     }
 
+    public boolean isGrounded() {
+        for (Literal literal : this) {
+            if (!literal.isGrounded()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
         return LanguageUtils.listToString(this);

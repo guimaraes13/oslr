@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.logic.example;
+package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
@@ -61,6 +61,15 @@ public class Example extends Atom {
 
     public boolean isPositive() {
         return positive;
+    }
+
+    public Atom getAtom() {
+        return new Atom(this);
+    }
+
+    @Override
+    public boolean isFact() {
+        return false;
     }
 
     @Override

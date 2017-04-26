@@ -51,6 +51,16 @@ public class HornClause extends Clause {
     }
 
     @Override
+    public boolean isGrounded() {
+        return head.isGrounded() && body.isGrounded();
+    }
+
+    @Override
+    public boolean isFact() {
+        return false;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

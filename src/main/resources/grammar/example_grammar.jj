@@ -32,7 +32,8 @@ package br.ufrj.cos.logic.parser.example;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.ufrj.cos.logic.example.*;
+import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.ProPprExampleSet;
 import br.ufrj.cos.logic.*;
 
 /**
@@ -98,6 +99,18 @@ void parseExamples() :
 		proPprFormatExamples = new ArrayList();
 	}
 
+	(
+		readProbLogExample(probLogFormatExamples)
+		|
+		readProPprExample(proPprFormatExamples)
+	)* <EOF>
+}
+
+void parseExamplesAppend(List probLogFormatExamples, List proPprFormatExamples) :
+{
+
+}
+{
 	(
 		readProbLogExample(probLogFormatExamples)
 		|

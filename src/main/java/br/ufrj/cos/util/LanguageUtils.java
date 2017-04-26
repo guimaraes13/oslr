@@ -21,12 +21,12 @@
 
 package br.ufrj.cos.util;
 
+import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.ProPprExampleSet;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.logic.example.Example;
-import br.ufrj.cos.logic.example.ProPprExampleSet;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -37,6 +37,8 @@ import java.util.regex.Pattern;
  * @author Victor Guimarães
  */
 public class LanguageUtils {
+
+    public static final String DEFAULT_INPUT_ENCODE = "UTF8";
 
     public static final String PREDICATE_OPEN_ARGUMENT_CHARACTER = "(";
     public static final String PREDICATE_CLOSE_ARGUMENT_CHARACTER = ")";

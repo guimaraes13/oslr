@@ -69,7 +69,7 @@ public class ExampleParserTokenManager implements ExampleParserConstants {
     };
     static final long[] jjtoMore = {
             0x0L,
-    };
+};
     private final int[] jjrounds = new int[11];
     private final int[] jjstateSet = new int[2 * 11];
     private final StringBuilder jjimage = new StringBuilder();
@@ -82,9 +82,9 @@ public class ExampleParserTokenManager implements ExampleParserConstants {
     int curLexState = 0;
     int defaultLexState = 0;
     int jjnewStateCnt;
-    int jjround;
-    int jjmatchedPos;
-    int jjmatchedKind;
+int jjround;
+int jjmatchedPos;
+int jjmatchedKind;
     private StringBuilder image = jjimage;
     private int jjimageLen;
     private int lengthOfMatch;
@@ -92,11 +92,10 @@ public class ExampleParserTokenManager implements ExampleParserConstants {
     /**
      * Constructor.
      */
-    public ExampleParserTokenManager(SimpleCharStream stream) {
+    public ExampleParserTokenManager(SimpleCharStream stream){
 
-        if (SimpleCharStream.staticFlag) {
+        if (SimpleCharStream.staticFlag)
             throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
-        }
 
         input_stream = stream;
     }
@@ -618,9 +617,7 @@ public class ExampleParserTokenManager implements ExampleParserConstants {
         return t;
     }
 
-    /**
-     * Get the next Token.
-     */
+    /** Get the next Token. */
     public Token getNextToken() {
         Token matchedToken;
         int curPos = 0;

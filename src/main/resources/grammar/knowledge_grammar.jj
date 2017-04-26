@@ -95,6 +95,18 @@ List parseKnowledge() :
 	}
 }
 
+List parseKnowledgeAppend(List clauses) :
+{
+
+}
+{
+	( readKnowledgeLine(clauses) )* <EOF>
+
+	{
+		return clauses;
+	}
+}
+
 void readKnowledgeLine(List clauses) :
 {
 	Clause clause = null;
