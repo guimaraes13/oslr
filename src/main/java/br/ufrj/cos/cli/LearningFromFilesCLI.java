@@ -21,20 +21,23 @@
 
 package br.ufrj.cos.cli;
 
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.example.ProPprExampleSet;
-import br.ufrj.cos.knowledge.filter.BaseAncestralPredicate;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,16 +51,42 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("CanBeFinal")
 public class LearningFromFilesCLI extends CommandLineInterface implements Runnable {
 
+    /**
+     * The logger
+     */
     public static final Logger logger = LogManager.getLogger();
 
-    public static final Class<? extends Collection> KNOWLEDGE_BASE_COLLECTION_CLASS = ArrayList.class;
-    public static final Class<? extends ClausePredicate> KNOWLEDGE_BASE_PREDICATE = GroundedFactPredicate.class;
+    /**
+     * The knowledge base collection class.
+     */
+    public Class<? extends Collection> KNOWLEDGE_BASE_COLLECTION_CLASS = ArrayList.class;
+    /**
+     * The knowledge base predicate.
+     */
+    public Class<? extends ClausePredicate> KNOWLEDGE_BASE_PREDICATE = GroundedFactPredicate.class;
 
-    public static final Class<? extends Collection> THEORY_COLLECTION_CLASS = ArrayList.class;
-    public static final Class<? extends ClausePredicate> THEORY_PREDICATE = BaseAncestralPredicate.class;
-    public static final Class<? extends HornClause> THEORY_BASE_ANCESTRAL_CLASS = HornClause.class;
+    /**
+     * The most generic {@link Atom} subclass allowed in the knowledge base.
+     */
+    public Class<? extends Atom> KNOWLEDGE_BASE_ANCESTRAL_CLASS = Atom.class;
+
+    /**
+     * The theory collection class.
+     */
+    public Class<? extends Collection> THEORY_COLLECTION_CLASS = ArrayList.class;
+
+    /**
+     * The theory predicate.
+     */
+    public Class<? extends ClausePredicate> THEORY_PREDICATE = null;
+
+    /**
+     * The most generic {@link HornClause} subclass allowed in the theory.
+     */
+    public Class<? extends HornClause> THEORY_BASE_ANCESTRAL_CLASS = null;
 
     /**
      * Argument options.
@@ -85,59 +114,78 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     /**
      * Knowledge base representation.
      */
-    KnowledgeBase knowledgeBase;
+    protected KnowledgeBase knowledgeBase;
 
     /**
      * Theory representation.
      */
-    Theory theory;
+    protected Theory theory;
 
     /**
      * Examples representation.
      */
-    ExampleSet examples;
+    protected ExampleSet examples;
 
+    /**
+     * The learning system.
+     */
+    protected LearningSystem learningSystem;
+
+    /**
+     * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
+     *
+     * @param file    the {@link File} to parse
+     * @param clauses the {@link List} to append to
+     */
     protected static void readClausesToList(File file, List<Clause> clauses) {
         try {
             BufferedReader reader;
             KnowledgeParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils.DEFAULT_INPUT_ENCODE));
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils
+                    .DEFAULT_INPUT_ENCODE));
             parser = new KnowledgeParser(reader);
             parser.parseKnowledgeAppend(clauses);
         } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
-            logger.error("Error when reading file {}:\t{}", file.getAbsoluteFile(), e);
+            logger.error(LogMessages.ERROR_READING_FILE.toString(), file.getAbsoluteFile(), e);
         }
     }
 
+    /**
+     * Parses the {@link File}'s examples and appends they to the correspondent {@link List}.
+     *
+     * @param file           the {@link File} to parse
+     * @param atomExamples   the {@link List} to the ProbLog like examples
+     * @param proPprExamples the {@link List} to the ProPPR like examples
+     */
     protected static void readExamplesToLists(File file,
-                                              List<Example> probLogExamples,
+                                              List<AtomExample> atomExamples,
                                               List<ProPprExampleSet> proPprExamples) {
         try {
             BufferedReader reader;
             ExampleParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils.DEFAULT_INPUT_ENCODE));
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils
+                    .DEFAULT_INPUT_ENCODE));
             parser = new ExampleParser(reader);
-            parser.parseExamplesAppend(probLogExamples, proPprExamples);
-        } catch (UnsupportedEncodingException | FileNotFoundException | br.ufrj.cos.logic.parser.example.ParseException e) {
-            logger.error("Error when reading file {}:\t{}", file.getAbsoluteFile(), e);
+            parser.parseExamplesAppend(atomExamples, proPprExamples);
+        } catch (UnsupportedEncodingException | FileNotFoundException | br.ufrj.cos.logic.parser.example
+                .ParseException e) {
+            logger.error(LogMessages.ERROR_READING_FILE.toString(), file.getAbsoluteFile(), e);
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            logger.info("Program begin!");
-            LearningFromFilesCLI main = new LearningFromFilesCLI();
-            main.parseOptions(args);
+    @Override
+    protected void initializeOptions() {
+        buildOptionSet();
+        this.options = new Options();
 
-            logger.info(main.toString());
-            main.run();
-        } catch (Exception e) {
-            logger.error("Main program error:\t", e);
-        } finally {
-            logger.fatal("Program end!");
+        for (Option option : optionSet) {
+            options.addOption(option);
         }
     }
 
+    /**
+     * Builds the {@link Set} of {@link Option}s to be parsed from the command line.
+     */
     @SuppressWarnings({"deprecation", "AccessStaticViaInstance"})
     protected void buildOptionSet() {
         optionSet = new HashSet<>();
@@ -154,21 +202,11 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
                               .withDescription("the input theory file(s)")
                               .create("t"));
 
-        optionSet.add(OptionBuilder.withArgName("examples")
+        optionSet.add(OptionBuilder.withArgName("atomExamples")
                               .withLongOpt("example")
                               .hasArgs(Option.UNLIMITED_VALUES)
                               .withDescription("the input example file(s)")
                               .create("e"));
-    }
-
-    @Override
-    protected void initializeOptions() {
-        buildOptionSet();
-        this.options = new Options();
-
-        for (Option option : optionSet) {
-            options.addOption(option);
-        }
     }
 
     @Override
@@ -188,14 +226,31 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
         }
     }
 
+    /**
+     * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
+     *
+     * @param commandLine the parsed command line
+     * @param optionName  the {@link Option} to get the parsed {@link String}s.
+     * @return the {@link File}s
+     * @throws FileNotFoundException if a file does not exists
+     */
     protected File[] getFilesFromOption(CommandLine commandLine, String optionName) throws FileNotFoundException {
         if (commandLine.hasOption(optionName)) {
-            return readPathsToFiles(commandLine.getOptionValues(optionName), options.getOption(optionName).getLongOpt());
+            return readPathsToFiles(commandLine.getOptionValues(optionName), options.getOption(optionName)
+                    .getLongOpt());
         }
 
         return new File[0];
     }
 
+    /**
+     * Reads the file paths to {@link File} objects.
+     *
+     * @param paths     the file paths
+     * @param inputName the input name
+     * @return the {@link File}s
+     * @throws FileNotFoundException if a file does not exists
+     */
     protected File[] readPathsToFiles(String paths[], String inputName) throws FileNotFoundException {
         File[] files = new File[paths.length];
         File file;
@@ -204,8 +259,8 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
             if (file.exists()) {
                 files[i] = file;
             } else {
-                throw new FileNotFoundException("File " + file.getAbsoluteFile() + " for " + inputName +
-                                                        " does not exists.");
+                throw new FileNotFoundException(String.format(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
+                        .getAbsoluteFile(), inputName));
             }
         }
 
@@ -218,102 +273,138 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            logger.error("Error during reading the input files:\t", e);
+            buildLearningSystem();
+            //TODO: call the learning method, some how
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
+                e) {
+            logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
         }
     }
 
+    /**
+     * Builds the {@link KnowledgeBase} from the input files.
+     *
+     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     */
     protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException {
         List<Clause> clauses = readInputKnowledge(knowledgeBaseFiles);
         ClausePredicate predicate = KNOWLEDGE_BASE_PREDICATE.newInstance();
-        logger.debug("Creating knowledge base with predicate:\t{}", predicate);
+        logger.debug(LogMessages.CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
 
         knowledgeBase = new KnowledgeBase(KNOWLEDGE_BASE_COLLECTION_CLASS.newInstance(), predicate);
-        knowledgeBase.addAll(clauses);
-        logger.info("Knowledge base size:\t{}", knowledgeBase.size());
+        knowledgeBase.addAll(clauses, KNOWLEDGE_BASE_ANCESTRAL_CLASS);
+        logger.info(LogMessages.KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
     }
 
+    /**
+     * Builds the {@link Theory} from the input files.
+     *
+     * @throws NoSuchMethodException     if an error occurs when instantiating a new object by reflection
+     * @throws IllegalAccessException    if an error occurs when instantiating a new object by reflection
+     * @throws InvocationTargetException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException    if an error occurs when instantiating a new object by reflection
+     */
     protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, InstantiationException {
         List<Clause> clauses = readInputKnowledge(theoryFiles);
-        ClausePredicate predicate = THEORY_PREDICATE.getConstructor(THEORY_BASE_ANCESTRAL_CLASS.getClass())
-                .newInstance(THEORY_BASE_ANCESTRAL_CLASS);
-        logger.debug("Creating theory with predicate:\t{}", predicate);
+
+        ClausePredicate predicate = null;
+        if (THEORY_PREDICATE != null && THEORY_BASE_ANCESTRAL_CLASS != null) {
+            predicate = THEORY_PREDICATE.getConstructor(THEORY_BASE_ANCESTRAL_CLASS.getClass())
+                    .newInstance(THEORY_BASE_ANCESTRAL_CLASS);
+            logger.debug(LogMessages.CREATING_THEORY_WITH_PREDICATE.toString(), predicate);
+        }
 
         theory = new Theory(THEORY_COLLECTION_CLASS.newInstance(), predicate);
         theory.addAll(clauses, THEORY_BASE_ANCESTRAL_CLASS);
-        logger.info("Theory size:\t{}", theory.size());
+        logger.info(LogMessages.THEORY_SIZE.toString(), theory.size());
     }
 
+    /**
+     * Builds the {@link ExampleSet} from the input files.
+     */
     protected void buildExampleSet() {
         List<InputStream> inputStreams = new ArrayList<>();
-        List<Example> probLogExamples = new ArrayList<>();
+        List<AtomExample> atomExamples = new ArrayList<>();
         List<ProPprExampleSet> proPprExamples = new ArrayList<>();
-        logger.trace("Reading input file(s).");
+        logger.trace(LogMessages.READING_INPUT_FILES);
         for (File file : exampleFiles) {
-            readExamplesToLists(file, probLogExamples, proPprExamples);
+            readExamplesToLists(file, atomExamples, proPprExamples);
         }
-        logger.info("Number of read examples lines:\t{}", probLogExamples.size() + proPprExamples.size());
-        examples = new ExampleSet(probLogExamples, proPprExamples);
+        logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
+        examples = new ExampleSet(atomExamples, proPprExamples);
     }
 
+    /**
+     * Builds the {@link LearningSystem}.
+     */
+    protected void buildLearningSystem() {
+        logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
+        learningSystem = new LearningSystem(knowledgeBase, theory, examples);
+    }
+
+    /**
+     * Reads the input {@link File}s to a {@link List} of {@link Clause}s.
+     *
+     * @param inputFiles the input {@link File}s
+     * @return the {@link List} of {@link Clause}s
+     */
     protected List<Clause> readInputKnowledge(File[] inputFiles) {
         List<InputStream> inputStreams = new ArrayList<>();
         List<Clause> clauses = new ArrayList<>();
-        logger.trace("Reading input file(s).");
+        logger.trace(LogMessages.READING_INPUT_FILES);
         for (File file : inputFiles) {
             readClausesToList(file, clauses);
         }
-        logger.debug("Number of read clauses:\t{}", clauses.size());
+        logger.debug(LogMessages.READ_CLAUSE_SIZE.toString(), clauses.size());
         return clauses;
     }
 
+    /**
+     * Gets the {@link KnowledgeBase}'s files
+     *
+     * @return the {@link KnowledgeBase}'s files
+     */
     public File[] getKnowledgeBaseFiles() {
         return knowledgeBaseFiles;
     }
 
-    public void setKnowledgeBaseFiles(File[] knowledgeBaseFiles) {
-        this.knowledgeBaseFiles = knowledgeBaseFiles;
-    }
-
+    /**
+     * Gets the {@link Theory}'s files
+     *
+     * @return the {@link Theory}'s files
+     */
     public File[] getTheoryFiles() {
         return theoryFiles;
     }
 
-    public void setTheoryFiles(File[] theoryFiles) {
-        this.theoryFiles = theoryFiles;
-    }
-
+    /**
+     * Gets the {@link ExampleSet}'s files
+     *
+     * @return the {@link ExampleSet}'s files
+     */
     public File[] getExampleFiles() {
         return exampleFiles;
     }
 
-    public void setExampleFiles(File[] exampleFiles) {
-        this.exampleFiles = exampleFiles;
-    }
-
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
+        String description = "\t" +
+                "Settings:" +
+                "\n" +
+                "\t" +
+                "Knowledge base files:\t" +
+                Arrays.deepToString(knowledgeBaseFiles) +
+                "\n" +
+                "\t" +
+                "Theory files:\t\t\t" +
+                Arrays.deepToString(theoryFiles) +
+                "\n" +
+                "\t" +
+                "Example files:\t\t\t" +
+                Arrays.deepToString(exampleFiles);
 
-        stringBuilder.append("\t");
-        stringBuilder.append("Settings:");
-        stringBuilder.append("\n");
-
-        stringBuilder.append("\t");
-        stringBuilder.append("Knowledge base files:\t");
-        stringBuilder.append(Arrays.deepToString(knowledgeBaseFiles));
-        stringBuilder.append("\n");
-
-        stringBuilder.append("\t");
-        stringBuilder.append("Theory files:\t\t\t");
-        stringBuilder.append(Arrays.deepToString(theoryFiles));
-        stringBuilder.append("\n");
-
-        stringBuilder.append("\t");
-        stringBuilder.append("Example files:\t\t\t");
-        stringBuilder.append(Arrays.deepToString(exampleFiles));
-
-        return stringBuilder.toString().trim();
+        return description.trim();
     }
 }

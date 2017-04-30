@@ -21,28 +21,29 @@
 
 package br.ufrj.cos.knowledge.example;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Responsible to hold the read examples from the input.
+ * Responsible to hold the read atomExamples from the input.
  * <p>
  * Created on 25/04/17.
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("CanBeFinal")
 public class ExampleSet {
 
-    List<Example> probLogExamples;
-    List<ProPprExampleSet> proPprExamples;
+    protected List<AtomExample> atomExamples;
+    protected List<ProPprExampleSet> proPprExamples;
 
-    public ExampleSet() {
-        this.probLogExamples = new ArrayList<>();
-        this.proPprExamples = new ArrayList<>();
-    }
-
-    public ExampleSet(List<Example> probLogExamples, List<ProPprExampleSet> proPprExamples) {
-        this.probLogExamples = probLogExamples;
+    /**
+     * Constructor with the example lists
+     *
+     * @param atomExamples   the {@link AtomExample}s
+     * @param proPprExamples the {@link ProPprExampleSet}s
+     */
+    public ExampleSet(List<AtomExample> atomExamples, List<ProPprExampleSet> proPprExamples) {
+        this.atomExamples = atomExamples;
         this.proPprExamples = proPprExamples;
     }
 

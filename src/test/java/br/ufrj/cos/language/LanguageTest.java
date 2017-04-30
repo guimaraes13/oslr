@@ -21,7 +21,7 @@
 
 package br.ufrj.cos.language;
 
-import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.LanguageUtils;
 import junit.framework.Assert;
@@ -58,39 +58,6 @@ public class LanguageTest {
         return terms;
     }
 
-    protected String getFormattedAtom(String atomName, List<Term> terms) {
-        return String.format("%s%s%s%s",
-                             atomName,
-                             LanguageUtils.PREDICATE_OPEN_ARGUMENT_CHARACTER,
-                             LanguageUtils.listToString(terms),
-                             LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
-    }
-
-    protected String getFormattedProposition(String atomName) {
-        return String.format("%s", atomName);
-    }
-
-    protected String getFormattedHornClause(Atom head, Literal... body) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(head.toString());
-        stringBuilder.append(" ");
-        stringBuilder.append(LanguageUtils.IMPLICATION_SIGN);
-        stringBuilder.append(" ");
-        for (Literal literal : body) {
-            stringBuilder.append(literal.toString());
-            stringBuilder.append(LanguageUtils.LIST_ARGUMENTS_SEPARATOR);
-        }
-        stringBuilder.delete(stringBuilder.length() - LanguageUtils.LIST_ARGUMENTS_SEPARATOR.length(),
-                             stringBuilder.length());
-
-        stringBuilder.append(LanguageUtils.CLAUSE_END_OF_LINE);
-        return stringBuilder.toString().trim();
-    }
-
-    protected String getWeightPrefix(double weight) {
-        return weight + " " + LanguageUtils.WEIGHT_SIGN + " ";
-    }
-
     @Test
     public void CONSTANT_NAME_FORMATTING_TEST() {
         Assert.assertEquals(SIMPLE_CONSTANT_NAME, simpleConstant.toString());
@@ -104,11 +71,23 @@ public class LanguageTest {
         Assert.assertEquals(atomString, atom.toString());
     }
 
+    protected String getFormattedAtom(String atomName, List<Term> terms) {
+        return String.format("%s%s%s%s",
+                             atomName,
+                             LanguageUtils.PREDICATE_OPEN_ARGUMENT_CHARACTER,
+                             LanguageUtils.listToString(terms),
+                             LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
+    }
+
     @Test
     public void PROPOSITION_ATOM_TEST() {
         Atom atom = new Atom(ATOM_NAME);
         String atomString = getFormattedProposition(ATOM_NAME);
         Assert.assertEquals(atomString, atom.toString());
+    }
+
+    protected String getFormattedProposition(String atomName) {
+        return String.format("%s", atomName);
     }
 
     @Test
@@ -117,6 +96,10 @@ public class LanguageTest {
         Atom atom = new WeightedAtom(weight, ATOM_NAME, terms);
         String atomString = getWeightPrefix(weight) + getFormattedAtom(ATOM_NAME, terms);
         Assert.assertEquals(atomString, atom.toString());
+    }
+
+    protected String getWeightPrefix(double weight) {
+        return weight + " " + LanguageUtils.WEIGHT_SIGN + " ";
     }
 
     @Test
@@ -154,20 +137,37 @@ public class LanguageTest {
         Assert.assertEquals(hornString, hornClause.toString());
     }
 
+    protected String getFormattedHornClause(Atom head, Literal... body) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(head.toString());
+        stringBuilder.append(" ");
+        stringBuilder.append(LanguageUtils.IMPLICATION_SIGN);
+        stringBuilder.append(" ");
+        for (Literal literal : body) {
+            stringBuilder.append(literal.toString());
+            stringBuilder.append(LanguageUtils.LIST_ARGUMENTS_SEPARATOR);
+        }
+        stringBuilder.delete(stringBuilder.length() - LanguageUtils.LIST_ARGUMENTS_SEPARATOR.length(),
+                             stringBuilder.length());
+
+        stringBuilder.append(LanguageUtils.CLAUSE_END_OF_LINE);
+        return stringBuilder.toString().trim();
+    }
+
     @Test
     public void POSITIVE_EXAMPLE_TEST() {
         Atom atom = new Atom(ATOM_NAME, terms);
         String atomString = LanguageUtils.POSITIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
-        Example example = new Example(atom, true);
-        Assert.assertEquals(atomString, example.toString());
+        AtomExample atomExample = new AtomExample(atom, true);
+        Assert.assertEquals(atomString, atomExample.toString());
     }
 
     @Test
     public void NEGATIVE_EXAMPLE_TEST() {
         Atom atom = new Atom(ATOM_NAME, terms);
         String atomString = LanguageUtils.NEGATIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
-        Example example = new Example(atom, false);
-        Assert.assertEquals(atomString, example.toString());
+        AtomExample atomExample = new AtomExample(atom, false);
+        Assert.assertEquals(atomString, atomExample.toString());
     }
 
     @Test

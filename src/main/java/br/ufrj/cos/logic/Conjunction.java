@@ -27,24 +27,44 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * Represents a conjunction of {@link Literal}s.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class Conjunction extends ArrayList<Literal> {
 
+    /**
+     * Constructs with initial capacity
+     *
+     * @param initialCapacity the initial capacity
+     */
     public Conjunction(int initialCapacity) {
         super(initialCapacity);
     }
 
+    /**
+     * Default constructor
+     */
     public Conjunction() {
         super();
     }
 
+    /**
+     * Constructs from another {@link Collection}
+     *
+     * @param c the {@link Collection}
+     */
     public Conjunction(Collection<? extends Literal> c) {
         super(c);
     }
 
+    /**
+     * Constructs from an arbitrary number of {@link Literal}s
+     *
+     * @param literals the {@link Literal}s
+     */
     public Conjunction(Literal... literals) {
         super(literals.length);
 
@@ -53,6 +73,11 @@ public class Conjunction extends ArrayList<Literal> {
         }
     }
 
+    /**
+     * Checks if the conjunction is grounded. A conjunction is grounded if all its {@link Term}s are grounded
+     *
+     * @return {@code true} if it is grounded, {@code false} otherwise
+     */
     public boolean isGrounded() {
         for (Literal literal : this) {
             if (!literal.isGrounded()) {

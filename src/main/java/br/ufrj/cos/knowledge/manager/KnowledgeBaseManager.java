@@ -22,8 +22,8 @@
 package br.ufrj.cos.knowledge.manager;
 
 /**
- * Responsible for managing the knowledge. It should hold method to decide whether to move a fact (clause) from the
- * knowledge base to the examples (theory) or the opposite.
+ * Responsible for managing the knowledge. It should hold methods to decide whether to move a fact (clause) from the
+ * knowledge base to the atomExamples (theory) or the opposite.
  * <p>
  * Those methods should not make the changes directly, but invoke other methods on the
  * {@link br.ufrj.cos.core.LearningSystem} to do so.

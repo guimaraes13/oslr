@@ -95,32 +95,17 @@ public class Main {
 //        inference(1e-2, 0.1, inferenceArguments);
     }
 
-    protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
-        logger.fatal("Begin");
-        long begin = TimeMeasure.getNanoTime();
-        grounder(1e-2, 0.1, groundingArguments);
-        long endGrounding = TimeMeasure.getNanoTime();
-        trainer(1e-2, 0.1, trainingArguments);
-        long end = TimeMeasure.getNanoTime();
-        long groundingTime = endGrounding - begin;
-        long trainingTime = end - endGrounding;
-        long totalTime = end - begin;
-
-        logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time was:\t{}.",
-                     dataSet,
-                     TimeMeasure.formatNanoDifference(groundingTime),
-                     TimeMeasure.formatNanoDifference(trainingTime),
-                     TimeMeasure.formatNanoDifference(totalTime));
-    }
-
     public static void grounder(double epsilon, double alpha, String[] args) {
         try {
             int inputFiles = Configuration.USE_QUERIES | Configuration.USE_PARAMS;
             int outputFiles = Configuration.USE_GROUNDED;
-            int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER | Configuration.USE_EMPTYGRAPHS;
+            int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER |
+                    Configuration.USE_EMPTYGRAPHS;
             int modules = Configuration.USE_GROUNDER | Configuration.USE_PROVER | Configuration.USE_SQUASHFUNCTION;
 
-            Grounder.ExampleGrounderConfiguration c = new Grounder.ExampleGrounderConfiguration(args, inputFiles, outputFiles, constants, modules);
+            Grounder.ExampleGrounderConfiguration c = new Grounder.ExampleGrounderConfiguration(args, inputFiles,
+                                                                                                outputFiles,
+                                                                                                constants, modules);
 
 //            c.apr.epsilon = epsilon;
 //            c.apr.alpha = alpha;
@@ -147,12 +132,32 @@ public class Main {
         }
     }
 
+    protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
+        logger.fatal("Begin");
+        long begin = TimeMeasure.getNanoTime();
+        grounder(1e-2, 0.1, groundingArguments);
+        long endGrounding = TimeMeasure.getNanoTime();
+        trainer(1e-2, 0.1, trainingArguments);
+        long end = TimeMeasure.getNanoTime();
+        long groundingTime = endGrounding - begin;
+        long trainingTime = end - endGrounding;
+        long totalTime = end - begin;
+
+        logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time " +
+                             "was:\t{}.",
+                     dataSet,
+                     TimeMeasure.formatNanoDifference(groundingTime),
+                     TimeMeasure.formatNanoDifference(trainingTime),
+                     TimeMeasure.formatNanoDifference(totalTime));
+    }
+
     public static void trainer(double epsilon, double alpha, String[] args) {
         org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Trainer.class);
         try {
             int inputFiles = Configuration.USE_TRAIN | Configuration.USE_INIT_PARAMS;
             int outputFiles = Configuration.USE_PARAMS;
-            int constants = Configuration.USE_EPOCHS | Configuration.USE_FORCE | Configuration.USE_THREADS | Configuration.USE_FIXEDWEIGHTS;
+            int constants = Configuration.USE_EPOCHS | Configuration.USE_FORCE | Configuration.USE_THREADS |
+                    Configuration.USE_FIXEDWEIGHTS;
             int modules = Configuration.USE_TRAINER | Configuration.USE_SRW | Configuration.USE_SQUASHFUNCTION;
             ModuleConfiguration c = new ModuleConfiguration(args, inputFiles, outputFiles, constants, modules);
 
@@ -163,7 +168,8 @@ public class Main {
 
             String groundedFile = c.queryFile.getPath();
             if (!c.queryFile.getName().endsWith(Grounder.GROUNDED_SUFFIX)) {
-                throw new IllegalStateException("Run Grounder on " + c.queryFile.getName() + " first. Ground+Train in one go is not supported yet.");
+                throw new IllegalStateException("Run Grounder on " + c.queryFile.getName() + " first. Ground+Train in" +
+                                                        " one go is not supported yet.");
             }
             SymbolTable<String> masterFeatures = new SimpleSymbolTable<String>();
             File featureIndex = new File(groundedFile + Grounder.FEATURE_INDEX_EXTENSION);
@@ -208,13 +214,15 @@ public class Main {
             c.apr.alpha = alpha;
 //			c.squashingFunction = new Exp();
             System.out.println(c.toString());
-            QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c.topk);
+            QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c
+                    .topk);
             if (log.isInfoEnabled()) {
                 log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
             }
             if (c.paramsFile != null) {
                 ParamsFile file = new ParamsFile(c.paramsFile);
-                qa.addParams(c.prover, new SimpleParamVector<String>(Dictionary.load(file, new ConcurrentHashMap<String, Double>())), c.squashingFunction);
+                qa.addParams(c.prover, new SimpleParamVector<String>(Dictionary.load(file, new
+                        ConcurrentHashMap<String, Double>())), c.squashingFunction);
                 file.check(c);
             }
             long start = System.currentTimeMillis();
@@ -224,10 +232,13 @@ public class Main {
                 int n = w.getWeights().size();
                 int m = w.seenKnownFeatures() + w.seenUnknownFeatures();
                 if (((double) w.seenKnownFeatures() / n) < MIN_FEATURE_TRANSFER) {
-                    log.warn("Only saw " + w.seenKnownFeatures() + " of " + n + " known features (" + ((double) w.seenKnownFeatures() / n * 100) + "%) -- test data may be too different from training data");
+                    log.warn("Only saw " + w.seenKnownFeatures() + " of " + n + " known features (" + ((double) w
+                            .seenKnownFeatures() / n * 100) + "%) -- test data may be too different from training " +
+                                     "data");
                 }
                 if (w.seenUnknownFeatures() > w.seenKnownFeatures()) {
-                    log.warn("Saw more unknown features (" + w.seenUnknownFeatures() + ") than known features (" + w.seenKnownFeatures() + ") -- test data may be too different from training data");
+                    log.warn("Saw more unknown features (" + w.seenUnknownFeatures() + ") than known features (" + w
+                            .seenKnownFeatures() + ") -- test data may be too different from training data");
                 }
             }
             System.out.println("Query-answering time: " + (System.currentTimeMillis() - start));

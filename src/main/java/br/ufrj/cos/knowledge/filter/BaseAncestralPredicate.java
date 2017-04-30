@@ -24,14 +24,22 @@ package br.ufrj.cos.knowledge.filter;
 import br.ufrj.cos.logic.Clause;
 
 /**
+ * A predicate to filter a more general collection to class that are instance of a subclass of the original type.
+ * In other words, represents a upper bound on the class hierarchy of the collection.
+ * <p>
  * Created on 25/04/17.
  *
  * @author Victor Guimarães
  */
 public class BaseAncestralPredicate implements ClausePredicate {
 
-    protected Class<? extends Clause> baseAcceptedClass;
+    protected final Class<? extends Clause> baseAcceptedClass;
 
+    /**
+     * Constructs the predicate
+     *
+     * @param baseAcceptedClass the upper bound class
+     */
     public BaseAncestralPredicate(Class<? extends Clause> baseAcceptedClass) {
         this.baseAcceptedClass = baseAcceptedClass;
     }

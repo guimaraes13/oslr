@@ -26,7 +26,7 @@ import br.ufrj.cos.logic.Clause;
 import java.util.function.Predicate;
 
 /**
- * Interface to test Clause against a given criteria.
+ * Interface to test {@link Clause}s against a given criteria.
  * <p>
  * Created on 25/04/17.
  *

@@ -32,22 +32,55 @@ public class WeightedClause extends HornClause {
 
     protected double weight = 1.0;
 
+    /**
+     * Constructs with head {@link Atom} and default {@link #weight}.
+     *
+     * @param head the head
+     */
     public WeightedClause(Atom head) {
         super(head);
     }
 
+    /**
+     * Constructs with head {@link Atom}, body and default {@link #weight}.
+     *
+     * @param head the head
+     * @param body the body
+     */
     public WeightedClause(Atom head, Conjunction body) {
         super(head, body);
     }
 
+    /**
+     * Constructs with head {@link Atom} and weight
+     *
+     * @param head   the head
+     * @param weight the weight
+     */
     public WeightedClause(double weight, Atom head) {
         super(head);
         this.weight = weight;
     }
 
+    /**
+     * Constructs with head {@link Atom}, body and weight.
+     *
+     * @param weight the weight
+     * @param head   the head
+     * @param body   the body
+     */
     public WeightedClause(double weight, Atom head, Conjunction body) {
         super(head, body);
         this.weight = weight;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        long temp;
+        temp = Double.doubleToLongBits(weight);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
     }
 
     @Override
@@ -65,15 +98,6 @@ public class WeightedClause extends HornClause {
         WeightedClause that = (WeightedClause) o;
 
         return Double.compare(that.weight, weight) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        long temp;
-        temp = Double.doubleToLongBits(weight);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        return result;
     }
 
     @Override

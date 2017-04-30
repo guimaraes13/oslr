@@ -21,13 +21,43 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
+import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.theory.Theory;
+
 /**
- * Responsible for evaluating the {@link br.ufrj.cos.knowledge.theory.Theory} against some metric.
+ * Responsible for evaluating the {@link Theory} against some metric.
  * <p>
  * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
 public abstract class TheoryMetric {
+
+    /**
+     * The default value of the metric, it should be proper overridden by subclasses.
+     */
+    protected static double DEFAULT_VALUE = 0;
+
+    /**
+     * Evaluates the {@link Theory} against the represented metric
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     * @param theory        the {@link Theory}
+     * @param examples      the {@link ExampleSet}
+     * @return the evaluation value
+     */
+    public abstract double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples);
+
+    /**
+     * Gets the default value of a metric, this value must by the worst possible value of the metric. This value
+     * should be used when one fails to evaluate the {@link Theory} with this metric (e.g. evaluation takes longer
+     * than a specified timeout).
+     *
+     * @return the default value of the metric
+     */
+    public double getDefaultValue() {
+        return DEFAULT_VALUE;
+    }
 
 }

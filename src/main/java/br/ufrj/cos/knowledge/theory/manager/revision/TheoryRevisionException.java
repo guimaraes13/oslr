@@ -19,23 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli;
+package br.ufrj.cos.knowledge.theory.manager.revision;
 
 /**
- * Represents a semantic {@link Exception} on the parsing the command line arguments.
+ * Represents an {@link Exception} in the revision process.
  * <p>
- * Created on 24/04/17.
+ * Created on 29/04/17.
  *
  * @author Victor Guimarães
  */
-public class CommandLineInterrogationException extends Exception {
+public class TheoryRevisionException extends Exception {
 
     /**
      * Constructs with a message.
      *
      * @param message the message
      */
-    public CommandLineInterrogationException(String message) {
+    public TheoryRevisionException(String message) {
         super(message);
     }
 
@@ -46,7 +46,7 @@ public class CommandLineInterrogationException extends Exception {
      * @param cause   the cause.  (A {@code null} value is permitted,
      *                and indicates that the cause is nonexistent or unknown.)
      */
-    public CommandLineInterrogationException(String message, Throwable cause) {
+    public TheoryRevisionException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -56,7 +56,7 @@ public class CommandLineInterrogationException extends Exception {
      * @param cause the cause.  (A {@code null} value is permitted,
      *              and indicates that the cause is nonexistent or unknown.)
      */
-    public CommandLineInterrogationException(Throwable cause) {
+    public TheoryRevisionException(Throwable cause) {
         super(cause);
     }
 
@@ -71,10 +71,8 @@ public class CommandLineInterrogationException extends Exception {
      * @param writableStackTrace whether or not the stack trace should
      *                           be writable
      */
-    public CommandLineInterrogationException(String message,
-                                             Throwable cause,
-                                             boolean enableSuppression,
-                                             boolean writableStackTrace) {
+    public TheoryRevisionException(String message, Throwable cause, boolean enableSuppression,
+                                   boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

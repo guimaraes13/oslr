@@ -49,7 +49,8 @@ public class ParserTest {
     @Test
     public void TEST_KNOWLEDGE_PARSER() {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(KNOWLEDGE_TEST_FILE), INPUT_ENCODE));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(KNOWLEDGE_TEST_FILE)
+                    , INPUT_ENCODE));
             KnowledgeParser parser = new KnowledgeParser(reader);
             List<Clause> clauses = parser.parseKnowledge();
         } catch (Exception ex) {
@@ -60,7 +61,8 @@ public class ParserTest {
     @Test
     public void TEST_KNOWLEDGE_PARSER_APPEND() {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(KNOWLEDGE_TEST_FILE), INPUT_ENCODE));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(KNOWLEDGE_TEST_FILE)
+                    , INPUT_ENCODE));
             KnowledgeParser parser = new KnowledgeParser(reader);
             List<Clause> clauses = parser.parseKnowledge();
 
@@ -77,7 +79,8 @@ public class ParserTest {
     @Test
     public void TEST_EXAMPLE_PARSER() {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(EXAMPLE_TEST_FILE), INPUT_ENCODE));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(EXAMPLE_TEST_FILE),
+                                                                             INPUT_ENCODE));
             ExampleParser parser = new ExampleParser(reader);
             parser.parseExamples();
         } catch (Exception ex) {
@@ -89,7 +92,8 @@ public class ParserTest {
     @Test
     public void TEST_EXAMPLE_PARSER_APPEND() {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(EXAMPLE_TEST_FILE), INPUT_ENCODE));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(EXAMPLE_TEST_FILE),
+                                                                             INPUT_ENCODE));
             ExampleParser parser = new ExampleParser(reader);
             parser.parseExamples();
 

@@ -19,15 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager;
+package br.ufrj.cos.util;
 
 /**
- * Responsible for evaluate the theory against the examples set and/or the knowledge base.
+ * Centralizes all the exception messages from the system.
  * <p>
- * Created on 24/04/17.
+ * Created on 29/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class TheoryEvaluator {
+@SuppressWarnings("JavaDoc")
+public enum ExceptionMessages {
+    //No additional parameters to format
+    GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
+
+    //One additional parameters to format
+
+    //Two additional parameters to format
+    FILE_NOT_EXISTS("File {} for {} does not exists.");
+
+    protected final String message;
+
+    ExceptionMessages(String message) {
+        this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return message;
+    }
 
 }

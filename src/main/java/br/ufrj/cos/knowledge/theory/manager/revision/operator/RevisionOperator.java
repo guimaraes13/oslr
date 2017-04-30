@@ -19,25 +19,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.engine.proppr;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.logic.Atom;
-
-import java.util.Set;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
- * Translator to convert the system's syntax to ProPPR, and vice versa
+ * Responsible for changing the {@link br.ufrj.cos.knowledge.theory.Theory}.
  * <p>
- * Created on 25/04/17.
+ * There are two main types of {@link RevisionOperator}, generalization and specialisation. The former makes the
+ * {@link br.ufrj.cos.knowledge.theory.Theory} more generic, proving more atomExamples. The later makes it more
+ * specific,
+ * proving less atomExamples.
+ * <p>
+ * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
-public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
+public abstract class RevisionOperator {
+
+    protected final KnowledgeBase knowledgeBase;
+    protected final Theory theory;
+    protected final ExampleSet examples;
 
     /**
      * Constructs the class if the minimum required parameters
@@ -46,14 +52,19 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param theory        the {@link Theory}
      * @param examples      the {@link ExampleSet}
      */
-    public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
-        super(knowledgeBase, theory, examples);
+    public RevisionOperator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+        this.knowledgeBase = knowledgeBase;
+        this.theory = theory;
+        this.examples = examples;
     }
 
-    @Override
-    public Set<Atom> groundingExamples(Example... examples) {
-        //TODO: not implemented yet
-        return null;
-    }
+    /**
+     * Apply the operation on its {@link Theory} given the target {@link Example}
+     *
+     * @param targets the targets {@link Example}s
+     * @return the {@link Theory}
+     * @throws TheoryRevisionException in an error occurs during the revision
+     */
+    public abstract Theory performOperation(Example... targets) throws TheoryRevisionException;
 
 }

@@ -19,18 +19,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator.specialization;
+
+import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 
 /**
- * Responsible for evaluating an specific {@link RevisionOperator}.
+ * Represents a specialization operator i.e. an operator that, if applied, makes the Theory more specific
+ * (proving less atomExamples).
  * <p>
  * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class RevisionOperatorEvaluator {
+public abstract class SpecializationRevisionOperator extends RevisionOperator {
 
-    protected RevisionOperator revisionOperator;
-//    protected
-
+    /**
+     * Constructs the class if the minimum required parameters
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     * @param theory        the {@link Theory}
+     * @param examples      the {@link ExampleSet}
+     */
+    public SpecializationRevisionOperator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+        super(knowledgeBase, theory, examples);
+    }
 }

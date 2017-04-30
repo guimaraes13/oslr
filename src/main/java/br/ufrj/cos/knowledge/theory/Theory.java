@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.theory;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.logic.HornClause;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -36,23 +37,39 @@ import java.util.function.Predicate;
  */
 public class Theory extends Knowledge<HornClause> {
 
+    /**
+     * Constructs the {@link Theory} from a {@link Collection} of {@link HornClause}s.
+     *
+     * @param clauses the {@link Collection} of {@link HornClause}s.
+     */
     public Theory(Collection<HornClause> clauses) {
         super(clauses);
     }
 
+    /**
+     * Constructs the {@link Theory} from a {@link Collection} of {@link HornClause}s with a filter {@link Predicate}.
+     *
+     * @param clauses         the {@link Collection} of {@link HornClause}s.
+     * @param acceptPredicate filter {@link Predicate}.
+     */
     public Theory(Collection<HornClause> clauses, Predicate<? super HornClause> acceptPredicate) {
         super(clauses, acceptPredicate);
     }
 
-    public boolean addAll(Collection<? super HornClause> c, Class<? extends HornClause> clazz) {
-        boolean changed = false;
-        for (Object o : c) {
-            if (clazz.isInstance(o)) {
-                changed |= this.add(clazz.cast(o));
-            }
-        }
-
-        return changed;
+    /**
+     * Copies the theory.
+     *
+     * @return a copy of this {@link Theory}
+     * @throws NoSuchMethodException     in case of reflection error
+     * @throws IllegalAccessException    in case of reflection error
+     * @throws InvocationTargetException in case of reflection error
+     * @throws InstantiationException    in case of reflection error
+     */
+    public Theory copy() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+            InstantiationException {
+        Collection<HornClause> copy = collection.getClass().getConstructor(collection.getClass())
+                .newInstance(collection);
+        return new Theory(copy, acceptPredicate);
     }
 
 }

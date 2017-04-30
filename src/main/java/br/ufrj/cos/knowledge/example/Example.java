@@ -23,82 +23,53 @@ package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.logic.Variable;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Created on 17/04/17.
+ * Represents a training examples. This training examples might have more than one positive examples (e.g. in the
+ * case it is in the ProPPR form)
+ * <p>
+ * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
-public class Example extends Atom {
+public interface Example {
 
-    boolean positive = true;
+    /**
+     * Gets the {@link Atom} representation of the example. In the case of the ProPPR example, get the goal
+     *
+     * @return the {@link Atom} representation of the example
+     */
+    public Atom getAtom();
 
-    public Example(String name, List<Term> terms, boolean positive) {
-        super(name, terms);
-        this.positive = positive;
-    }
+    /**
+     * Gets the {@link Term}s of the positive examples.
+     *
+     * @return the {@link Term}
+     */
+    public Collection<Term> getPositiveTerms();
 
-    public Example(String name, boolean positive) {
-        super(name);
-        this.positive = positive;
-    }
-
-    public Example(String name, List<Term> terms) {
-        super(name, terms);
-    }
-
-    public Example(String name) {
-        super(name);
-    }
-
-    public Example(Atom atom, boolean positive) {
-        super(atom.getName(), atom.getTerms());
-        this.positive = positive;
-    }
-
-    public boolean isPositive() {
-        return positive;
-    }
-
-    public Atom getAtom() {
-        return new Atom(this);
+    /**
+     * Gets a {@link Map} to map the {@link Term}s in the example into variables. Specially useful when mapping a set
+     * of {@link Term}s in the same variable, as the ProPPR example semantics does.
+     *
+     * @return the {@link Map}
+     */
+    public default Map<Term, Variable> getVariableMap() {
+        return new HashMap<>();
     }
 
     @Override
-    public boolean isFact() {
-        return false;
-    }
+    public int hashCode();
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Example)) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        Example example = (Example) o;
-
-        return positive == example.positive;
-    }
+    public boolean equals(Object o);
 
     @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (positive ? 1 : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return LanguageUtils.formatExampleToProPprString(this);
-    }
+    public String toString();
 
 }

@@ -19,19 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
+
+import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 
 /**
- * Responsible for changing the {@link br.ufrj.cos.knowledge.theory.Theory}.
- * <p>
- * There are two main types of {@link RevisionOperator}, generalization and specialisation. The former makes the
- * {@link br.ufrj.cos.knowledge.theory.Theory} more generic, proving more examples. The later makes it more specific,
- * proving less examples.
+ * Represents a generalization operator i.e. an operator that, if applied, makes the Theory more general
+ * (proving more atomExamples).
  * <p>
  * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class RevisionOperator {
+public abstract class GeneralizationRevisionOperator extends RevisionOperator {
+
+    /**
+     * Constructs the class if the minimum required parameters
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     * @param theory        the {@link Theory}
+     * @param examples      the {@link ExampleSet}
+     */
+    public GeneralizationRevisionOperator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+        super(knowledgeBase, theory, examples);
+    }
 
 }

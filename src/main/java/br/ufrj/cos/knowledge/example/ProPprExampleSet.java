@@ -22,31 +22,134 @@
 package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.List;
+import java.util.*;
 
 /**
+ * Represents a ProPPR example. It is the full line from the ProPPR input, i.e. the goal and the list of positive and
+ * negative grounds.
+ * <p>
  * Created on 17/04/17.
  *
  * @author Victor Guimarães
  */
-public class ProPprExampleSet {
+public class ProPprExampleSet implements Example {
 
-    protected Atom goal;
-    protected List<Example> examples;
+    protected final Atom goal;
+    protected final List<AtomExample> atomExamples;
 
-    public ProPprExampleSet(Atom goal, List<Example> examples) {
+    /**
+     * Constructs the ProPPR examples
+     *
+     * @param goal         the goal
+     * @param atomExamples the positive and negative grounded atoms
+     */
+    public ProPprExampleSet(Atom goal, List<AtomExample> atomExamples) {
         this.goal = goal;
-        this.examples = examples;
+        this.atomExamples = atomExamples;
     }
 
+    @Override
+    public Atom getAtom() {
+        return goal;
+    }
+
+    @Override
+    public Collection<Term> getPositiveTerms() {
+        Collection<Term> positiveTerms = new HashSet<>();
+        appendConstantFromAtom(goal, positiveTerms);
+        for (AtomExample atom : atomExamples) {
+            if (atom.isPositive()) {
+                appendConstantFromAtom(atom, positiveTerms);
+            }
+        }
+
+        return positiveTerms;
+    }
+
+    /**
+     * Appends the constants founded on the given {@link Atom} to the {@link Collection}
+     *
+     * @param atom      the given {@link Atom}
+     * @param constants the {@link Collection}
+     */
+    protected void appendConstantFromAtom(Atom atom, Collection<Term> constants) {
+        for (Term term : atom.getTerms()) {
+            if (term.isConstant()) {
+                constants.add(term);
+            }
+        }
+    }
+
+    @Override
+    public Map<Term, Variable> getVariableMap() {
+        Map<Term, Variable> variableMap = new HashMap<>();
+
+        Term term;
+        for (int i = 0; i < goal.getTerms().size(); i++) {
+            term = goal.getTerms().get(i);
+            if (term instanceof Variable) {
+                getTermOnIndex(i, (Variable) term, variableMap);
+            }
+        }
+
+        return variableMap;
+    }
+
+    /**
+     * Puts the {@link Term}s at index i from the all the {@link #atomExamples} into the variableMap as keys with the
+     * variable parameter as value
+     *
+     * @param i           the index of the {@link Term}
+     * @param variable    the value {@link Variable}
+     * @param variableMap the {@link Map}
+     */
+    protected void getTermOnIndex(int i, Variable variable, Map<Term, Variable> variableMap) {
+        for (AtomExample atomExample : atomExamples) {
+            variableMap.put(atomExample.getTerms().get(i), variable);
+        }
+    }
+
+    /**
+     * Gets the goal of the example
+     *
+     * @return the goal
+     */
     public Atom getGoal() {
         return goal;
     }
 
-    public List<Example> getExamples() {
-        return examples;
+    /**
+     * Gets the grounded {@link Atom}s of the example
+     *
+     * @return the grounded {@link Atom}s
+     */
+    public List<AtomExample> getAtomExamples() {
+        return atomExamples;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = goal.hashCode();
+        result = 31 * result + atomExamples.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProPprExampleSet)) {
+            return false;
+        }
+
+        ProPprExampleSet that = (ProPprExampleSet) o;
+
+        return goal.equals(that.goal) && atomExamples.equals(that.atomExamples);
     }
 
     @Override

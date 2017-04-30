@@ -22,7 +22,7 @@
 package br.ufrj.cos.external.access;
 
 /**
- * Responsible for reading examples from an outside source.
+ * Responsible for reading atomExamples from an outside source.
  * <p>
  * Created on 24/04/17.
  *

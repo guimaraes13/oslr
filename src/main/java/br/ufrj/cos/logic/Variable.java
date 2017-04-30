@@ -22,14 +22,26 @@
 package br.ufrj.cos.logic;
 
 /**
+ * Represents a logic variable {@link Term}.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class Variable extends Term {
 
+    /**
+     * Constructs the {@link Variable} with the name.
+     *
+     * @param name the name
+     */
     public Variable(String name) {
         super(name);
+    }
+
+    @Override
+    public boolean isConstant() {
+        return false;
     }
 
     @Override

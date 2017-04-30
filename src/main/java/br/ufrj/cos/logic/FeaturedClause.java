@@ -24,6 +24,8 @@ package br.ufrj.cos.logic;
 import br.ufrj.cos.util.LanguageUtils;
 
 /**
+ * Represents a featured clause. A clause with features from ProPPR.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
@@ -32,22 +34,55 @@ public class FeaturedClause extends HornClause {
 
     protected Features features;
 
+    /**
+     * Constructs with the head and features
+     *
+     * @param head     the head
+     * @param features the features
+     */
     public FeaturedClause(Atom head, Features features) {
         super(head);
         this.features = features;
     }
 
+    /**
+     * Constructs with all parameters
+     *
+     * @param head     the head
+     * @param body     the body
+     * @param features the features
+     */
     public FeaturedClause(Atom head, Conjunction body, Features features) {
         super(head, body);
         this.features = features;
     }
 
+    /**
+     * Constructs with only the head
+     *
+     * @param head the head
+     */
     public FeaturedClause(Atom head) {
         super(head);
+        this.features = null;
     }
 
+    /**
+     * Constructs with the head and the body
+     *
+     * @param head the head
+     * @param body the body
+     */
     public FeaturedClause(Atom head, Conjunction body) {
         super(head, body);
+        this.features = null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (features != null ? features.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -65,13 +100,6 @@ public class FeaturedClause extends HornClause {
         FeaturedClause that = (FeaturedClause) o;
 
         return features != null ? features.equals(that.features) : that.features == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (features != null ? features.hashCode() : 0);
-        return result;
     }
 
     @Override

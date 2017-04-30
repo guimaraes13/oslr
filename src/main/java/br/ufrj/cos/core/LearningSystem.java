@@ -22,12 +22,17 @@
 package br.ufrj.cos.core;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.manager.IncomingExampleManager;
 import br.ufrj.cos.knowledge.manager.KnowledgeBaseManager;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.TheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+
+import java.util.Map;
 
 /**
  * Responsible for the execution and control of the entire system.
@@ -38,21 +43,63 @@ import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
  */
 public class LearningSystem {
 
-    //Core Knowledge
+    /**
+     * The {@link KnowledgeBaseManager}.
+     */
+    public KnowledgeBaseManager knowledgeBaseManager;
+    /**
+     * The {@link IncomingExampleManager}.
+     */
+    public IncomingExampleManager incomingExampleManager;
+    /**
+     * The {@link TheoryRevisionManager}.
+     */
+    public TheoryRevisionManager theoryRevisionManager;
+    /**
+     * The {@link TheoryEvaluator}.
+     */
+    public TheoryEvaluator theoryEvaluator;
+
+    //Theory Manager
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
     protected ExampleSet examples;
 
-    //Knowledge Manager
-    protected KnowledgeBaseManager knowledgeBaseManager;
-    protected IncomingExampleManager incomingExampleManager;
-
-    //Theory Manager
-    protected TheoryRevisionManager theoryRevisionManager;
-    protected TheoryEvaluator theoryEvaluator;
+    /**
+     * Constructs the class if the minimum required parameters.
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     * @param theory        the {@link Theory}
+     * @param examples      the {@link ExampleSet}
+     */
+    public LearningSystem(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+        this.knowledgeBase = knowledgeBase;
+        this.theory = theory;
+        this.examples = examples;
+    }
 
     //TODO: implement necessary methods!
     // It does not need to do all by itself know, just have the methods to receive the commands from outside sources!
-    // In the future, create an extension of this class that have an examples input stream and decides what to do based on that.
+    // In the future, create an extension of this class that have an atomExamples input stream and decides what to do
+    // based on that.
+
+    /**
+     * Method to call the revision on the {@link Theory} bases on the target {@link Example}s.
+     *
+     * @param targets the target {@link Example}s
+     * @throws TheoryRevisionException in case an error occurs on the revision
+     */
+    public void reviseTheory(Example... targets) throws TheoryRevisionException {
+        theoryRevisionManager.revise(knowledgeBase, theory, examples, targets);
+    }
+
+    /**
+     * Evaluates the {@link Theory} against all the {@link TheoryMetric}s.
+     *
+     * @return a {@link Map} with the evaluations per metric.
+     */
+    public Map<Class<? extends TheoryMetric>, Double> evaluate() {
+        return theoryEvaluator.evaluate();
+    }
 
 }

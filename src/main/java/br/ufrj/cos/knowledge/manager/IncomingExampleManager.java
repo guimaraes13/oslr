@@ -22,10 +22,11 @@
 package br.ufrj.cos.knowledge.manager;
 
 import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.external.access.ExampleStream;
 
 /**
- * Responsible for receiving the examples from the {@link br.ufrj.cos.external.access.ExampleStream},
- * suggesting the {@link br.ufrj.cos.core.LearningSystem} to revise the theory, whenever it believes it is necessary.
+ * Responsible for receiving the atomExamples from the {@link ExampleStream},
+ * suggesting the {@link LearningSystem} to revise the theory, whenever it believes it is necessary.
  * <p>
  * Created on 24/04/17.
  *

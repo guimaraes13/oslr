@@ -19,50 +19,60 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.engine;
+package br.ufrj.cos.knowledge.theory.evaluation;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.logic.Atom;
-
-import java.util.Set;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 
 /**
- * Represents an facade to be in between the system and the logic inference engine. It is useful for isolate the
- * internal representation of the system from the logic representation of the inference engine, so the logic engine
- * could be easily replaced by simplify implementing another subclass of this one.
+ * Handle a asynchronous execution of evaluation a {@link Theory}. This is useful when a maximum amount of time is
+ * specified for the task.
  * <p>
- * Created on 25/04/17.
+ * Created on 29/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class EngineSystemTranslator {
+public class AsynchronousTheoryEvaluator extends Thread {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
     protected ExampleSet examples;
 
+    protected TheoryMetric theoryMetric;
+
+    protected double evaluation;
+
     /**
-     * Constructs the class if the minimum required parameters
+     * Constructor with the needed parameters.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
      * @param examples      the {@link ExampleSet}
+     * @param theoryMetric  the {@link TheoryMetric}
      */
-    public EngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+    public AsynchronousTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+                                       TheoryMetric theoryMetric) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
+        this.theoryMetric = theoryMetric;
+        this.evaluation = theoryMetric.getDefaultValue();
+    }
+
+    @Override
+    public void run() {
+        evaluation = theoryMetric.evaluateTheory(knowledgeBase, theory, examples);
     }
 
     /**
-     * Method to call the logic engine and retrieve the grounding/proved form of the given examples
+     * Gets the evaluated value.
      *
-     * @param examples the examples to ground/prove
-     * @return the grounded/proved set of {@link Atom}s
+     * @return the evaluated value
      */
-    public abstract Set<Atom> groundingExamples(Example... examples);
+    public double getEvaluation() {
+        return evaluation;
+    }
 
 }

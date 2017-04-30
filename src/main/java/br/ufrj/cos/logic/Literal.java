@@ -26,35 +26,79 @@ import br.ufrj.cos.util.LanguageUtils;
 import java.util.List;
 
 /**
+ * Represents a logic literal. A literal is an {@link Atom} or a negation of one.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class Literal extends Atom {
 
-    protected boolean negated = false;
+    protected final boolean negated;
 
+    /**
+     * Constructs a {@link Literal} by with fields.
+     *
+     * @param name    the predicate name
+     * @param terms   the {@link Term}s
+     * @param negated if it is negated
+     */
     public Literal(String name, List<Term> terms, boolean negated) {
         super(name, terms);
         this.negated = negated;
     }
 
+    /**
+     * Constructs a propositional version of a {@link Literal}
+     *
+     * @param name    the proposition name
+     * @param negated if it is negated
+     */
     public Literal(String name, boolean negated) {
         super(name);
         this.negated = negated;
     }
 
+    /**
+     * Constructs a positive literal, by omitting the {@link #negated} field.
+     *
+     * @param name  the name
+     * @param terms the {@link Term}s
+     */
     public Literal(String name, List<Term> terms) {
         super(name, terms);
+        negated = false;
     }
 
+    /**
+     * Constructs a positive propositional form of a {@link Literal}
+     *
+     * @param name the proposition name
+     */
     public Literal(String name) {
         super(name);
+        negated = false;
     }
 
+    /**
+     * Constructs a {@link Literal} based on an {@link Atom}
+     *
+     * @param atom    the {@link Atom}
+     * @param negated if it is negated
+     */
     public Literal(Atom atom, boolean negated) {
         super(atom.getName(), atom.getTerms());
         this.negated = negated;
+    }
+
+    /**
+     * Constructs a positive {@link Literal} based on an {@link Atom}
+     *
+     * @param atom the {@link Atom}
+     */
+    public Literal(Atom atom) {
+        super(atom);
+        this.negated = false;
     }
 
     @Override
@@ -64,5 +108,14 @@ public class Literal extends Atom {
         }
 
         return super.toString();
+    }
+
+    /**
+     * Gets if the it is negated.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isNegated() {
+        return negated;
     }
 }

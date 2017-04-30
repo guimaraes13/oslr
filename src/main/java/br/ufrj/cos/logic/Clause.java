@@ -22,21 +22,35 @@
 package br.ufrj.cos.logic;
 
 /**
+ * Represents a logic clause
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public abstract class Clause {
 
+    /**
+     * Checks if the {@link Clause} is grounded, i.e. all its {@link Term}s are constants.
+     *
+     * @return true if the {@link Clause} is grounded, false otherwise
+     */
     public abstract boolean isGrounded();
 
+    /**
+     * Checks if the {@link Clause} represents a fact. The clause can be considered a fact either if there is no body
+     * or if
+     * the body is the logic value true
+     *
+     * @return true if the {@link Clause} represents a fact, false otherwise
+     */
     public abstract boolean isFact();
 
     @Override
-    public abstract boolean equals(Object obj);
+    public abstract int hashCode();
 
     @Override
-    public abstract int hashCode();
+    public abstract boolean equals(Object obj);
 
     @Override
     public abstract String toString();

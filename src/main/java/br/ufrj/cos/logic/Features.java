@@ -27,19 +27,34 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * Represents the set of features from ProPPR.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class Features extends ArrayList<Atom> {
 
+    /**
+     * Constructs with initial capacity
+     *
+     * @param initialCapacity the initial capacity
+     */
     public Features(int initialCapacity) {
         super(initialCapacity);
     }
 
+    /**
+     * Default constructor
+     */
     public Features() {
     }
 
+    /**
+     * Constructs from another {@link Collection}
+     *
+     * @param c the {@link Collection}
+     */
     public Features(Collection<? extends Atom> c) {
         super(c);
     }

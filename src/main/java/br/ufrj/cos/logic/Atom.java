@@ -32,41 +32,85 @@ import static br.ufrj.cos.util.LanguageUtils.formatAtomToString;
  */
 public class Atom extends Clause {
 
+    /**
+     * Constant that represents a true logic value
+     */
     public static final String TRUE_VALUE = "true";
+
+    /**
+     * Constant that represents a false logic value
+     */
     public static final String FALSE_VALUE = "false";
+
+    /**
+     * {@link Atom} that represents the true logic value
+     */
     public static final Atom TRUE_ATOM = new Atom(TRUE_VALUE);
+
+    /**
+     * {@link Atom} that represents the false logic value
+     */
     public static final Atom FALSE_ATOM = new Atom(FALSE_VALUE);
 
-    protected String name;
-    protected List<Term> terms;
+    protected final String name;
+    protected final List<Term> terms;
 
+    /**
+     * Constructs a new {@link Atom} from coping the references from another one
+     *
+     * @param atom the other {@link Atom}
+     */
     public Atom(Atom atom) {
         this.name = atom.name;
         this.terms = atom.terms;
     }
 
+    /**
+     * Constructs a new {@link Atom}
+     *
+     * @param name  the {@link Atom}'s predicate name
+     * @param terms the {@link Atom}'s {@link Term}s
+     */
     public Atom(String name, List<Term> terms) {
         this.name = name;
         this.terms = terms;
     }
 
+    /**
+     * Constructs a proposition form of an {@link Atom}
+     *
+     * @param name the proposition name
+     */
     public Atom(String name) {
         this.name = name;
+        this.terms = null;
     }
 
+    /**
+     * Gets the {@link Atom}'s predicate name
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets the {@link Atom}'s {@link Term}s, or null if it is a proposition
+     *
+     * @return the {@link Term}s, or null if it is a proposition
+     */
     public List<Term> getTerms() {
         return terms;
     }
 
     @Override
     public boolean isGrounded() {
-        for (Term term : terms) {
-            if (!(term instanceof Constant)) {
-                return false;
+        if (terms != null) {
+            for (Term term : terms) {
+                if (!(term.isConstant())) {
+                    return false;
+                }
             }
         }
         return true;
@@ -75,6 +119,13 @@ public class Atom extends Clause {
     @Override
     public boolean isFact() {
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + (terms != null ? terms.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -88,17 +139,7 @@ public class Atom extends Clause {
 
         Atom atom = (Atom) o;
 
-        if (!name.equals(atom.name)) {
-            return false;
-        }
-        return terms != null ? terms.equals(atom.terms) : atom.terms == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + (terms != null ? terms.hashCode() : 0);
-        return result;
+        return name.equals(atom.name) && (terms != null ? terms.equals(atom.terms) : atom.terms == null);
     }
 
     @Override

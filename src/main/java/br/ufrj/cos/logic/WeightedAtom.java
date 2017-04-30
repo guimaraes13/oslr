@@ -34,24 +34,54 @@ public class WeightedAtom extends Atom {
 
     protected double weight = 1.0;
 
+    /**
+     * Constructs a {@link WeightedAtom} by its fields with default {@link #weight}.
+     *
+     * @param name  the predicate name
+     * @param terms the {@link Term}s
+     */
     public WeightedAtom(String name, List<Term> terms) {
         super(name, terms);
     }
 
+    /**
+     * Constructs a proposition representation of {@link WeightedAtom} with default {@link #weight}.
+     *
+     * @param name the predicate name
+     */
     public WeightedAtom(String name) {
         super(name);
     }
 
+    /**
+     * Constructs a {@link WeightedAtom} from an {@link Atom}.
+     *
+     * @param weight the weight
+     * @param atom   the {@link Atom}
+     */
     public WeightedAtom(double weight, Atom atom) {
         super(atom.getName(), atom.getTerms());
         this.weight = weight;
     }
 
+    /**
+     * Constructs a {@link WeightedAtom} by its fields.
+     *
+     * @param weight the weight
+     * @param name   the predicate name
+     * @param terms  the {@link Term}s
+     */
     public WeightedAtom(double weight, String name, List<Term> terms) {
         super(name, terms);
         this.weight = weight;
     }
 
+    /**
+     * Constructs a proposition representation of {@link WeightedAtom} with {@link #weight}.
+     *
+     * @param weight the weight
+     * @param name   the predicate name
+     */
     public WeightedAtom(double weight, String name) {
         super(name);
         this.weight = weight;

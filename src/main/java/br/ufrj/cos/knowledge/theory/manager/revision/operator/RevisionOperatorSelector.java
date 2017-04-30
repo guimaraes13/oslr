@@ -19,47 +19,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+
+import java.util.Collection;
 
 /**
- * Responsible for applying the revision on theory, whenever it is called to.
+ * Responsible for selecting the best suited {@link RevisionOperator}(s).
  * <p>
- * Created on 24/04/17.
+ * Created on 26/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class TheoryRevisionManager {
+public abstract class RevisionOperatorSelector {
 
-    protected final RevisionManager revisionManager;
+    protected KnowledgeBase knowledgeBase;
+    protected Theory theory;
+    protected ExampleSet examples;
+
+    protected Collection<RevisionOperatorEvaluator> operatorEvaluators;
 
     /**
      * Constructs the class if the minimum required parameters
      *
-     * @param revisionManager the {@link RevisionManager}
-     */
-    public TheoryRevisionManager(RevisionManager revisionManager) {
-        this.revisionManager = revisionManager;
-    }
-
-    /**
-     * Method to call the revision of the {@link Theory} on the {@link RevisionManager}
-     *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
      * @param examples      the {@link ExampleSet}
-     * @param targets       the target {@link Example}s
-     * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void revise(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
-                       Example... targets) throws TheoryRevisionException {
-        revisionManager.revise(knowledgeBase, theory, examples, targets);
+    public RevisionOperatorSelector(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+        this.knowledgeBase = knowledgeBase;
+        this.theory = theory;
+        this.examples = examples;
     }
+
+    /**
+     * Selects the best suited {@link RevisionOperator} to be applied on the {@link Theory}
+     *
+     * @param targets the target examples
+     * @return the best suited {@link RevisionOperatorEvaluator}
+     */
+    public abstract RevisionOperatorEvaluator selectOperator(Example... targets);
 
 }

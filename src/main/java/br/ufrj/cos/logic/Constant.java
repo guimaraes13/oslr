@@ -24,14 +24,26 @@ package br.ufrj.cos.logic;
 import br.ufrj.cos.util.LanguageUtils;
 
 /**
+ * Represents a constant {@link Term}.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class Constant extends Term {
 
+    /**
+     * Constructs a constant with name
+     *
+     * @param name the name
+     */
     public Constant(String name) {
         super(name);
+    }
+
+    @Override
+    public boolean isConstant() {
+        return true;
     }
 
     @Override

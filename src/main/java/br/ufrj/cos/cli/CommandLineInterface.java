@@ -21,37 +21,77 @@
 
 package br.ufrj.cos.cli;
 
+import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
+ * Represents classes that implements the main method and so have input options
+ * <p>
  * Created on 24/04/17.
  *
  * @author Victor Guimarães
  */
 public abstract class CommandLineInterface {
 
+    /**
+     * The logger
+     */
     public static final Logger logger = LogManager.getLogger();
 
     protected Options options;
 
-    protected abstract void initializeOptions();
+    /**
+     * The main method
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        try {
+            logger.info(LogMessages.PROGRAM_BEGIN);
+            LearningFromFilesCLI main = new LearningFromFilesCLI();
+            main.parseOptions(args);
 
+            logger.info(main.toString());
+            main.run();
+        } catch (Exception e) {
+            logger.error(LogMessages.ERROR_MAIN_PROGRAM, e);
+        } finally {
+            logger.fatal(LogMessages.PROGRAM_END);
+        }
+    }
+
+    /**
+     * Parses the command line arguments based on the available {@link Option}s
+     *
+     * @param arguments the command line arguments
+     */
     public void parseOptions(String[] arguments) {
         CommandLineParser parser = new DefaultParser();
         if (options == null) {
             initializeOptions();
         }
         try {
-            logger.trace("Parsing input arguments.");
+            logger.trace(LogMessages.PARSING_INPUT_ARGUMENTS);
             CommandLine commandLine = parser.parse(options, arguments);
             parseOptions(commandLine);
         } catch (ParseException | CommandLineInterrogationException e) {
-            logger.error("Parsing failed, reason:\t", e);
+            logger.error(LogMessages.ERROR_PARSING_FAILED, e);
         }
     }
 
+    /**
+     * Initializes the {@link Option}s that might be parsed from the input arguments
+     */
+    protected abstract void initializeOptions();
+
+    /**
+     * Method to set the proper fields based on the {@link Option}s parsed from the command line arguments
+     *
+     * @param commandLine the parsed command line arguments
+     * @throws CommandLineInterrogationException semantic error on the command line arguments
+     */
     protected abstract void parseOptions(CommandLine commandLine) throws CommandLineInterrogationException;
 
 }

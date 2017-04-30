@@ -24,28 +24,51 @@ package br.ufrj.cos.logic;
 import br.ufrj.cos.util.LanguageUtils;
 
 /**
+ * Represents a Horn clause.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães
  */
 public class HornClause extends Clause {
 
-    protected Atom head;
+    protected final Atom head;
     protected Conjunction body;
 
+    /**
+     * Constructs a empty body {@link HornClause}
+     *
+     * @param head the head
+     */
     public HornClause(Atom head) {
         this.head = head;
     }
 
+    /**
+     * Constructs a {@link HornClause}
+     *
+     * @param head the head
+     * @param body the body
+     */
     public HornClause(Atom head, Conjunction body) {
         this.head = head;
         this.body = body;
     }
 
+    /**
+     * Gets the head of the {@link HornClause}
+     *
+     * @return the head
+     */
     public Atom getHead() {
         return head;
     }
 
+    /**
+     * Gets the body of the {@link HornClause}
+     *
+     * @return the body
+     */
     public Conjunction getBody() {
         return body;
     }
@@ -61,6 +84,13 @@ public class HornClause extends Clause {
     }
 
     @Override
+    public int hashCode() {
+        int result = head != null ? head.hashCode() : 0;
+        result = 31 * result + (body != null ? body.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -71,17 +101,13 @@ public class HornClause extends Clause {
 
         HornClause that = (HornClause) o;
 
-        if (head != null ? !head.equals(that.head) : that.head != null) {
-            return false;
+        if (head != null ? head.equals(that.head) : that.head == null) {
+            if (body != null ? body.equals(that.body)
+                    : that.body == null) {
+                return true;
+            }
         }
-        return body != null ? body.equals(that.body) : that.body == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = head != null ? head.hashCode() : 0;
-        result = 31 * result + (body != null ? body.hashCode() : 0);
-        return result;
+        return false;
     }
 
     @Override

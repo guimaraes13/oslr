@@ -28,15 +28,32 @@ package br.ufrj.cos.logic;
  */
 public abstract class Term {
 
-    protected String name;
+    protected final String name;
 
+    /**
+     * Constructs a {@link Term}
+     *
+     * @param name the {@link Term}'s name
+     */
     public Term(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the {@link Term}'s name
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }
+
+    /**
+     * Checks if the {@link Term} is a constant
+     *
+     * @return true if it is a constant, false otherwise
+     */
+    public abstract boolean isConstant();
 
     @Override
     public int hashCode() {
