@@ -38,7 +38,10 @@ import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -186,41 +189,26 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     /**
      * Builds the {@link Set} of {@link Option}s to be parsed from the command line.
      */
-    @SuppressWarnings({"deprecation", "AccessStaticViaInstance"})
     protected void buildOptionSet() {
         optionSet = new HashSet<>();
-        optionSet.add(new Option("h", "help", false, "print this message"));
-        optionSet.add(OptionBuilder.withArgName("base")
-                              .withLongOpt("knowledgeBase")
-                              .hasArgs(Option.UNLIMITED_VALUES)
-                              .withDescription("the input knowledge base file(s)")
-                              .create("k"));
-
-        optionSet.add(OptionBuilder.withArgName("theory")
-                              .withLongOpt("theory")
-                              .hasArgs(Option.UNLIMITED_VALUES)
-                              .withDescription("the input theory file(s)")
-                              .create("t"));
-
-        optionSet.add(OptionBuilder.withArgName("atomExamples")
-                              .withLongOpt("example")
-                              .hasArgs(Option.UNLIMITED_VALUES)
-                              .withDescription("the input example file(s)")
-                              .create("e"));
+        optionSet.add(CommandLineOptions.HELP.getOption());
+        optionSet.add(CommandLineOptions.KNOWLEDGE_BASE.getOption());
+        optionSet.add(CommandLineOptions.THEORY.getOption());
+        optionSet.add(CommandLineOptions.EXAMPLES.getOption());
     }
 
     @Override
     public void parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
         try {
-            if (commandLine.hasOption("h")) {
+            if (commandLine.hasOption(CommandLineOptions.HELP.getOptionName())) {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp(this.getClass().getSimpleName(), options, true);
                 return;
             }
 
-            knowledgeBaseFiles = getFilesFromOption(commandLine, "k");
-            theoryFiles = getFilesFromOption(commandLine, "t");
-            exampleFiles = getFilesFromOption(commandLine, "e");
+            knowledgeBaseFiles = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
+            theoryFiles = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
+            exampleFiles = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
         } catch (Exception e) {
             throw new CommandLineInterrogationException(e);
         }

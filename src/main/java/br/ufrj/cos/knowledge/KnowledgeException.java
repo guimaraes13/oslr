@@ -19,25 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision;
-
-import br.ufrj.cos.knowledge.KnowledgeException;
+package br.ufrj.cos.knowledge;
 
 /**
- * Represents an {@link Exception} in the revision process.
+ * Represents a general {@link Exception} during the manipulation of the knowledge.
  * <p>
- * Created on 29/04/17.
+ * Created on 30/04/17.
  *
  * @author Victor Guimarães
  */
-public class TheoryRevisionException extends KnowledgeException {
+public class KnowledgeException extends Exception {
 
     /**
      * Constructs with a message.
      *
      * @param message the message
      */
-    public TheoryRevisionException(String message) {
+    public KnowledgeException(String message) {
         super(message);
     }
 
@@ -48,7 +46,7 @@ public class TheoryRevisionException extends KnowledgeException {
      * @param cause   the cause.  (A {@code null} value is permitted,
      *                and indicates that the cause is nonexistent or unknown.)
      */
-    public TheoryRevisionException(String message, Throwable cause) {
+    public KnowledgeException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -58,7 +56,7 @@ public class TheoryRevisionException extends KnowledgeException {
      * @param cause the cause.  (A {@code null} value is permitted,
      *              and indicates that the cause is nonexistent or unknown.)
      */
-    public TheoryRevisionException(Throwable cause) {
+    public KnowledgeException(Throwable cause) {
         super(cause);
     }
 
@@ -73,8 +71,8 @@ public class TheoryRevisionException extends KnowledgeException {
      * @param writableStackTrace whether or not the stack trace should
      *                           be writable
      */
-    public TheoryRevisionException(String message, Throwable cause, boolean enableSuppression,
-                                   boolean writableStackTrace) {
+    public KnowledgeException(String message, Throwable cause, boolean enableSuppression,
+                              boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

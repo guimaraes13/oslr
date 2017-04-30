@@ -24,6 +24,7 @@ package br.ufrj.cos.logic;
 import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -66,11 +67,7 @@ public class Conjunction extends ArrayList<Literal> {
      * @param literals the {@link Literal}s
      */
     public Conjunction(Literal... literals) {
-        super(literals.length);
-
-        for (Literal literal : literals) {
-            add(literal);
-        }
+        super(Arrays.asList(literals));
     }
 
     /**

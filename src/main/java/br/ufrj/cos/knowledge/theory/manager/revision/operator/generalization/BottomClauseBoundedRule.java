@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
+import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
@@ -32,12 +33,12 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.HornClauseUtils;
 import br.ufrj.cos.util.LogMessages;
-import br.ufrj.cos.util.TimeMeasure;
 import br.ufrj.cos.util.VariableGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -118,6 +119,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public int evaluationTimeout = 300;
 
+    /**
+     * The maximum number of threads this class is allowed to create.
+     */
+    public int numberOfThreads = 1;
+
     @SuppressWarnings("CanBeFinal")
     protected EngineSystemTranslator engineSystem;
 
@@ -144,7 +150,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public Theory performOperation(Example... targets) throws TheoryRevisionException {
         for (Example example : targets) {
             buildRuleForExample(example);
-            //TODO: put rule on the theory
+            //TODO: add rule to the theory
         }
         return theory;
     }
@@ -160,15 +166,17 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             logger.trace(LogMessages.BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
             HornClause bottomClause = buildBottomClause(example);
 
-            Set<HornClause> minimalClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
+            Set<HornClause> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
             logger.trace(LogMessages.FIND_MINIMAL_SAFE_CLAUSES);
 
-            Theory revisedTheory = theory.copy();
-            revisedTheory.add(bottomClause);
-            double initialMeasure = evaluateTheory(revisedTheory);
-            //QUESTION: perform all evaluations simultaneously?
-            //TODO: evaluate the top collection
+            candidateClauses.add(bottomClause);
+
+            logger.trace(LogMessages.EVALUATION_INITIAL_THEORIES);
+            Map<HornClause, Double> evaluationMap = evaluateCandidateClauses(candidateClauses);
+
             //TODO: get the best clause
+            //TODO: compare the bottom clause against the best clause, if it wins, returns it
+
             //TODO: greedy add the remaining literal from the bottom clause to the best top clause
             //TODO: evaluate each iteration saving the current and the best
             //TODO: if generic, keeps the first best, keeps the latest otherwise
@@ -197,31 +205,27 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Evaluates the given {@link Theory} in another {@link Thread} with a limit of time defined by the
-     * {@link #evaluationTimeout}. If the evaluation success, the correspondent evaluation value is returned. If it
-     * fails, is returned the default value of the metric, instead.
+     * Evaluates the candidate clauses against the metric. Performs the evaluation in parallel, using
+     * {@link #numberOfThreads} threads.
      *
-     * @param theory the {@link Theory}
-     * @return the evaluation value
+     * @param candidates the candidate clauses
+     * @return a {@link Map} with the clause and its value
      */
-    public double evaluateTheory(Theory theory) {
-        AsynchronousTheoryEvaluator evaluator = new AsynchronousTheoryEvaluator(knowledgeBase, theory, examples,
-                                                                                theoryMetric);
+    protected Map<HornClause, Double> evaluateCandidateClauses(Iterable<? extends HornClause> candidates) {
+        Map<HornClause, Double> evaluatedMap = null;
         try {
-            evaluator.start();
-            evaluator.join(evaluationTimeout * TimeMeasure.SECONDS_TO_MILLISECONDS_MULTIPLIER);
-            if (evaluator.isAlive()) {
-                logger.trace(LogMessages.EVALUATION_THEORY_REACHED_TIMEOUT.toString(), evaluationTimeout);
-            } else {
-                evaluator.interrupt();
-            }
+            ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
+            Set<Future<AsynchronousTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool);
 
-            return evaluator.getEvaluation();
+            evaluationPool.awaitTermination(evaluationTimeout * (futures.size() + 1), TimeUnit.SECONDS);
+            evaluationPool.shutdownNow();
+
+            evaluatedMap = retrieveEvaluatedMetrics(futures);
         } catch (InterruptedException e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CANDIDATE_THEORY, e);
+            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
         }
 
-        return theoryMetric.getDefaultValue();
+        return evaluatedMap;
     }
 
     /**
@@ -286,6 +290,45 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
+     * Submits the candidate {@link HornClause}s to the evaluation pool.
+     *
+     * @param candidates     the candidates
+     * @param evaluationPool the pool
+     * @return the {@link Set} of {@link Future} evaluations.
+     */
+    protected Set<Future<AsynchronousTheoryEvaluator>> submitCandidates(Iterable<? extends HornClause> candidates,
+                                                                        ExecutorService evaluationPool) {
+        Set<Future<AsynchronousTheoryEvaluator>> futures = new LinkedHashSet<>();
+        AsynchronousTheoryEvaluator theoryEvaluator;
+        for (HornClause candidate : candidates) {
+            futures.add(submitCandidate(candidate, evaluationPool));
+        }
+        return futures;
+    }
+
+    /**
+     * Retrieves the evaluations from the {@link Future} {@link AsynchronousTheoryEvaluator}.
+     *
+     * @param futures the {@link Future} {@link AsynchronousTheoryEvaluator}
+     * @return a {@link Map} with the evaluations
+     */
+    protected Map<HornClause, Double> retrieveEvaluatedMetrics(Set<Future<AsynchronousTheoryEvaluator>> futures) {
+        Map<HornClause, Double> evaluatedMap = new HashMap<>();
+        AsynchronousTheoryEvaluator evaluated;
+        for (Future<AsynchronousTheoryEvaluator> future : futures) {
+            try {
+                evaluated = future.get(evaluationTimeout, TimeUnit.SECONDS);
+                evaluatedMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+            } catch (TimeoutException e) {
+                logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), evaluationTimeout);
+            }
+        }
+        return evaluatedMap;
+    }
+
+    /**
      * Turn into variable the {@link Term}s of the given {@link Atom}
      *
      * @param atom        the {@link Atom}
@@ -303,6 +346,40 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         }
 
         return new Atom(atom.getName(), terms);
+    }
+
+    /**
+     * Submits one candidate {@link HornClause} to the pool and returns its {@link Future} value.
+     *
+     * @param candidate      the candidate {@link HornClause}
+     * @param evaluationPool the pool
+     * @return the {@link Future} value
+     */
+    protected Future<AsynchronousTheoryEvaluator> submitCandidate(HornClause candidate,
+                                                                  ExecutorService evaluationPool) {
+        AsynchronousTheoryEvaluator theoryEvaluator;
+        try {
+            theoryEvaluator = new AsynchronousTheoryEvaluator(knowledgeBase, theory.copy(), examples, theoryMetric);
+            theoryEvaluator.setHornClause(candidate);
+            return evaluationPool.submit((Callable<AsynchronousTheoryEvaluator>) theoryEvaluator);
+        } catch (KnowledgeException e) {
+            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Evaluates the given {@link Theory} in another {@link Thread} with a limit of time defined by the
+     * {@link #evaluationTimeout}. If the evaluation success, the correspondent evaluation value is returned. If it
+     * fails, is returned the default value of the metric, instead.
+     *
+     * @param theory the {@link Theory}
+     * @return the evaluation value
+     */
+    public double evaluateTheory(Theory theory) {
+        AsynchronousTheoryEvaluator evaluator = new AsynchronousTheoryEvaluator(knowledgeBase, theory, examples,
+                                                                                theoryMetric, evaluationTimeout);
+        return evaluator.call().getEvaluation();
     }
 
 }

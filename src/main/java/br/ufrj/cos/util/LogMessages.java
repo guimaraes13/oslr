@@ -36,7 +36,7 @@ public enum LogMessages {
     PARSING_INPUT_ARGUMENTS("Parsing input arguments."),
     READING_INPUT_FILES("Reading input file(s)."),
 
-    EVALUATION_THEORY_REACHED_TIMEOUT("Evaluation of the theory reached the timeout."),
+    EVALUATION_INITIAL_THEORIES("Evaluating the initial theories (the minimal safe rule(s) and the bottom clause)."),
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
 
     //One additional parameters to format
@@ -49,6 +49,8 @@ public enum LogMessages {
     EXAMPLES_SIZE("Number of read examples lines:\t{}"),
 
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause for the example:\t{}"),
+    ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
+    EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
 
     ERROR_MAIN_PROGRAM("Main program error, reason:\t{}"),
     ERROR_PARSING_FAILED("Parsing failed, reason:\t{}"),

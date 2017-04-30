@@ -25,27 +25,50 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.ExampleSet;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
+import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.TimeMeasure;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.concurrent.Callable;
 
 /**
  * Handle a asynchronous execution of evaluation a {@link Theory}. This is useful when a maximum amount of time is
- * specified for the task.
+ * specified for the task. In addition, have a timeout, the maximum amount of time the thread is allowed to run.
  * <p>
  * Created on 29/04/17.
  *
  * @author Victor Guimarães
  */
-public class AsynchronousTheoryEvaluator extends Thread {
+public class AsynchronousTheoryEvaluator implements Runnable, Callable<AsynchronousTheoryEvaluator> {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    /**
+     * Constant that represent that the thread can run with no time restriction.
+     */
+    public static final int NO_TIMEOUT = 0;
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
     protected ExampleSet examples;
 
+    protected HornClause hornClause;
+
     protected TheoryMetric theoryMetric;
+
+    protected int timeout = NO_TIMEOUT;
 
     protected double evaluation;
 
+    protected boolean evaluationFinished;
+
     /**
-     * Constructor with the needed parameters.
+     * Constructor with the no timeout.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
@@ -61,9 +84,59 @@ public class AsynchronousTheoryEvaluator extends Thread {
         this.evaluation = theoryMetric.getDefaultValue();
     }
 
+    /**
+     * Constructor with the needed parameters.
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     * @param theory        the {@link Theory}
+     * @param examples      the {@link ExampleSet}
+     * @param theoryMetric  the {@link TheoryMetric}
+     * @param timeout       the maximum amount of time the thread is allowed to run
+     */
+    public AsynchronousTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory,
+                                       ExampleSet examples,
+                                       TheoryMetric theoryMetric, int timeout) {
+        this.knowledgeBase = knowledgeBase;
+        this.theory = theory;
+        this.examples = examples;
+        this.theoryMetric = theoryMetric;
+        this.timeout = timeout;
+    }
+
+    /**
+     * Use this method to evaluate the {@link Theory} with the given timeout.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public AsynchronousTheoryEvaluator call() {
+        try {
+            Thread thread = new Thread(this);
+            thread.start();
+            thread.join(timeout * TimeMeasure.SECONDS_TO_MILLISECONDS_MULTIPLIER);
+            if (thread.isAlive()) {
+                logger.trace(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), timeout);
+            } else {
+                thread.interrupt();
+            }
+        } catch (InterruptedException e) {
+            logger.error(LogMessages.ERROR_EVALUATING_CANDIDATE_THEORY, e);
+        }
+        return this;
+    }
+
+    /**
+     * Use this method (directly or by starting a new thread) if no timeout will be used. Otherwise, use the
+     * {@link #call()} method.
+     * <p>
+     * {@inheritDoc}
+     */
     @Override
     public void run() {
+        evaluationFinished = false;
+        theory.add(hornClause);
         evaluation = theoryMetric.evaluateTheory(knowledgeBase, theory, examples);
+        evaluationFinished = true;
     }
 
     /**
@@ -73,6 +146,33 @@ public class AsynchronousTheoryEvaluator extends Thread {
      */
     public double getEvaluation() {
         return evaluation;
+    }
+
+    /**
+     * Gets the {@link #hornClause}, the evaluated clause that is added to the {@link Theory}.
+     *
+     * @return the {@link HornClause}
+     */
+    public HornClause getHornClause() {
+        return hornClause;
+    }
+
+    /**
+     * Sets the {@link #hornClause}, the evaluated clause that is added to the {@link Theory}.
+     *
+     * @param hornClause the {@link #hornClause}
+     */
+    public void setHornClause(HornClause hornClause) {
+        this.hornClause = hornClause;
+    }
+
+    /**
+     * Gets if the evaluation has finished.
+     *
+     * @return {@code true} if the evaluation has finished, {@code false} otherwise
+     */
+    public boolean isEvaluationFinished() {
+        return evaluationFinished;
     }
 
 }

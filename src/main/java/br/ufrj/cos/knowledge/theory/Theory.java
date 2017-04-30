@@ -22,9 +22,10 @@
 package br.ufrj.cos.knowledge.theory;
 
 import br.ufrj.cos.knowledge.Knowledge;
+import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.util.ExceptionMessages;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -60,16 +61,16 @@ public class Theory extends Knowledge<HornClause> {
      * Copies the theory.
      *
      * @return a copy of this {@link Theory}
-     * @throws NoSuchMethodException     in case of reflection error
-     * @throws IllegalAccessException    in case of reflection error
-     * @throws InvocationTargetException in case of reflection error
-     * @throws InstantiationException    in case of reflection error
+     * @throws KnowledgeException in case of reflection error
      */
-    public Theory copy() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException {
-        Collection<HornClause> copy = collection.getClass().getConstructor(collection.getClass())
-                .newInstance(collection);
-        return new Theory(copy, acceptPredicate);
+    public Theory copy() throws KnowledgeException {
+        try {
+            Collection<HornClause> copy = collection.getClass().getConstructor(collection.getClass()).newInstance
+                    (collection);
+            return new Theory(copy, acceptPredicate);
+        } catch (Exception e) {
+            throw new KnowledgeException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
+        }
     }
 
 }
