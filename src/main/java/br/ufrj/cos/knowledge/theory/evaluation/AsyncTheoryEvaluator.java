@@ -41,7 +41,7 @@ import java.util.concurrent.Callable;
  *
  * @author Victor Guimarães
  */
-public class AsynchronousTheoryEvaluator implements Runnable, Callable<AsynchronousTheoryEvaluator> {
+public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvaluator> {
 
     /**
      * The logger
@@ -75,8 +75,8 @@ public class AsynchronousTheoryEvaluator implements Runnable, Callable<Asynchron
      * @param examples      the {@link ExampleSet}
      * @param theoryMetric  the {@link TheoryMetric}
      */
-    public AsynchronousTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
-                                       TheoryMetric theoryMetric) {
+    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+                                TheoryMetric theoryMetric) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
@@ -93,9 +93,8 @@ public class AsynchronousTheoryEvaluator implements Runnable, Callable<Asynchron
      * @param theoryMetric  the {@link TheoryMetric}
      * @param timeout       the maximum amount of time the thread is allowed to run
      */
-    public AsynchronousTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory,
-                                       ExampleSet examples,
-                                       TheoryMetric theoryMetric, int timeout) {
+    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+                                TheoryMetric theoryMetric, int timeout) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
@@ -109,7 +108,7 @@ public class AsynchronousTheoryEvaluator implements Runnable, Callable<Asynchron
      * {@inheritDoc}
      */
     @Override
-    public AsynchronousTheoryEvaluator call() {
+    public AsyncTheoryEvaluator call() {
         try {
             Thread thread = new Thread(this);
             thread.start();

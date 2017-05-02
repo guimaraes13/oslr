@@ -38,7 +38,7 @@ public class HornClauseUtils {
 
     /**
      * Checks if a {@link HornClause} is safe. A {@link HornClause} is safe when all the variable of the clause
-     * appear, at least once, in a non-negated literal of the body. Including the variables in the head.
+     * appear, at least once, in a non-negated literal of the body, including the variables in the head.
      *
      * @param hornClause the {@link HornClause}
      * @return {@code true} if the {@link HornClause} is safe, {@code false} otherwise
@@ -49,7 +49,7 @@ public class HornClauseUtils {
 
     /**
      * Checks if a {@link HornClause} is safe. A {@link HornClause} is safe when all the variable of the clause
-     * appear, at least once, in a non-negated literal of the body. Including the variables in the head.
+     * appear, at least once, in a non-negated literal of the body, including the variables in the head.
      *
      * @param head the {@link HornClause}'s head
      * @param body the {@link HornClause}'s body
@@ -110,6 +110,24 @@ public class HornClauseUtils {
                 terms.add(term);
             }
         }
+    }
+
+    /**
+     * Checks if a {@link HornClause} with an additional candidate {@link Literal} will be safe. A {@link HornClause}
+     * is safe when all the variable of the clause appear, at least once, in a non-negated literal of the body,
+     * including the variables in the head.
+     *
+     * @param head      the {@link HornClause}'s head
+     * @param body      the {@link HornClause}'s body
+     * @param candidate the additional literal in the body
+     * @return {@code true} if the {@link HornClause} is safe, {@code false} otherwise
+     */
+    public static boolean willBeRuleSafe(Atom head, Iterable<Literal> body, Literal candidate) {
+        Set<Term> nonSafe = getNonSafeTerms(head, body);
+        if (candidate.isNegated()) {
+            appendNonConstantTerms(candidate, nonSafe);
+        }
+        return getSafeTerms(body).containsAll(nonSafe);
     }
 
     /**

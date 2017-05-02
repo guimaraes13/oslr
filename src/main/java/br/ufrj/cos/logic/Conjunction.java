@@ -23,9 +23,9 @@ package br.ufrj.cos.logic;
 
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 /**
  * Represents a conjunction of {@link Literal}s.
@@ -34,7 +34,7 @@ import java.util.Collection;
  *
  * @author Victor Guimarães
  */
-public class Conjunction extends ArrayList<Literal> {
+public class Conjunction extends LinkedHashSet<Literal> {
 
     /**
      * Constructs with initial capacity

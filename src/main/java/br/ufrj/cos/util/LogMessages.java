@@ -36,8 +36,11 @@ public enum LogMessages {
     PARSING_INPUT_ARGUMENTS("Parsing input arguments."),
     READING_INPUT_FILES("Reading input file(s)."),
 
-    EVALUATION_INITIAL_THEORIES("Evaluating the initial theories (the minimal safe rule(s) and the bottom clause)."),
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
+
+    ERROR_EVALUATING_MINIMAL_CLAUSES("No minimal safe clause could be evaluated. There are two possible reasons: " +
+                                             "the timeout is too low; or the metric returns the default value for " +
+                                             "all" + " evaluations"),
 
     //One additional parameters to format
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
@@ -48,9 +51,7 @@ public enum LogMessages {
     READ_CLAUSE_SIZE("Number of read clauses:\t{}"),
     EXAMPLES_SIZE("Number of read examples lines:\t{}"),
 
-    BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause for the example:\t{}"),
-    ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
-    EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
+    BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"), BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"), REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"), EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."), EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."), ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
 
     ERROR_MAIN_PROGRAM("Main program error, reason:\t{}"),
     ERROR_PARSING_FAILED("Parsing failed, reason:\t{}"),
