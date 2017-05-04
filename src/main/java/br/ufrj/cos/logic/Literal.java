@@ -102,6 +102,32 @@ public class Literal extends Atom {
     }
 
     @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        if (negated) {
+            result = 31 * result + 1;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Literal)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        Literal literal = (Literal) o;
+
+        return negated == literal.negated;
+    }
+
+    @Override
     public String toString() {
         if (negated) {
             return LanguageUtils.NEGATION_PREFIX + " " + super.toString();

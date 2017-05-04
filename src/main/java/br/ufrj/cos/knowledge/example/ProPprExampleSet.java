@@ -41,6 +41,8 @@ public class ProPprExampleSet implements Example {
     protected final Atom goal;
     protected final List<AtomExample> atomExamples;
 
+    protected final boolean hasPositivePart;
+
     /**
      * Constructs the ProPPR examples
      *
@@ -50,6 +52,22 @@ public class ProPprExampleSet implements Example {
     public ProPprExampleSet(Atom goal, List<AtomExample> atomExamples) {
         this.goal = goal;
         this.atomExamples = atomExamples;
+        this.hasPositivePart = hasPositiveExamples(atomExamples);
+    }
+
+    /**
+     * Looks for positive examples into the {@link AtomExample}s.
+     *
+     * @param atomExamples the {@link AtomExample}s
+     * @return {@code true} if at least one {@link AtomExample} is positive, {@code false} otherwise
+     */
+    protected boolean hasPositiveExamples(List<AtomExample> atomExamples) {
+        for (AtomExample atomExample : atomExamples) {
+            if (atomExample.isPositive()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -70,18 +88,9 @@ public class ProPprExampleSet implements Example {
         return positiveTerms;
     }
 
-    /**
-     * Appends the constants founded on the given {@link Atom} to the {@link Collection}
-     *
-     * @param atom      the given {@link Atom}
-     * @param constants the {@link Collection}
-     */
-    protected void appendConstantFromAtom(Atom atom, Collection<Term> constants) {
-        for (Term term : atom.getTerms()) {
-            if (term.isConstant()) {
-                constants.add(term);
-            }
-        }
+    @Override
+    public boolean isPositive() {
+        return hasPositivePart;
     }
 
     @Override
@@ -110,6 +119,20 @@ public class ProPprExampleSet implements Example {
     protected void getTermOnIndex(int i, Variable variable, Map<Term, Variable> variableMap) {
         for (AtomExample atomExample : atomExamples) {
             variableMap.put(atomExample.getTerms().get(i), variable);
+        }
+    }
+
+    /**
+     * Appends the constants founded on the given {@link Atom} to the {@link Collection}
+     *
+     * @param atom      the given {@link Atom}
+     * @param constants the {@link Collection}
+     */
+    protected void appendConstantFromAtom(Atom atom, Collection<Term> constants) {
+        for (Term term : atom.getTerms()) {
+            if (term.isConstant()) {
+                constants.add(term);
+            }
         }
     }
 

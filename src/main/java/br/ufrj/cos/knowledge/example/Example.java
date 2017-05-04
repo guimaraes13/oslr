@@ -54,6 +54,13 @@ public interface Example {
     public Collection<Term> getPositiveTerms();
 
     /**
+     * Checks if the example is positive. In the case of the ProPPR example, check if it at least has a positive part.
+     *
+     * @return {@code true} if the example is positive, {@code false} otherwise
+     */
+    public abstract boolean isPositive();
+
+    /**
      * Gets a {@link Map} to map the {@link Term}s in the example into variables. Specially useful when mapping a set
      * of {@link Term}s in the same variable, as the ProPPR example semantics does.
      *

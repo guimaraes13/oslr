@@ -87,6 +87,15 @@ public class WeightedAtom extends Atom {
         this.weight = weight;
     }
 
+    /**
+     * Gets the weight of the {@link Atom}.
+     *
+     * @return the weight of the {@link Atom}
+     */
+    public double getWeight() {
+        return weight;
+    }
+
     @Override
     public String toString() {
         return weight + " " + LanguageUtils.WEIGHT_SIGN + " " + super.toString();

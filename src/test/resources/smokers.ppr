@@ -1,0 +1,2 @@
+smokes(X, Y) :- friends(X, W), fact_smokes(W, Y), influences(W, X), isLabel(Y) {s}.
+influences(W, X) :- {by(W, X)}.

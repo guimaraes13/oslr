@@ -262,7 +262,7 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
             buildTheory();
             buildExampleSet();
             buildLearningSystem();
-            //TODO: call the learning method
+            //TODO: call the learning methods
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);

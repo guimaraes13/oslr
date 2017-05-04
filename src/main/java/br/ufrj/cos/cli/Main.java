@@ -47,52 +47,35 @@ public class Main {
     public static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
+        logger.info("Begin Program!");
         Locale.setDefault(new Locale("en", "us"));
 
 //        Smokers Experiment
         String prefix = "/Users/Victor/Desktop/ProPPR_Smokers";
         String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
 
-        String[] groundingArguments = new String[]{
-                "--programFiles",
-                new File(prefix, "smokers2.wam").getAbsolutePath() + ":" +
-                        new File(prefix, "smokers.graph").getAbsolutePath() + ":" +
-                        new File(prefix, "smokers.cfacts").getAbsolutePath(),
-                "--queries",
-                new File(prefix, "smokers_train.data").getAbsolutePath(),
-                "--grounded",
-                grounded,
-                "--prover",
-                "dpr:0.03:0.2",
+        String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "smokers2.wam").getAbsolutePath
+                () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
+                ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_train.data").getAbsolutePath(),
+                "--grounded", grounded, "--prover", "dpr:0.03:0.2",
 //                "alph=0.3"
 //                "--epochs",
 //                "20"
         };
 
-        String[] trainingArguments = new String[]{
-                "--train",
-                grounded,
-                "--params",
-                new File(prefix, "smokers.wts").getAbsolutePath(),
-        };
+        String[] trainingArguments = new String[]{"--train", grounded, "--params", new File(prefix, "smokers.wts")
+                .getAbsolutePath(),};
 
-        String[] inferenceArguments = new String[]{
-                "--programFiles",
-                new File(prefix, "smokers2.wam").getAbsolutePath() + ":" +
-                        new File(prefix, "smokers.graph").getAbsolutePath() + ":" +
-                        new File(prefix, "smokers.cfacts").getAbsolutePath(),
-                "--queries",
-                new File(prefix, "smokers_train.data").getAbsolutePath(),
-                "--solutions",
-                new File(prefix, "pre.training.solutions.txt").getAbsolutePath(),
-                "--prover",
-                "dpr"
-        };
+        String[] inferenceArguments = new String[]{"--programFiles", new File(prefix, "smokers2.wam").getAbsolutePath
+                () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
+                ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_train.data").getAbsolutePath(),
+                "--solutions", new File(prefix, "pre.training.solutions.txt").getAbsolutePath(), "--prover", "dpr"};
 
 //        grounder(1e-2, 0.1, new String[]{"--help"});
         grounder(1e-2, 0.1, groundingArguments);
 //        trainer(1e-2, 0.1, trainingArguments);
 //        inference(1e-2, 0.1, inferenceArguments);
+        logger.info("End Program!");
     }
 
     public static void grounder(double epsilon, double alpha, String[] args) {
@@ -144,11 +127,8 @@ public class Main {
         long totalTime = end - begin;
 
         logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time " +
-                             "was:\t{}.",
-                     dataSet,
-                     TimeMeasure.formatNanoDifference(groundingTime),
-                     TimeMeasure.formatNanoDifference(trainingTime),
-                     TimeMeasure.formatNanoDifference(totalTime));
+                             "was:\t{}.", dataSet, TimeMeasure.formatNanoDifference(groundingTime), TimeMeasure
+                             .formatNanoDifference(trainingTime), TimeMeasure.formatNanoDifference(totalTime));
     }
 
     public static void trainer(double epsilon, double alpha, String[] args) {
@@ -168,8 +148,8 @@ public class Main {
 
             String groundedFile = c.queryFile.getPath();
             if (!c.queryFile.getName().endsWith(Grounder.GROUNDED_SUFFIX)) {
-                throw new IllegalStateException("Run Grounder on " + c.queryFile.getName() + " first. Ground+Train in" +
-                                                        " one go is not supported yet.");
+                throw new IllegalStateException("Run Grounder on " + c.queryFile.getName() + " first. Ground+Train " +
+                                                        "in" + " one go is not supported yet.");
             }
             SymbolTable<String> masterFeatures = new SimpleSymbolTable<String>();
             File featureIndex = new File(groundedFile + Grounder.FEATURE_INDEX_EXTENSION);
@@ -181,12 +161,8 @@ public class Main {
             }
             log.info("Training model parameters on " + groundedFile + "...");
             long start = System.currentTimeMillis();
-            ParamVector<String, ?> params = c.trainer.train(
-                    masterFeatures,
-                    new ParsedFile(groundedFile),
-                    new ArrayLearningGraphBuilder(),
-                    c.initParamsFile,
-                    c.epochs);
+            ParamVector<String, ?> params = c.trainer.train(masterFeatures, new ParsedFile(groundedFile), new
+                    ArrayLearningGraphBuilder(), c.initParamsFile, c.epochs);
             System.out.println("Training time: " + (System.currentTimeMillis() - start));
 
             if (c.paramsFile != null) {
@@ -207,9 +183,11 @@ public class Main {
             int outputFiles = Configuration.USE_ANSWERS;
             int modules = Configuration.USE_PROVER | Configuration.USE_SQUASHFUNCTION;
             int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER;
-            QueryAnswerer.QueryAnswererConfiguration c = new QueryAnswerer.QueryAnswererConfiguration(
-                    args,
-                    inputFiles, outputFiles, constants, modules);
+            QueryAnswerer.QueryAnswererConfiguration c = new QueryAnswerer.QueryAnswererConfiguration(args,
+                                                                                                      inputFiles,
+                                                                                                      outputFiles,
+                                                                                                      constants,
+                                                                                                      modules);
             c.apr.epsilon = epsilon;
             c.apr.alpha = alpha;
 //			c.squashingFunction = new Exp();

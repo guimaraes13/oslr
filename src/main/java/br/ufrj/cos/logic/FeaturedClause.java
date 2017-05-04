@@ -32,10 +32,10 @@ import br.ufrj.cos.util.LanguageUtils;
  */
 public class FeaturedClause extends HornClause {
 
-    protected Features features;
+    protected final Features features;
 
     /**
-     * Constructs with the head and features
+     * Constructs with the head and features.
      *
      * @param head     the head
      * @param features the features
@@ -46,7 +46,7 @@ public class FeaturedClause extends HornClause {
     }
 
     /**
-     * Constructs with all parameters
+     * Constructs with all parameters.
      *
      * @param head     the head
      * @param body     the body
@@ -58,7 +58,7 @@ public class FeaturedClause extends HornClause {
     }
 
     /**
-     * Constructs with only the head
+     * Constructs with only the head.
      *
      * @param head the head
      */
@@ -68,7 +68,7 @@ public class FeaturedClause extends HornClause {
     }
 
     /**
-     * Constructs with the head and the body
+     * Constructs with the head and the body.
      *
      * @param head the head
      * @param body the body
@@ -76,6 +76,15 @@ public class FeaturedClause extends HornClause {
     public FeaturedClause(Atom head, Conjunction body) {
         super(head, body);
         this.features = null;
+    }
+
+    /**
+     * Gets the {@link Features} of the {@link Clause}.
+     *
+     * @return the {@link Features}
+     */
+    public Features getFeatures() {
+        return features;
     }
 
     @Override
@@ -106,13 +115,13 @@ public class FeaturedClause extends HornClause {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder(super.toString());
         if (stringBuilder.toString().endsWith(LanguageUtils.CLAUSE_END_OF_LINE)) {
-            stringBuilder.delete(stringBuilder.length() - LanguageUtils.CLAUSE_END_OF_LINE.length(),
-                                 stringBuilder.length());
+            stringBuilder.delete(stringBuilder.length() - LanguageUtils.CLAUSE_END_OF_LINE.length(), stringBuilder
+                    .length());
         }
         stringBuilder.append(" ");
 
         stringBuilder.append(LanguageUtils.FEATURES_OPEN_ARGUMENT_CHARACTER);
-        stringBuilder.append(features.toString());
+        stringBuilder.append(features != null ? features.toString() : "");
         stringBuilder.append(LanguageUtils.FEATURES_CLOSE_ARGUMENT_CHARACTER);
         stringBuilder.append(LanguageUtils.CLAUSE_END_OF_LINE);
 

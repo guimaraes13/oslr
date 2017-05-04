@@ -51,7 +51,13 @@ public enum LogMessages {
     READ_CLAUSE_SIZE("Number of read clauses:\t{}"),
     EXAMPLES_SIZE("Number of read examples lines:\t{}"),
 
-    BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"), BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"), REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"), EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."), EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."), ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
+    BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"),
+    BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
+    REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
+    EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
+    EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
+    ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
+//    BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"),
 
     ERROR_MAIN_PROGRAM("Main program error, reason:\t{}"),
     ERROR_PARSING_FAILED("Parsing failed, reason:\t{}"),

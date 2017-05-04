@@ -175,13 +175,16 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
 
     @Override
     public Theory performOperation(Example... targets) throws TheoryRevisionException {
+        int initialSize = theory.size();
         for (Example example : targets) {
-            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLES);
-            buildRuleForExample(example);
-            //TODO: add rule to the theory
+            if (!example.isPositive()) {
+                continue;
+            }
+            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLES.toString(), example);
+            theory.add(buildRuleForExample(example));
             //TODO: skip covered examples
-            //TODO: skip negative examples
         }
+
         return theory;
     }
 

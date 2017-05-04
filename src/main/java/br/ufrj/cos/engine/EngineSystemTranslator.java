@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.engine;
 
+import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ExampleSet;
@@ -45,7 +46,7 @@ public abstract class EngineSystemTranslator {
     protected ExampleSet examples;
 
     /**
-     * Constructs the class if the minimum required parameters
+     * Constructs the class if the minimum required parameters.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
@@ -58,11 +59,26 @@ public abstract class EngineSystemTranslator {
     }
 
     /**
-     * Method to call the logic engine and retrieve the grounding/proved form of the given examples
+     * Method to call the logic engine and retrieve the grounding/proved form of the given examples. This method must
+     * be as simple as possible and returns only the grounded examples. No probabilities are required here.
      *
      * @param examples the examples to ground/prove
      * @return the grounded/proved set of {@link Atom}s
      */
     public abstract Set<Atom> groundingExamples(Example... examples);
 
+    /**
+     * Method to train the parameters of the logic engine.
+     *
+     * @param examples the examples to train with
+     */
+    public abstract void trainParameters(Example... examples);
+
+    /**
+     * Method to infer the probability of the example based on the {@link Knowledge} and the parameters from the
+     * logic engine.
+     *
+     * @param example the example to infer
+     */
+    public abstract void inferExample(Example example);
 }

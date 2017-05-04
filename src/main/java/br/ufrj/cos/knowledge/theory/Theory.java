@@ -73,4 +73,12 @@ public class Theory extends Knowledge<HornClause> {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (HornClause hornClause : this) {
+            stringBuilder.append(hornClause).append("\n");
+        }
+        return stringBuilder.toString().trim();
+    }
 }

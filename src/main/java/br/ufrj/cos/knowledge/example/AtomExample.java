@@ -109,11 +109,7 @@ public class AtomExample extends Atom implements Example {
         return (isPositive() ? getTerms() : null);
     }
 
-    /**
-     * Gets the positive value of the {@link AtomExample}
-     *
-     * @return true if it is positive, false otherwise
-     */
+    @Override
     public boolean isPositive() {
         return positive;
     }

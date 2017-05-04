@@ -28,6 +28,7 @@ import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -213,6 +214,22 @@ public class LanguageUtils {
         objects.forEach(o -> stringBuilder.append(o.toString()).append(LIST_ARGUMENTS_SEPARATOR));
         stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
         return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Builds an array of {@link String} by calling the {@link #toString()} method of each object in objects.
+     *
+     * @param objects the objects
+     * @return the array of {@link String}
+     */
+    public static String[] toStringCollectionToArray(Collection<?> objects) {
+        String[] strings = new String[objects.size()];
+        int counter = 0;
+        for (Object object : objects) {
+            strings[counter] = object.toString();
+            counter++;
+        }
+        return strings;
     }
 
 }
