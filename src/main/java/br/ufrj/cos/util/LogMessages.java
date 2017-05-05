@@ -51,6 +51,8 @@ public enum LogMessages {
     READ_CLAUSE_SIZE("Number of read clauses:\t{}"),
     EXAMPLES_SIZE("Number of read examples lines:\t{}"),
 
+    GROUNDING_EXAMPLE("Grounding examples:\t{}"),
+
     BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"),
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),

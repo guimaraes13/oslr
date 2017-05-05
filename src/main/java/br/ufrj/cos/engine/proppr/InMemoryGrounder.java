@@ -22,16 +22,13 @@
 package br.ufrj.cos.engine.proppr;
 
 import edu.cmu.ml.proppr.Grounder;
-import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
-import edu.cmu.ml.proppr.examples.InferenceExampleStreamer;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.ProofGraph;
 import edu.cmu.ml.proppr.prove.wam.WamProgram;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
-import edu.cmu.ml.proppr.util.multithreading.Transformer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,13 +77,8 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
             Multithreading<InferenceExample, String> m = new Multithreading<>(log, this
                     .status, maintainOrder);
 
-            m.executeJob(this.nthreads, new InferenceExampleStreamer(dataFile).stream(), new
-                    Transformer<InferenceExample, String>() {
-                        @Override
-                        public Callable<String> transformer(InferenceExample in, int id) {
-                            return new Ground(in, id);
-                        }
-                    }, groundedFile, this.throttle);
+//            m.executeJob(this.nthreads, new InferenceExampleStreamer(dataFile).stream(),
+//                         (in, id) -> buildExampleGrounder(in, id), groundedFile, this.throttle);
 
             reportStatistics(empty);
 
@@ -101,38 +93,11 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
         }
     }
 
-    //TODO: modify this class to save the grounded states
-    private class Ground implements Callable<String> {
-
-        InferenceExample inf;
-        int id;
-
-        public Ground(InferenceExample in, int id) {
-            validateExample(in);
-            this.inf = in;
-            this.id = id;
-        }
-
-        @Override
-        public String call() throws Exception {
-            P pg = prover.makeProofGraph(inf, apr, featureTable, masterProgram, masterPlugins);
-            GroundedExample gx = groundExample(getProver().copy(), pg);
-            InferenceExample ix = pg.getExample();
-            statistics.updateStatistics(ix, ix.getPosSet().length, ix.getNegSet().length, gx.getPosList().size(), gx
-                    .getNegList().size());
-            if (gx.getGraph().edgeSize() > 0) {
-                if (gx.length() > 0 || includeUnlabeledGraphs) {
-                    return (serializeGroundedExample(pg, gx));
-                } else {
-                    statistics.noPosNeg();
-                    //log.warn("No positive or negative solutions for query "+id+":"+pg.getExample().getQuery()
-                    // .toString()+"; skipping");
-                }
-            } else {
-                statistics.emptyGraph(); //log.warn("Empty graph for example "+id);
-            }
-            return null;
-        }
+    protected Callable<Ground> buildExampleGrounder(InferenceExample in, int id) {
+        return new Ground(in, id, prover, apr, featureTable, masterProgram, masterPlugins, statistics,
+                          includeUnlabeledGraphs, status);
     }
+
+    //TODO: modify this class to save the grounded states
 
 }

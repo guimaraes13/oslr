@@ -61,8 +61,8 @@ public class ProPprEngineTest {
             WamProgram wamProgramExpected = WamProgram.load(new File(WAN_FILE));
             for (int i = 0; i < 29; i++) {
                 Assert.assertEquals("Instructions does not match!",
-                                    wamProgram.getInstruction(i).toString(),
-                                    wamProgramExpected.getInstruction(i).toString());
+                                    wamProgramExpected.getInstruction(i).toString(),
+                                    wamProgram.getInstruction(i).toString());
             }
         } catch (Exception e) {
             Assert.fail();
