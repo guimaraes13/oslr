@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
-public class ProPprExampleSet implements Example {
+public class ProPprExample implements Example {
 
     protected final Atom goal;
     protected final List<AtomExample> atomExamples;
@@ -49,7 +49,7 @@ public class ProPprExampleSet implements Example {
      * @param goal         the goal
      * @param atomExamples the positive and negative grounded atoms
      */
-    public ProPprExampleSet(Atom goal, List<AtomExample> atomExamples) {
+    public ProPprExample(Atom goal, List<AtomExample> atomExamples) {
         this.goal = goal;
         this.atomExamples = atomExamples;
         this.hasPositivePart = hasPositiveExamples(atomExamples);
@@ -106,6 +106,16 @@ public class ProPprExampleSet implements Example {
         }
 
         return variableMap;
+    }
+
+    @Override
+    public Atom getGoalQuery() {
+        return goal;
+    }
+
+    @Override
+    public Iterable<? extends AtomExample> getGroundedQuery() {
+        return atomExamples;
     }
 
     /**
@@ -166,11 +176,11 @@ public class ProPprExampleSet implements Example {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ProPprExampleSet)) {
+        if (!(o instanceof ProPprExample)) {
             return false;
         }
 
-        ProPprExampleSet that = (ProPprExampleSet) o;
+        ProPprExample that = (ProPprExample) o;
 
         return goal.equals(that.goal) && atomExamples.equals(that.atomExamples);
     }

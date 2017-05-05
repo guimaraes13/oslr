@@ -19,32 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.example;
+package br.ufrj.cos.engine.proppr.ground;
 
-import java.util.List;
+import edu.cmu.ml.proppr.util.multithreading.Cleanup;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
- * Responsible to hold the read atomExamples from the input.
+ * Class to gather a {@link Cleanup}'s result into a {@link Map}.
  * <p>
- * Created on 25/04/17.
+ * Created on 05/05/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
-public class ExampleSet {
+public class MapCleanup<Result> extends Cleanup<Result> {
 
-    protected List<AtomExample> atomExamples;
-    protected List<ProPprExampleSet> proPprExamples;
+    protected Map<Integer, Result> resultMap = new ConcurrentHashMap<>();
+
+    @Override
+    public Runnable cleanup(Future<Result> in, int id) {
+        return new MapCleanupRun<>(resultMap, in, id);
+    }
 
     /**
-     * Constructor with the example lists
+     * Gets the {@link Map} of {@link Result} with the ids as keys.
      *
-     * @param atomExamples   the {@link AtomExample}s
-     * @param proPprExamples the {@link ProPprExampleSet}s
+     * @return the {@link Map} of {@link Result}
      */
-    public ExampleSet(List<AtomExample> atomExamples, List<ProPprExampleSet> proPprExamples) {
-        this.atomExamples = atomExamples;
-        this.proPprExamples = proPprExamples;
+    public Map<Integer, Result> getResultMap() {
+        return resultMap;
     }
 
 }

@@ -23,7 +23,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 
 import java.util.Collection;
@@ -39,7 +39,7 @@ public abstract class RevisionOperatorSelector {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected ExampleSet examples;
+    protected Examples examples;
 
     protected Collection<RevisionOperatorEvaluator> operatorEvaluators;
 
@@ -48,9 +48,9 @@ public abstract class RevisionOperatorSelector {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      */
-    public RevisionOperatorSelector(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+    public RevisionOperatorSelector(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;

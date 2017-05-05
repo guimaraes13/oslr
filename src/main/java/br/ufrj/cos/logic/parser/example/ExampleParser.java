@@ -25,7 +25,7 @@
 package br.ufrj.cos.logic.parser.example;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.ProPprExampleSet;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Constant;
 import br.ufrj.cos.logic.Term;
@@ -262,7 +262,7 @@ public class ExampleParser implements ExampleParserConstants {
                     break label_3;
             }
         }
-        proPprExamples.add(new ProPprExampleSet(goal, examples));
+        proPprExamples.add(new ProPprExample(goal, examples));
     }
 
     final public Atom readAtom() throws ParseException {

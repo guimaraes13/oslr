@@ -23,7 +23,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
@@ -56,12 +56,12 @@ public class RevisionManager {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param targets       the target {@link Example}s
      * @return the revised {@link Theory}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory revise(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public Theory revise(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                          Example... targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets);
         return operatorEvaluator.getRevisedTheory(knowledgeBase, theory, examples, targets);

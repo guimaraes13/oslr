@@ -22,7 +22,7 @@
 package br.ufrj.cos.knowledge.theory.evaluation;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
@@ -55,7 +55,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected ExampleSet examples;
+    protected Examples examples;
 
     protected HornClause hornClause;
 
@@ -72,10 +72,10 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param theoryMetric  the {@link TheoryMetric}
      */
-    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                 TheoryMetric theoryMetric) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
@@ -89,11 +89,11 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param theoryMetric  the {@link TheoryMetric}
      * @param timeout       the maximum amount of time the thread is allowed to run
      */
-    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                 TheoryMetric theoryMetric, int timeout) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;

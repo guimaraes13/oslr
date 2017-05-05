@@ -25,11 +25,12 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.VariableGenerator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents an atom example.
@@ -40,7 +41,23 @@ import java.util.Map;
  */
 public class AtomExample extends Atom implements Example {
 
-    boolean positive = true;
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    protected final boolean positive;
+    protected final Atom goalQuery;
+
+    /**
+     * Constructs a positive {@link AtomExample}
+     *
+     * @param name  the {@link Atom}'s predicate name
+     * @param terms the {@link Atom}'s {@link Term}s
+     */
+    public AtomExample(String name, List<Term> terms) {
+        this(name, terms, true);
+    }
 
     /**
      * Constructs an {@link AtomExample}
@@ -52,6 +69,26 @@ public class AtomExample extends Atom implements Example {
     public AtomExample(String name, List<Term> terms, boolean positive) {
         super(name, terms);
         this.positive = positive;
+
+        if (isGrounded()) {
+            try {
+                this.goalQuery = LanguageUtils.toVariableAtom(this, new HashMap<>(), new VariableGenerator());
+            } catch (IllegalAccessException | InstantiationException e) {
+                logger.error(LogMessages.ERROR_BUILDING_ATOM.toString(), e);
+                this.goalQuery = null;
+            }
+        } else {
+            this.goalQuery = null;
+        }
+    }
+
+    /**
+     * Constructs a positive proposition like {@link AtomExample}
+     *
+     * @param name the proposition name
+     */
+    public AtomExample(String name) {
+        this(name, true);
     }
 
     /**
@@ -61,27 +98,7 @@ public class AtomExample extends Atom implements Example {
      * @param positive the value of the example, true for positive; false for negative
      */
     public AtomExample(String name, boolean positive) {
-        super(name);
-        this.positive = positive;
-    }
-
-    /**
-     * Constructs a positive {@link AtomExample}
-     *
-     * @param name  the {@link Atom}'s predicate name
-     * @param terms the {@link Atom}'s {@link Term}s
-     */
-    public AtomExample(String name, List<Term> terms) {
-        super(name, terms);
-    }
-
-    /**
-     * Constructs a positive proposition like {@link AtomExample}
-     *
-     * @param name the proposition name
-     */
-    public AtomExample(String name) {
-        super(name);
+        this(name, null, positive);
     }
 
     /**
@@ -91,8 +108,7 @@ public class AtomExample extends Atom implements Example {
      * @param positive the value of the example, true for positive; false for negative
      */
     public AtomExample(Atom atom, boolean positive) {
-        super(atom.getName(), atom.getTerms());
-        this.positive = positive;
+        this(atom.getName(), atom.getTerms(), true);
     }
 
     /**
@@ -117,6 +133,20 @@ public class AtomExample extends Atom implements Example {
     @Override
     public Map<Term, Variable> getVariableMap() {
         return new HashMap<>();
+    }
+
+    @Override
+    public Atom getGoalQuery() {
+        return goalQuery;
+    }
+
+    @Override
+    public Iterable<? extends AtomExample> getGroundedQuery() {
+        List<AtomExample> atoms = new ArrayList<>();
+        if (isGrounded()) {
+            atoms.add(this);
+        }
+        return atoms;
     }
 
     @Override

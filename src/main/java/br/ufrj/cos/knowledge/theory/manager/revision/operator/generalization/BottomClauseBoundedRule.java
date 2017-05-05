@@ -25,13 +25,14 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.HornClauseUtils;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.VariableGenerator;
 import org.apache.logging.log4j.LogManager;
@@ -162,11 +163,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param engineSystem  the {@link EngineSystemTranslator}
      * @param theoryMetric  the {@link TheoryMetric}
      */
-    public BottomClauseBoundedRule(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public BottomClauseBoundedRule(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                    EngineSystemTranslator engineSystem, TheoryMetric theoryMetric) {
         super(knowledgeBase, theory, examples);
         this.engineSystem = engineSystem;
@@ -364,10 +365,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         variableGenerator.setUsedNames(variableMap.values().stream().map(Term::getName).collect(Collectors.toSet()));
         Conjunction conjunction = new Conjunction(body.size());
         for (Atom atom : body) {
-            conjunction.add(new Literal(toVariableAtom(atom, variableMap, variableGenerator)));
+            conjunction.add(new Literal(LanguageUtils.toVariableAtom(atom, variableMap, variableGenerator)));
         }
 
-        return new HornClause(toVariableAtom(target.getAtom(), variableMap, variableGenerator), conjunction);
+        return new HornClause(LanguageUtils.toVariableAtom(target.getAtom(), variableMap, variableGenerator),
+                              conjunction);
     }
 
     /**
@@ -417,26 +419,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             }
         }
         return bestClause;
-    }
-
-    /**
-     * Turn into variable the {@link Term}s of the given {@link Atom}
-     *
-     * @param atom        the {@link Atom}
-     * @param variableMap the {@link Map} of {@link Term}s to {@link Variable}s
-     * @param generator   the {@link VariableGenerator}
-     * @return the new {@link Atom}
-     * @throws IllegalAccessException if an error occurs when instantiating a new list of {@link Term}s
-     * @throws InstantiationException if an error occurs when instantiating a new list of {@link Term}s
-     */
-    protected Atom toVariableAtom(Atom atom, Map<Term, Variable> variableMap,
-                                  VariableGenerator generator) throws IllegalAccessException, InstantiationException {
-        List<Term> terms = atom.getTerms().getClass().newInstance();
-        for (Term term : atom.getTerms()) {
-            terms.add(variableMap.computeIfAbsent(term, k -> generator.next()));
-        }
-
-        return new Atom(atom.getName(), terms);
     }
 
     /**

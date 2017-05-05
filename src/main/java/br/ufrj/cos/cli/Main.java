@@ -90,8 +90,8 @@ public class Main {
                                                                                                 outputFiles,
                                                                                                 constants, modules);
 
-//            c.apr.epsilon = epsilon;
-//            c.apr.alpha = alpha;
+//            c.aprOptions.epsilon = epsilon;
+//            c.aprOptions.alpha = alpha;
 
             System.out.println(c.toString());
 

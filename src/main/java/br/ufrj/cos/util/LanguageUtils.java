@@ -22,14 +22,12 @@
 package br.ufrj.cos.util;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.ProPprExampleSet;
-import br.ufrj.cos.logic.Atom;
-import br.ufrj.cos.logic.Conjunction;
-import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.knowledge.example.ProPprExample;
+import br.ufrj.cos.logic.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -156,15 +154,15 @@ public class LanguageUtils {
     }
 
     /**
-     * Formats the {@link ProPprExampleSet} to {@link String}.
+     * Formats the {@link ProPprExample} to {@link String}.
      *
-     * @param proPprExampleSet the{@link ProPprExampleSet}
+     * @param proPprExample the{@link ProPprExample}
      * @return the formatted {@link String}
      */
-    public static String formatExampleToProPprString(ProPprExampleSet proPprExampleSet) {
+    public static String formatExampleToProPprString(ProPprExample proPprExample) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(proPprExampleSet.getGoal());
-        for (AtomExample atomExample : proPprExampleSet.getAtomExamples()) {
+        stringBuilder.append(proPprExample.getGoal());
+        for (AtomExample atomExample : proPprExample.getAtomExamples()) {
             stringBuilder.append(EXAMPLE_SEPARATOR_CHARACTER);
             stringBuilder.append(formatExampleToProPprString(atomExample));
         }
@@ -230,6 +228,27 @@ public class LanguageUtils {
             counter++;
         }
         return strings;
+    }
+
+    /**
+     * Turn into variable the {@link Term}s of the given {@link Atom}
+     *
+     * @param atom        the {@link Atom}
+     * @param variableMap the {@link Map} of {@link Term}s to {@link Variable}s
+     * @param generator   the {@link VariableGenerator}
+     * @return the new {@link Atom}
+     * @throws IllegalAccessException if an error occurs when instantiating a new list of {@link Term}s
+     * @throws InstantiationException if an error occurs when instantiating a new list of {@link Term}s
+     */
+    public static Atom toVariableAtom(Atom atom, Map<Term, Variable> variableMap,
+                                      VariableGenerator generator) throws IllegalAccessException,
+            InstantiationException {
+        List<Term> terms = atom.getTerms().getClass().newInstance();
+        for (Term term : atom.getTerms()) {
+            terms.add(variableMap.computeIfAbsent(term, k -> generator.next()));
+        }
+
+        return new Atom(atom.getName(), terms);
     }
 
 }

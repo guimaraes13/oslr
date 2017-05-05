@@ -70,6 +70,20 @@ public interface Example {
         return new HashMap<>();
     }
 
+    /**
+     * Gets the goal query from an example.
+     *
+     * @return the goal query
+     */
+    public Atom getGoalQuery();
+
+    /**
+     * Gets the grounded queries from a example, i.e. the grounds for the goal query.
+     *
+     * @return the grounded queries
+     */
+    public Iterable<? extends AtomExample> getGroundedQuery();
+
     @Override
     public int hashCode();
 

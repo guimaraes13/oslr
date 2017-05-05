@@ -52,6 +52,9 @@ public enum LogMessages {
     EXAMPLES_SIZE("Number of read examples lines:\t{}"),
 
     GROUNDING_EXAMPLE("Grounding examples:\t{}"),
+    GROUNDING_EXAMPLE_TIMEOUT("Grounding examples {} timed out."),
+    ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:\t{}"),
+    ERROR_BUILDING_ATOM("Error when building an atom, reason:\t{}"),
 
     BUILDING_CLAUSE_FROM_EXAMPLES("Building a clause from the example:\t{}"),
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),

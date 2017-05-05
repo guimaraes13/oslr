@@ -23,7 +23,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
@@ -66,12 +66,12 @@ public class RevisionOperatorEvaluator {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param targets       the target {@link Example}s
      * @return the evaluated value
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public double evaluateOperator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public double evaluateOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                    Example... targets) throws TheoryRevisionException {
         if (!isEvaluated) {
             isEvaluated = true;
@@ -91,12 +91,12 @@ public class RevisionOperatorEvaluator {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param targets       the target {@link Example}s
      * @return the revised {@link Theory}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory getRevisedTheory(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public Theory getRevisedTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                    Example... targets) throws TheoryRevisionException {
         if (isEvaluated) {
             isEvaluated = false;

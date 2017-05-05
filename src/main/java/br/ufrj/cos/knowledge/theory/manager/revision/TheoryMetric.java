@@ -24,7 +24,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 
 import java.util.Comparator;
@@ -62,10 +62,10 @@ public abstract class TheoryMetric implements Comparator<Double> {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @return the evaluation value
      */
-    public abstract double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples);
+    public abstract double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples);
 
     /**
      * Gets the default value of a metric, this value must by the worst possible value of the metric. This value

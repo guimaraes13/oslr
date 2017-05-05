@@ -24,7 +24,7 @@ package br.ufrj.cos.engine.proppr;
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.LanguageUtils;
@@ -56,13 +56,13 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      *
      * @param knowledgeBase   the {@link KnowledgeBase}
      * @param theory          the {@link Theory}
-     * @param examples        the {@link ExampleSet}
+     * @param examples        the {@link Examples}
      * @param aprOptions      the {@link APROptions}
      * @param factsPluginName the facts plugin's name
      * @param useTernayIndex  if is to use ternay index, makes an more efficient cache for predicates with arity
      *                        bigger than two
      */
-    public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                         APROptions aprOptions, String factsPluginName, boolean useTernayIndex) {
         super(knowledgeBase, theory, examples);
         program = compileTheory(theory);
@@ -80,7 +80,7 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
         WamProgram wamProgram = new WamBaseProgram();
         Rule rule;
         for (HornClause hornClause : theory) {
-            rule = convertClauseToRule(hornClause);
+            rule = clauseToRule(hornClause);
             rule.variabilize();
             wamProgram.append(new Instruction(Instruction.OP.comment, rule.toString()));
             wamProgram.insertLabel(getLabelForRule(rule));
@@ -123,21 +123,21 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param clause the {@link Clause}
      * @return the {@link Rule}
      */
-    protected static Rule convertClauseToRule(Clause clause) {
+    protected static Rule clauseToRule(Clause clause) {
         Goal lhs = null;                //head
         Goal[] rhs = new Goal[0];       //body
         Goal[] features = new Goal[0];  //features
 
         if (clause instanceof Atom) {
-            lhs = convertAtomToGoal((Atom) clause, null);
+            lhs = atomToGoal((Atom) clause, new HashMap<>());
         } else if (clause instanceof HornClause) {
             HornClause hornClause = (HornClause) clause;
             Map<Term, Integer> variableMap = new HashMap<>();
-            lhs = convertAtomToGoal(hornClause.getHead(), variableMap);
-            rhs = convertPositiveLiteralsToGoals(hornClause.getBody(), variableMap);
+            lhs = atomToGoal(hornClause.getHead(), variableMap);
+            rhs = positiveLiteralsToGoals(hornClause.getBody(), variableMap);
             if (hornClause instanceof FeaturedClause) {
                 FeaturedClause featuredClause = (FeaturedClause) hornClause;
-                features = convertAtomsToGoals(featuredClause.getFeatures(), variableMap);
+                features = atomsToGoals(featuredClause.getFeatures(), variableMap);
             }
         }
 
@@ -164,7 +164,7 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param variableMap the variable {@link Map}
      * @return the {@link Goal}
      */
-    protected static Goal convertAtomToGoal(Atom atom, Map<Term, Integer> variableMap) {
+    public static Goal atomToGoal(Atom atom, Map<Term, Integer> variableMap) {
         String functor = atom.getName();
         Argument[] arguments = new Argument[atom.getTerms().size()];
         for (int i = 0; i < arguments.length; i++) {
@@ -194,12 +194,12 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param variableMap the variable {@link Map}
      * @return the {@link Goal}s
      */
-    protected static Goal[] convertPositiveLiteralsToGoals(Iterable<? extends Literal> literals,
-                                                           Map<Term, Integer> variableMap) {
+    protected static Goal[] positiveLiteralsToGoals(Iterable<? extends Literal> literals,
+                                                    Map<Term, Integer> variableMap) {
         List<Goal> goals = new ArrayList<>();
         for (Literal literal : literals) {
             if (!literal.isNegated()) {
-                goals.add(convertAtomToGoal(literal, variableMap));
+                goals.add(atomToGoal(literal, variableMap));
             }
         }
 
@@ -216,18 +216,24 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param variableMap the variable {@link Map}
      * @return the {@link Goal}s
      */
-    protected static Goal[] convertAtomsToGoals(Iterable<? extends Atom> atoms, Map<Term, Integer> variableMap) {
+    protected static Goal[] atomsToGoals(Iterable<? extends Atom> atoms, Map<Term, Integer> variableMap) {
         List<Goal> goals = new ArrayList<>();
         for (Atom atom : atoms) {
-            goals.add(convertAtomToGoal(atom, variableMap));
+            goals.add(atomToGoal(atom, variableMap));
         }
 
         return goals.toArray(new Goal[0]);
     }
 
     @Override
+    public Set<Atom> groundRelevants(Collection<Term> terms) {
+        //TODO: call the ProPPR to ground the relevants to the terms
+        return null;
+    }
+
+    @Override
     public Set<Atom> groundingExamples(Example... examples) {
-        //TODO: call the ProPPR grounding
+        //TODO: call the ProPPR grounding the examples
         return null;
     }
 

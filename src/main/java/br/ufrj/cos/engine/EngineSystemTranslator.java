@@ -24,10 +24,12 @@ package br.ufrj.cos.engine;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Term;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -43,20 +45,31 @@ public abstract class EngineSystemTranslator {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected ExampleSet examples;
+    protected Examples examples;
 
     /**
      * Constructs the class if the minimum required parameters.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      */
-    public EngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+    public EngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
     }
+
+    /**
+     * Method to call the logic engine and retrieve the grounding/proved {@link Atom} relevant to the given
+     * {@link Term}.
+     * <p>
+     * An {@link Atom} is relevant to a {@link Term} if it contains it.
+     *
+     * @param terms the {@link Term}s
+     * @return the relevant {@link Atom}s.
+     */
+    public abstract Set<Atom> groundRelevants(Collection<Term> terms);
 
     /**
      * Method to call the logic engine and retrieve the grounding/proved form of the given examples. This method must

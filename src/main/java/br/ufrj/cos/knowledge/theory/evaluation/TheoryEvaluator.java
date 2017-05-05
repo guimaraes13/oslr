@@ -22,7 +22,7 @@
 package br.ufrj.cos.knowledge.theory.evaluation;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 
@@ -42,7 +42,7 @@ public class TheoryEvaluator {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected ExampleSet examples;
+    protected Examples examples;
 
     protected Set<TheoryMetric> theoryMetrics;
 
@@ -51,10 +51,10 @@ public class TheoryEvaluator {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param theoryMetrics a {@link Set} of {@link TheoryMetric}
      */
-    public TheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public TheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                            Set<TheoryMetric> theoryMetrics) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
@@ -67,11 +67,11 @@ public class TheoryEvaluator {
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      * @param theoryMetric  the {@link TheoryMetric}
      * @return the evaluation value
      */
-    public static double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples,
+    public static double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                         TheoryMetric theoryMetric) {
         return theoryMetric.evaluateTheory(knowledgeBase, theory, examples);
     }
@@ -109,11 +109,11 @@ public class TheoryEvaluator {
     }
 
     /**
-     * Gets the {@link ExampleSet}.
+     * Gets the {@link Examples}.
      *
-     * @return the {@link ExampleSet}
+     * @return the {@link Examples}
      */
-    public ExampleSet getExamples() {
+    public Examples getExamples() {
         return examples;
     }
 

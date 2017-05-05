@@ -23,7 +23,7 @@ package br.ufrj.cos.core;
 
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.manager.IncomingExampleManager;
 import br.ufrj.cos.knowledge.manager.KnowledgeBaseManager;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -63,16 +63,16 @@ public class LearningSystem {
     //Theory Manager
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected ExampleSet examples;
+    protected Examples examples;
 
     /**
      * Constructs the class if the minimum required parameters.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
-     * @param examples      the {@link ExampleSet}
+     * @param examples      the {@link Examples}
      */
-    public LearningSystem(KnowledgeBase knowledgeBase, Theory theory, ExampleSet examples) {
+    public LearningSystem(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;

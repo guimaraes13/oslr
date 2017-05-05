@@ -24,8 +24,8 @@ package br.ufrj.cos.cli;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.ExampleSet;
-import br.ufrj.cos.knowledge.example.ProPprExampleSet;
+import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -127,7 +127,7 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     /**
      * Examples representation.
      */
-    protected ExampleSet examples;
+    protected Examples examples;
 
     /**
      * The learning system.
@@ -162,7 +162,7 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
      */
     protected static void readExamplesToLists(File file,
                                               List<AtomExample> atomExamples,
-                                              List<ProPprExampleSet> proPprExamples) {
+                                              List<ProPprExample> proPprExamples) {
         try {
             BufferedReader reader;
             ExampleParser parser;
@@ -310,18 +310,22 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     }
 
     /**
-     * Builds the {@link ExampleSet} from the input files.
+     * Builds the {@link Examples} from the input files.
+     *
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
      */
-    protected void buildExampleSet() {
+    protected void buildExampleSet() throws InstantiationException, IllegalAccessException {
         List<InputStream> inputStreams = new ArrayList<>();
         List<AtomExample> atomExamples = new ArrayList<>();
-        List<ProPprExampleSet> proPprExamples = new ArrayList<>();
+        List<ProPprExample> proPprExamples = new ArrayList<>();
         logger.trace(LogMessages.READING_INPUT_FILES);
         for (File file : exampleFiles) {
             readExamplesToLists(file, atomExamples, proPprExamples);
         }
         logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
-        examples = new ExampleSet(atomExamples, proPprExamples);
+
+        examples = new Examples(proPprExamples, atomExamples);
     }
 
     /**
@@ -368,9 +372,9 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     }
 
     /**
-     * Gets the {@link ExampleSet}'s files
+     * Gets the {@link Examples}'s files
      *
-     * @return the {@link ExampleSet}'s files
+     * @return the {@link Examples}'s files
      */
     public File[] getExampleFiles() {
         return exampleFiles;
