@@ -29,6 +29,8 @@ import edu.cmu.ml.proppr.prove.wam.ProofGraph;
 import edu.cmu.ml.proppr.prove.wam.WamProgram;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
+import edu.cmu.ml.proppr.util.ConcurrentSymbolTable;
+import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 import edu.cmu.ml.proppr.util.multithreading.Transformer;
 import org.apache.logging.log4j.LogManager;
@@ -86,16 +88,19 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     }
 
     /**
-     * Ground the examples in the {@link Iterable} and returns a {@link Map} with the {@link Ground}s.
+     * Ground the examples in the {@link Iterable} and returns a {@link Map} with the {@link Ground}s, saving the
+     * discovered features in a {@link SymbolTable}.
      *
      * @param inferenceExampleIterable the {@link Iterable}
+     * @param masterFeatures           the {@link SymbolTable}
      * @return the {@link Map}
      */
-    public Map<Integer, Ground<P>> groundExamples(Iterable<InferenceExample> inferenceExampleIterable) {
+    public Map<Integer, Ground<P>> groundExamples(Iterable<InferenceExample> inferenceExampleIterable,
+                                                  SymbolTable<String> masterFeatures) {
         MapCleanup<Ground<P>> groundCleanup = new MapCleanup<>();
         try {
             this.statistics = new GroundingStatistics();
-
+            this.featureTable = new ConcurrentSymbolTable<>(ConcurrentSymbolTable.HASHING_STRATEGIES.identity);
             Multithreading<InferenceExample, Ground<P>> multithreading
                     = new Multithreading<>(logger, status, true);
 
@@ -104,11 +109,23 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
                                               includeUnlabeledGraphs, status);
 
             multithreading.executeJob(nthreads, inferenceExampleIterable, transformer, groundCleanup, throttle);
+            saveFeaturesToSymbolTable(masterFeatures);
             reportStatistics(EMPTY);
         } catch (Exception e) {
             logger.error(LogMessages.ERROR_GROUNDING_EXAMPLE.toString(), e);
         }
         return groundCleanup.getResultMap();
+    }
+
+    /**
+     * Saves the discovered features to a {@link SymbolTable}.
+     *
+     * @param symbolTable the {@link SymbolTable}
+     */
+    protected void saveFeaturesToSymbolTable(SymbolTable<String> symbolTable) {
+        for (int i = 1; i < featureTable.size() + 1; i++) {
+            symbolTable.insert(featureTable.getSymbol(i).name);
+        }
     }
 
 }

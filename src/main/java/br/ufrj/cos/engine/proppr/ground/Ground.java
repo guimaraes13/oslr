@@ -65,7 +65,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
 
     protected StatusLogger status;
 
-    protected P proofGraph;
+    protected P proofGraph = null;
     protected GroundedExample groundedExample;
 
     /**
@@ -152,4 +152,12 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
         return groundedExample;
     }
 
+    @Override
+    public String toString() {
+        if (proofGraph != null && groundedExample != null) {
+            return proofGraph.serialize(groundedExample);
+        } else {
+            return super.toString();
+        }
+    }
 }

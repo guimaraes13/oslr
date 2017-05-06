@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("ALL")
 public class Main {
 
     public static final Logger logger = LogManager.getLogger();

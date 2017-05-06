@@ -90,6 +90,11 @@ public abstract class EngineSystemTranslator {
     public abstract void trainParameters(Example... examples);
 
     /**
+     * Saves the last trained parameters to the current parameters.
+     */
+    public abstract void saveTrainedParameters();
+
+    /**
      * Method to infer the probability of the example based on the {@link Knowledge} and the parameters from the
      * logic engine.
      *

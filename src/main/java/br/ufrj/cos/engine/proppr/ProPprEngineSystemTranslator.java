@@ -31,15 +31,29 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.LanguageUtils;
+import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
+import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
+import edu.cmu.ml.proppr.learn.SRW;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
+import edu.cmu.ml.proppr.util.SRWOptions;
+import edu.cmu.ml.proppr.util.SimpleSymbolTable;
+import edu.cmu.ml.proppr.util.SymbolTable;
+import edu.cmu.ml.proppr.util.math.ParamVector;
+import edu.cmu.ml.proppr.util.math.SimpleParamVector;
+import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static edu.cmu.ml.proppr.Trainer.DEFAULT_CAPACITY;
+import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
 
 /**
  * Translator to convert the system's syntax to ProPPR, and vice versa
@@ -58,25 +72,43 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected final WamProgram program;
     protected final FactsPlugin factsPlugin;
     protected final InMemoryGrounder<P> grounder;
+    protected final Trainer trainer;
+    protected final int numberOfTrainingEpochs;
+
+    protected ParamVector<String, ?> currentParamVector;
+    protected ParamVector<String, ?> savedParamVector;
+    protected SymbolTable<String> symbolTable;
 
     /**
      * Constructs the class if the minimum required parameters.
      *
-     * @param knowledgeBase   the {@link KnowledgeBase}
-     * @param theory          the {@link Theory}
-     * @param examples        the {@link Examples}
-     * @param aprOptions      the {@link APROptions}
-     * @param factsPluginName the facts plugin's name
-     * @param useTernayIndex  if is to use ternay index, makes an more efficient cache for predicates with arity
-     * @param prover          the {@link Prover}
+     * @param knowledgeBase          the {@link KnowledgeBase}
+     * @param theory                 the {@link Theory}
+     * @param examples               the {@link Examples}
+     * @param numberOfThreads        the number of threads this class is allowed to use
+     * @param factsPluginName        the facts plugin's name
+     * @param useTernayIndex         if is to use ternay index, makes an more efficient cache for predicates with arity
+     * @param prover                 the {@link Prover}
+     * @param learner                the {@link SRWOptions}
+     * @param aprOptions             the {@link APROptions}
+     * @param numberOfTrainingEpochs the number of training epochs per training
      */
     public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                        APROptions aprOptions, String factsPluginName, boolean useTernayIndex,
-                                        Prover<P> prover) {
+                                        int numberOfThreads, String factsPluginName, boolean useTernayIndex,
+                                        Prover<P> prover, SRW learner, APROptions aprOptions,
+                                        int numberOfTrainingEpochs) {
         super(knowledgeBase, theory, examples);
         this.program = compileTheory(theory);
+        this.numberOfTrainingEpochs = numberOfTrainingEpochs;
         this.factsPlugin = buildFactsPlugin(aprOptions, factsPluginName, useTernayIndex);
-        this.grounder = new InMemoryGrounder<>(aprOptions, prover, program, factsPlugin);
+        this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
+                                               program, factsPlugin);
+        this.trainer = new Trainer(learner, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
+        this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
+                                                                                                DEFAULT_LOAD,
+                                                                                                numberOfThreads));
+        this.symbolTable = new SimpleSymbolTable<>();
+
     }
 
     /**
@@ -214,7 +246,6 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the {@link Goal}
      */
     public static Goal atomToGoal(String name, List<Term> terms, Map<Term, Integer> variableMap) {
-        String functor = name;
         Argument[] arguments = new Argument[terms.size()];
         for (int i = 0; i < arguments.length; i++) {
             if (terms.get(i).isConstant()) {
@@ -229,7 +260,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             }
         }
 
-        return new Goal(functor, arguments);
+        return new Goal(name, arguments);
     }
 
     /**
@@ -304,7 +335,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the grounded {@link Atom}s
      */
     protected Set<Atom> getGroundedAtoms(Iterable<InferenceExample> examples) {
-        Map<Integer, Ground<P>> groundMap = grounder.groundExamples(examples);
+        Map<Integer, Ground<P>> groundMap = grounder.groundExamples(examples, symbolTable);
         Set<Atom> atoms = new HashSet<>();
         for (Ground<P> ground : groundMap.values()) {
             atoms.addAll(groundToAtoms(ground));
@@ -363,7 +394,15 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
 
     @Override
     public void trainParameters(Example... examples) {
-        //TODO: call the ProPPR training
+        Map<Integer, Ground<P>> map = grounder.groundExamples(new InferenceExampleIterable(examples), symbolTable);
+        currentParamVector = trainer.train(symbolTable,
+                                           map.values().stream().map(Ground::toString).collect(Collectors.toSet()),
+                                           new ArrayLearningGraphBuilder(), savedParamVector, numberOfTrainingEpochs);
+    }
+
+    @Override
+    public void saveTrainedParameters() {
+        savedParamVector = currentParamVector;
     }
 
     @Override
