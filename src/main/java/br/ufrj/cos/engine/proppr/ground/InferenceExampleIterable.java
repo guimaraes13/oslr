@@ -23,11 +23,13 @@ package br.ufrj.cos.engine.proppr.ground;
 
 import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.logic.Atom;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.wam.Query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * An {@link Iterator} that transforms {@link Example}s from the system representation to {@link InferenceExample}
@@ -81,23 +83,14 @@ public class InferenceExampleIterable implements Iterable<InferenceExample>, Ite
      * @return the {@link InferenceExample}
      */
     public static InferenceExample exampleToInferenceExample(Example example) {
-        Query query = atomToQuery(example.getAtom());
+        Query query = ProPprEngineSystemTranslator.atomToQuery(example.getAtom());
         List<Query> posSet = new ArrayList<>();
         List<Query> negSet = new ArrayList<>();
 
-        example.getGroundedQuery().forEach(atom -> (atom.isPositive() ? posSet : negSet).add(atomToQuery(atom)));
+        example.getGroundedQuery().forEach(atom -> (atom.isPositive() ? posSet : negSet).add
+                (ProPprEngineSystemTranslator.atomToQuery(atom)));
 
         return new InferenceExample(query, posSet.toArray(new Query[0]), negSet.toArray(new Query[0]));
-    }
-
-    /**
-     * Converts an {@link Atom} to a {@link Query}.
-     *
-     * @param atom the {@link Atom}
-     * @return the {@link Query}
-     */
-    public static Query atomToQuery(Atom atom) {
-        return new Query(ProPprEngineSystemTranslator.atomToGoal(atom, new HashMap<>()));
     }
 
 }

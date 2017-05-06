@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.engine.proppr.ground;
 
+import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.Prover;
@@ -33,10 +34,6 @@ import edu.cmu.ml.proppr.util.multithreading.Transformer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -53,86 +50,64 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      */
     public static final Logger logger = LogManager.getLogger();
 
-    protected int empty;
-
-    protected MapCleanup<Ground<P>> groundCleanup;
-
-    protected Iterable<InferenceExample> inferenceExampleIterable;
+    /**
+     * The empty
+     */
+    public static final int EMPTY = 0;
 
     /**
      * Constructor with the needed parameters for single thread execution.
      *
-     * @param inferenceExampleIterable the {@link Iterable} of {@link InferenceExample}
-     * @param apr                      the {@link APROptions}
-     * @param p                        the {@link Prover}
-     * @param program                  the {@link WamProgram}
-     * @param plugins                  the {@link WamPlugin}s
+     * @param apr     the {@link APROptions}
+     * @param p       the {@link Prover}
+     * @param program the {@link WamProgram}
+     * @param plugins the {@link WamPlugin}s
      */
-    public InMemoryGrounder(Iterable<InferenceExample> inferenceExampleIterable, APROptions apr, Prover<P> p,
+    public InMemoryGrounder(APROptions apr, Prover<P> p,
                             WamProgram program, WamPlugin... plugins) {
         super(apr, p, program, plugins);
-        groundCleanup = new MapCleanup<>();
-        this.inferenceExampleIterable = inferenceExampleIterable;
     }
 
     /**
      * Constructor with the needed parameters for multi thread execution.
      *
-     * @param inferenceExampleIterable the {@link Iterable} of {@link InferenceExample}
-     * @param numberOfThreads          the number of threads
-     * @param throttle                 the throttle options
-     * @param apr                      the {@link APROptions}
-     * @param p                        the {@link Prover}
-     * @param program                  the {@link WamProgram}
-     * @param plugins                  the {@link WamPlugin}s
+     * @param numberOfThreads the number of threads
+     * @param throttle        the throttle options
+     * @param apr             the {@link APROptions}
+     * @param p               the {@link Prover}
+     * @param program         the {@link WamProgram}
+     * @param plugins         the {@link WamPlugin}s
      */
-    public InMemoryGrounder(Iterable<InferenceExample> inferenceExampleIterable, int numberOfThreads, int throttle,
+    public InMemoryGrounder(int numberOfThreads, int throttle,
                             APROptions apr, Prover<P> p, WamProgram program,
                             WamPlugin... plugins) {
 
         super(numberOfThreads, throttle, apr, p, program, plugins);
-        groundCleanup = new MapCleanup<>();
-        this.inferenceExampleIterable = inferenceExampleIterable;
-    }
-
-    public void groundExamples(File dataFile, File groundedFile, boolean maintainOrder) {
-        status.start();
-        try {
-            if (this.graphKeyFile != null) {
-                this.graphKeyWriter = new BufferedWriter(new FileWriter(this.graphKeyFile));
-            }
-            this.statistics = new GroundingStatistics();
-            this.empty = 0;
-
-            Multithreading<InferenceExample, Ground<P>> multithreading = new Multithreading<>(log, this.status,
-                                                                                              maintainOrder);
-            Transformer<InferenceExample, Ground<P>> transformer = new GroundTransformer<>(prover, apr,
-                                                                                           featureTable,
-                                                                                           masterProgram,
-                                                                                           masterPlugins, statistics,
-                                                                                           includeUnlabeledGraphs,
-                                                                                           status);
-            multithreading.executeJob(nthreads, inferenceExampleIterable, transformer, groundCleanup, throttle);
-
-            reportStatistics(empty);
-
-            File indexFile = new File(groundedFile.getParent(), groundedFile.getName() + FEATURE_INDEX_EXTENSION);
-            serializeFeatures(indexFile, featureTable);
-
-            if (this.graphKeyFile != null) {
-                this.graphKeyWriter.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
-     * Gets the {@link Ground} examples.
+     * Ground the examples in the {@link Iterable} and returns a {@link Map} with the {@link Ground}s.
      *
-     * @return the {@link Ground} examples
+     * @param inferenceExampleIterable the {@link Iterable}
+     * @return the {@link Map}
      */
-    public Map<Integer, Ground<P>> getGroundExamples() {
+    public Map<Integer, Ground<P>> groundExamples(Iterable<InferenceExample> inferenceExampleIterable) {
+        MapCleanup<Ground<P>> groundCleanup = new MapCleanup<>();
+        try {
+            this.statistics = new GroundingStatistics();
+
+            Multithreading<InferenceExample, Ground<P>> multithreading
+                    = new Multithreading<>(logger, status, true);
+
+            Transformer<InferenceExample, Ground<P>> transformer
+                    = new GroundTransformer<>(prover, apr, featureTable, masterProgram, masterPlugins, statistics,
+                                              includeUnlabeledGraphs, status);
+
+            multithreading.executeJob(nthreads, inferenceExampleIterable, transformer, groundCleanup, throttle);
+            reportStatistics(EMPTY);
+        } catch (Exception e) {
+            logger.error(LogMessages.ERROR_GROUNDING_EXAMPLE.toString(), e);
+        }
         return groundCleanup.getResultMap();
     }
 

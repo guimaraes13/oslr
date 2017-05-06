@@ -51,10 +51,11 @@ public class Main {
         Locale.setDefault(new Locale("en", "us"));
 
 //        Smokers Experiment
-        String prefix = "/Users/Victor/Desktop/ProPPR_Smokers";
+        String prefix = "/Users/Victor/Documents/Universidade Federal do Rio de " +
+                "Janeiro/Research/Models/ProPPR_Smokers/";
         String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
 
-        String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "smokers2.wam").getAbsolutePath
+        String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "smokers.wam").getAbsolutePath
                 () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
                 ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_train.data").getAbsolutePath(),
                 "--grounded", grounded, "--prover", "dpr:0.03:0.2",

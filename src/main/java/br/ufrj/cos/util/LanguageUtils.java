@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.*;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -251,4 +252,62 @@ public class LanguageUtils {
         return new Atom(atom.getName(), terms);
     }
 
+    /**
+     * Checks if the given atom unifies with the goal. An atom unifies with the goal if exists a
+     * substitution of variables that makes the atom equals to the goal.
+     *
+     * @param atom the atom
+     * @param goal the goal
+     * @return {@code true} if the atom unifies, {@code false} otherwise
+     */
+    public static boolean isAtomUnifiableToGoal(Atom atom, Atom goal) {
+        return unifyAtomToGoal(atom, goal) != null;
+    }
+
+    /**
+     * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
+     * unification is not possibly, returns null.
+     *
+     * @param atom the atom
+     * @param goal the goal
+     * @return a substitution {@link Map} of the {@link Term}s if the unification is possible, {@code null} otherwise
+     */
+    public static Map<Term, Term> unifyAtomToGoal(Atom atom, Atom goal) {
+        if (!goal.getName().equals(atom.getName())) {
+            // different predicate name, is not a ground
+            return null;
+        }
+        if (goal.getTerms().size() != atom.getTerms().size()) {
+            // different predicate size, is not a ground
+            return null;
+        }
+
+        Term goalTerm;
+        Term atomTerm;
+        Map<Term, Term> variableMap = new HashMap<>();
+        for (int i = 0; i < goal.getTerms().size(); i++) {
+            goalTerm = goal.getTerms().get(i);
+            atomTerm = atom.getTerms().get(i);
+            if (goalTerm.isConstant()) {
+                // the goal's term is a constant, the atom term must match exactly
+                if (!goalTerm.equals(atomTerm)) {
+                    return null;
+                }
+            } else {
+                // the goal's term is a variable
+                if (variableMap.containsKey(atomTerm)) {
+                    // the atom's term has been already mapped to another term
+                    // the mapped term must match the goal's term exactly
+                    if (!goalTerm.equals(variableMap.get(atomTerm))) {
+                        return null;
+                    }
+                } else {
+                    // the atom's term has not yet been mapped, map to the goal's variable
+                    variableMap.put(atomTerm, goalTerm);
+                }
+            }
+        }
+
+        return variableMap;
+    }
 }

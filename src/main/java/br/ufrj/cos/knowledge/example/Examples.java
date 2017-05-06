@@ -22,7 +22,7 @@
 package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.knowledge.Knowledge;
-import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.MapUtils;
 
 import java.util.*;
@@ -90,24 +90,11 @@ public class Examples extends Knowledge<ProPprExample> {
     protected void appendAtomExamplesIntoProPprExample(Iterable<? extends AtomExample> atomExamples) {
         for (AtomExample atomExample : atomExamples) {
             for (ProPprExample proPprExample : proPprExampleSetPredicateMap.get(atomExample.getName())) {
-                if (isGroundOfGoal(atomExample, proPprExample.getGoal())) {
+                if (LanguageUtils.isAtomUnifiableToGoal(atomExample, proPprExample.getGoal())) {
                     proPprExample.getAtomExamples().add(atomExample);
                 }
             }
         }
-    }
-
-    /**
-     * Checks if the given atom is a grounding for the goal. An atom is a ground for the goal if exists a
-     * substitution of variables that makes the atom equals to the goal.
-     *
-     * @param atom the atom
-     * @param goal the goal
-     * @return {@code true} if the atom is a grounding of the goal, {@code false} otherwise
-     */
-    protected boolean isGroundOfGoal(Atom atom, Atom goal) {
-        //WARNING: not implemented yet
-        return true;
     }
 
 }

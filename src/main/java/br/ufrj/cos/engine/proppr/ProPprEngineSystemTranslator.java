@@ -22,12 +22,19 @@
 package br.ufrj.cos.engine.proppr;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
+import br.ufrj.cos.engine.proppr.ground.Ground;
+import br.ufrj.cos.engine.proppr.ground.InMemoryGrounder;
+import br.ufrj.cos.engine.proppr.ground.InferenceExampleIterable;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.LanguageUtils;
+import edu.cmu.ml.proppr.examples.GroundedExample;
+import edu.cmu.ml.proppr.examples.InferenceExample;
+import edu.cmu.ml.proppr.graph.InferenceGraph;
+import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
@@ -41,7 +48,7 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
-public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
+public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSystemTranslator {
 
     /**
      * The character to separate the predicate name from the ist arity.
@@ -50,6 +57,7 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
 
     protected final WamProgram program;
     protected final FactsPlugin factsPlugin;
+    protected final InMemoryGrounder<P> grounder;
 
     /**
      * Constructs the class if the minimum required parameters.
@@ -60,14 +68,15 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      * @param aprOptions      the {@link APROptions}
      * @param factsPluginName the facts plugin's name
      * @param useTernayIndex  if is to use ternay index, makes an more efficient cache for predicates with arity
-     *                        bigger than two
+     * @param prover          the {@link Prover}
      */
     public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                        APROptions aprOptions, String factsPluginName, boolean useTernayIndex) {
+                                        APROptions aprOptions, String factsPluginName, boolean useTernayIndex,
+                                        Prover<P> prover) {
         super(knowledgeBase, theory, examples);
-        program = compileTheory(theory);
-        factsPlugin = buildFactsPlugin(aprOptions, factsPluginName, useTernayIndex);
-
+        this.program = compileTheory(theory);
+        this.factsPlugin = buildFactsPlugin(aprOptions, factsPluginName, useTernayIndex);
+        this.grounder = new InMemoryGrounder<>(aprOptions, prover, program, factsPlugin);
     }
 
     /**
@@ -88,33 +97,6 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
         }
         wamProgram.save();
         return wamProgram;
-    }
-
-    /**
-     * Builds the {@link FactsPlugin}. It is the internal representation of facts used by ProPPR.
-     *
-     * @param aprOptions      the {@link APROptions}
-     * @param factsPluginName the plugin's name
-     * @param useTernayIndex  if it should spend more memory to create an optimized index for predicates with arity
-     *                        bigger than two
-     * @return the {@link FactsPlugin}
-     */
-    protected FactsPlugin buildFactsPlugin(APROptions aprOptions, String factsPluginName, boolean useTernayIndex) {
-        FactsPlugin factsPlugin = new FactsPlugin(aprOptions, factsPluginName, useTernayIndex);
-
-        for (Atom atom : knowledgeBase) {
-            if (!atom.isGrounded()) {
-                continue;
-            }
-            if (atom instanceof WeightedAtom) {
-                factsPlugin.addWeightedFact(atom.getName(), ((WeightedAtom) atom).getWeight(), LanguageUtils
-                        .toStringCollectionToArray(atom.getTerms()));
-            } else {
-                factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
-            }
-        }
-
-        return factsPlugin;
     }
 
     /**
@@ -152,35 +134,6 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
      */
     protected static String getLabelForRule(Rule rule) {
         return rule.getLhs().getFunctor() + PREDICATE_ARITY_SEPARATOR + rule.getLhs().getArity();
-    }
-
-    /**
-     * Converts an {@link Atom}, from the system representation, to a {@link Goal}, from ProPPR's representation;
-     * Using a variableMap to map variable names into int number. If two variable in a {@link Clause} represents the
-     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
-     * {@link Clause}.
-     *
-     * @param atom        the {@link Atom}
-     * @param variableMap the variable {@link Map}
-     * @return the {@link Goal}
-     */
-    public static Goal atomToGoal(Atom atom, Map<Term, Integer> variableMap) {
-        String functor = atom.getName();
-        Argument[] arguments = new Argument[atom.getTerms().size()];
-        for (int i = 0; i < arguments.length; i++) {
-            if (atom.getTerms().get(i).isConstant()) {
-                arguments[i] = new ConstantArgument(atom.getTerms().get(i).getName());
-            } else {
-                if (variableMap == null) {
-                    arguments[i] = new VariableArgument(i + 1);
-                } else {
-                    arguments[i] = new VariableArgument(variableMap.computeIfAbsent(atom.getTerms().get(i), k ->
-                            variableMap.size() + 1));
-                }
-            }
-        }
-
-        return new Goal(functor, arguments);
     }
 
     /**
@@ -225,16 +178,187 @@ public class ProPprEngineSystemTranslator extends EngineSystemTranslator {
         return goals.toArray(new Goal[0]);
     }
 
-    @Override
-    public Set<Atom> groundRelevants(Collection<Term> terms) {
-        //TODO: call the ProPPR to ground the relevants to the terms
-        return null;
+    /**
+     * Converts an {@link Atom} to a {@link Query}.
+     *
+     * @param atom the {@link Atom}
+     * @return the {@link Query}
+     */
+    public static Query atomToQuery(Atom atom) {
+        return new Query(atomToGoal(atom, new HashMap<>()));
+    }
+
+    /**
+     * Converts an {@link Atom}, from the system representation, to a {@link Goal}, from ProPPR's representation;
+     * Using a variableMap to map variable names into int number. If two variable in a {@link Clause} represents the
+     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
+     * {@link Clause}.
+     *
+     * @param atom        the {@link Atom}
+     * @param variableMap the variable {@link Map}
+     * @return the {@link Goal}
+     */
+    public static Goal atomToGoal(Atom atom, Map<Term, Integer> variableMap) {
+        return atomToGoal(atom.getName(), atom.getTerms(), variableMap);
+    }
+
+    /**
+     * Converts an {@link Atom}, from the system representation, to a {@link Goal}, from ProPPR's representation;
+     * Using a variableMap to map variable names into int number. If two variable in a {@link Clause} represents the
+     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
+     * {@link Clause}.
+     *
+     * @param name        the {@link Atom}'s name
+     * @param terms       the {@link Atom}'s {@link Term}s
+     * @param variableMap the variable {@link Map}
+     * @return the {@link Goal}
+     */
+    public static Goal atomToGoal(String name, List<Term> terms, Map<Term, Integer> variableMap) {
+        String functor = name;
+        Argument[] arguments = new Argument[terms.size()];
+        for (int i = 0; i < arguments.length; i++) {
+            if (terms.get(i).isConstant()) {
+                arguments[i] = new ConstantArgument(terms.get(i).getName());
+            } else {
+                if (variableMap == null) {
+                    arguments[i] = new VariableArgument(i + 1);
+                } else {
+                    arguments[i] = new VariableArgument(variableMap.computeIfAbsent(terms.get(i), k ->
+                            variableMap.size() + 1));
+                }
+            }
+        }
+
+        return new Goal(functor, arguments);
+    }
+
+    /**
+     * Builds the {@link FactsPlugin}. It is the internal representation of facts used by ProPPR.
+     *
+     * @param aprOptions      the {@link APROptions}
+     * @param factsPluginName the plugin's name
+     * @param useTernayIndex  if it should spend more memory to create an optimized index for predicates with arity
+     *                        bigger than two
+     * @return the {@link FactsPlugin}
+     */
+    protected FactsPlugin buildFactsPlugin(APROptions aprOptions, String factsPluginName, boolean useTernayIndex) {
+        FactsPlugin factsPlugin = new FactsPlugin(aprOptions, factsPluginName, useTernayIndex);
+
+        for (Atom atom : knowledgeBase) {
+            if (!atom.isGrounded()) {
+                continue;
+            }
+            if (atom instanceof WeightedAtom) {
+                factsPlugin.addWeightedFact(atom.getName(), ((WeightedAtom) atom).getWeight(), LanguageUtils
+                        .toStringCollectionToArray(atom.getTerms()));
+            } else {
+                factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
+            }
+        }
+
+        return factsPlugin;
     }
 
     @Override
-    public Set<Atom> groundingExamples(Example... examples) {
-        //TODO: call the ProPPR grounding the examples
-        return null;
+    public Set<Atom> groundRelevants(Collection<Term> terms) {
+        Term clauseTerm;
+        Set<InferenceExample> inferenceExamples = new HashSet<>();
+        for (HornClause clause : theory) {
+            for (int i = 0; i < clause.getHead().getTerms().size(); i++) {
+                clauseTerm = clause.getHead().getTerms().get(i);
+                if (!clauseTerm.isConstant()) {
+                    for (Term relevant : terms) {
+                        inferenceExamples.add(buildRelevantExample(clause.getHead(), relevant, i));
+                    }
+                }
+            }
+        }
+        return getGroundedAtoms(inferenceExamples);
+    }
+
+    /**
+     * Builds the relevant {@link InferenceExample} that servers as a ProPPR's query to retrieve relevant
+     * inferred {@link Atom}s.
+     * <p>
+     * This is done by replacing a variable {@link Term} of the goal by a relevant {@link Term}, this ensures that
+     * only relevant grounds will be inferred, avoiding unnecessary grounding.
+     *
+     * @param goalAtom     the goal of the query
+     * @param relevantTerm the relevant {@link Term} to replace an {@link Term} of the goal.
+     * @param termIndex    the index of the goal's {@link Term} to be replaced by the relevant
+     * @return the relevant {@link InferenceExample}
+     */
+    protected static InferenceExample buildRelevantExample(Atom goalAtom, Term relevantTerm, int termIndex) {
+        //QUESTION: If the goal becomes ground, by replacing one variable, will it still works on the ProPPR's proof?
+        List<Term> terms = new ArrayList<>(goalAtom.getTerms());
+        terms.set(termIndex, relevantTerm);
+        Query query = new Query(atomToGoal(goalAtom.getName(), terms, new HashMap<>()));
+
+        return new InferenceExample(query, new Query[0], new Query[0]);
+    }
+
+    /**
+     * Gets the grounded {@link Atom}s from the {@link InferenceExample}.
+     *
+     * @param examples the {@link InferenceExample} {@link Iterable}
+     * @return the grounded {@link Atom}s
+     */
+    protected Set<Atom> getGroundedAtoms(Iterable<InferenceExample> examples) {
+        Map<Integer, Ground<P>> groundMap = grounder.groundExamples(examples);
+        Set<Atom> atoms = new HashSet<>();
+        for (Ground<P> ground : groundMap.values()) {
+            atoms.addAll(groundToAtoms(ground));
+        }
+        return atoms;
+    }
+
+    /**
+     * Converts the grounded of a {@link Ground} to {@link Atom}s.
+     *
+     * @param ground the {@link Ground}
+     * @return the {@link Atom}s
+     */
+    protected static Collection<Atom> groundToAtoms(Ground ground) {
+        ProofGraph proofGraph = ground.getProofGraph();
+        GroundedExample groundedExample = ground.getGroundedExample();
+        InferenceGraph graph = groundedExample.getGraph();
+
+        State state;
+        Query query;
+        Set<Atom> atoms = new HashSet<>();
+        for (int i = 1; i < graph.nodeSize() + 1; i++) {
+            state = graph.getState(i);
+            if (state.isCompleted()) {
+                query = proofGraph.fill(state);
+                for (Goal goal : query.getRhs()) {
+                    atoms.add(goalToAtom(goal));
+                }
+            }
+        }
+        return atoms;
+    }
+
+    /**
+     * Converts a {@link Goal} to an {@link Atom}.
+     *
+     * @param goal the {@link Goal}
+     * @return the {@link Atom}
+     */
+    public static Atom goalToAtom(Goal goal) {
+        List<Term> terms = new ArrayList<>(goal.getArity());
+        for (Argument argument : goal.getArgs()) {
+            if (argument.isConstant()) {
+                terms.add(new Constant(argument.getName()));
+            } else {
+                terms.add(new Variable(argument.getName()));
+            }
+        }
+        return new Atom(goal.getFunctor(), terms);
+    }
+
+    @Override
+    public Set<Atom> groundExamples(Example... examples) {
+        return getGroundedAtoms(new InferenceExampleIterable(examples));
     }
 
     @Override

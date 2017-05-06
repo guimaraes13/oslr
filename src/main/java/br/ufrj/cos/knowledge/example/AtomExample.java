@@ -48,6 +48,7 @@ public class AtomExample extends Atom implements Example {
 
     protected final boolean positive;
     protected final Atom goalQuery;
+    protected final Atom atom;
 
     /**
      * Constructs a positive {@link AtomExample}
@@ -69,17 +70,25 @@ public class AtomExample extends Atom implements Example {
     public AtomExample(String name, List<Term> terms, boolean positive) {
         super(name, terms);
         this.positive = positive;
+        this.goalQuery = buildAtomGenericGoal();
+        this.atom = new Atom(this);
+    }
 
+    /**
+     * Builds a generic goal from this {@link Atom}.
+     *
+     * @return generic goal
+     */
+    protected Atom buildAtomGenericGoal() {
+        Atom goal = null;
         if (isGrounded()) {
             try {
-                this.goalQuery = LanguageUtils.toVariableAtom(this, new HashMap<>(), new VariableGenerator());
+                goal = LanguageUtils.toVariableAtom(this, new HashMap<>(), new VariableGenerator());
             } catch (IllegalAccessException | InstantiationException e) {
                 logger.error(LogMessages.ERROR_BUILDING_ATOM.toString(), e);
-                this.goalQuery = null;
             }
-        } else {
-            this.goalQuery = null;
         }
+        return goal;
     }
 
     /**
@@ -117,7 +126,7 @@ public class AtomExample extends Atom implements Example {
      * @return the {@link Atom}
      */
     public Atom getAtom() {
-        return new Atom(this);
+        return atom;
     }
 
     @Override
@@ -157,7 +166,9 @@ public class AtomExample extends Atom implements Example {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (positive ? 1 : 0);
+        if (positive) {
+            result = 31 * result + 1;
+        }
         return result;
     }
 

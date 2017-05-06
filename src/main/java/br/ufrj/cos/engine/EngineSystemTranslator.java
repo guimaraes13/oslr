@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 
@@ -62,12 +63,13 @@ public abstract class EngineSystemTranslator {
 
     /**
      * Method to call the logic engine and retrieve the grounding/proved {@link Atom} relevant to the given
-     * {@link Term}.
+     * {@link Term}s.
      * <p>
-     * An {@link Atom} is relevant to a {@link Term} if it contains it.
+     * An {@link Atom} is relevant to a {@link Term} if it contains it, transitively.
      *
      * @param terms the {@link Term}s
      * @return the relevant {@link Atom}s.
+     * @see BottomClauseBoundedRule
      */
     public abstract Set<Atom> groundRelevants(Collection<Term> terms);
 
@@ -78,7 +80,7 @@ public abstract class EngineSystemTranslator {
      * @param examples the examples to ground/prove
      * @return the grounded/proved set of {@link Atom}s
      */
-    public abstract Set<Atom> groundingExamples(Example... examples);
+    public abstract Set<Atom> groundExamples(Example... examples);
 
     /**
      * Method to train the parameters of the logic engine.

@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -178,15 +179,31 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public Theory performOperation(Example... targets) throws TheoryRevisionException {
         int initialSize = theory.size();
         for (Example example : targets) {
-            if (!example.isPositive()) {
+            if (!example.isPositive() || isCovered(example)) {
+                if (example.isPositive()) { logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example); }
                 continue;
             }
-            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLES.toString(), example);
+            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
             theory.add(buildRuleForExample(example));
-            //TODO: skip covered examples
         }
 
         return theory;
+    }
+
+    /**
+     * Checks if the {@link Example} has been already covered by the theory.
+     *
+     * @param example the {@link Example}
+     * @return {@code true} if it has, {@code false} otherwise
+     */
+    protected boolean isCovered(Example example) {
+        Collection<? extends Atom> grounds = engineSystem.groundExamples(example);
+        for (AtomExample ground : example.getGroundedQuery()) {
+            if (ground.isPositive() && !grounds.contains(ground.getAtom())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -279,7 +296,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     protected HornClause buildBottomClause(Example target) throws InstantiationException, IllegalAccessException {
         Set<Atom> relevants = relevantsBreadthFirstSearch(target.getPositiveTerms());
-        relevants.addAll(engineSystem.groundingExamples(target));
+        relevants.addAll(engineSystem.groundRelevants(target.getPositiveTerms()));
         Map<Term, Variable> variableMap = target.getVariableMap();
 
         return toVariableHornClauseForm(target, relevants, variableMap);
@@ -321,24 +338,38 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();
         Set<Atom> atoms = new HashSet<>();
+        Set<Term> currentRelevants = new HashSet<>();
 
         for (Term term : terms) {
             termDistance.put(term, 0);
             queue.add(term);
+            currentRelevants.add(term);
         }
 
-        Term current;
-        Integer distance;
+        Term currentTerm;
+        Integer currentDistance;
+        Integer previousDistance = 0;
         while (!queue.isEmpty()) {
-            current = queue.poll();
-            distance = termDistance.get(current);
+            currentTerm = queue.poll();
+            currentDistance = termDistance.get(currentTerm);
 
-            atoms.addAll(knowledgeBase.getAtomsWithTerm(current));
+            if (!Objects.equals(currentDistance, previousDistance)) {
+                atoms.addAll(engineSystem.groundRelevants(currentRelevants));
+                currentRelevants.clear();
+                previousDistance = currentDistance;
+            }
+            if (!termDistance.containsKey(currentTerm)) {
+                currentRelevants.add(currentTerm);
+            }
 
-            if (relevantsDepth == NO_MAXIMUM_DEPTH || distance < relevantsDepth) {
-                for (Term neighbour : knowledgeBase.getTermNeighbours(current)) {
-                    termDistance.put(neighbour, distance + 1);
-                    queue.add(neighbour);
+            atoms.addAll(knowledgeBase.getAtomsWithTerm(currentTerm));
+
+            if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
+                for (Term neighbour : knowledgeBase.getTermNeighbours(currentTerm)) {
+                    if (!termDistance.containsKey(neighbour)) {
+                        termDistance.put(neighbour, currentDistance + 1);
+                        queue.add(neighbour);
+                    }
                 }
             }
         }
