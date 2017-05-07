@@ -68,16 +68,84 @@ public class Main {
         String[] trainingArguments = new String[]{"--train", grounded, "--params", new File(prefix, "smokers.wts")
                 .getAbsolutePath(),};
 
-        String[] inferenceArguments = new String[]{"--programFiles", new File(prefix, "smokers2.wam").getAbsolutePath
+        String[] inferenceArguments = new String[]{"--programFiles", new File(prefix, "smokers.wam").getAbsolutePath
                 () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
-                ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_train.data").getAbsolutePath(),
-                "--solutions", new File(prefix, "pre.training.solutions.txt").getAbsolutePath(), "--prover", "dpr"};
+                ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_test2.data").getAbsolutePath(),
+                "--solutions", new File(prefix, "pre2.training.solutions.txt").getAbsolutePath(), "--prover", "dpr"};
 
 //        grounder(1e-2, 0.1, new String[]{"--help"});
-        grounder(1e-2, 0.1, groundingArguments);
+//        grounder(1e-2, 0.1, groundingArguments);
 //        trainer(1e-2, 0.1, trainingArguments);
-//        inference(1e-2, 0.1, inferenceArguments);
+        inference(1e-2, 0.1, inferenceArguments);
         logger.info("End Program!");
+    }
+
+    public static void inference(double epsilon, double alpha, String[] args) {
+        org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(QueryAnswerer.class);
+        double MIN_FEATURE_TRANSFER = .1;
+        try {
+            int inputFiles = Configuration.USE_QUERIES | Configuration.USE_PARAMS;
+            int outputFiles = Configuration.USE_ANSWERS;
+            int modules = Configuration.USE_PROVER | Configuration.USE_SQUASHFUNCTION;
+            int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER;
+            QueryAnswerer.QueryAnswererConfiguration c = new QueryAnswerer.QueryAnswererConfiguration(args,
+                                                                                                      inputFiles,
+                                                                                                      outputFiles,
+                                                                                                      constants,
+                                                                                                      modules);
+            c.apr.epsilon = epsilon;
+            c.apr.alpha = alpha;
+//			c.squashingFunction = new Exp();
+            System.out.println(c.toString());
+            QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c
+                    .topk);
+            if (log.isInfoEnabled()) {
+                log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
+            }
+            if (c.paramsFile != null) {
+                ParamsFile file = new ParamsFile(c.paramsFile);
+                qa.addParams(c.prover, new SimpleParamVector<String>(Dictionary.load(file, new
+                        ConcurrentHashMap<String, Double>())), c.squashingFunction);
+                file.check(c);
+            }
+            long start = System.currentTimeMillis();
+            qa.findSolutions(c.queryFile, c.solutionsFile, c.maintainOrder);
+            if (c.prover.getWeighter() instanceof InnerProductWeighter) {
+                InnerProductWeighter w = (InnerProductWeighter) c.prover.getWeighter();
+                int n = w.getWeights().size();
+                if (((double) w.seenKnownFeatures() / n) < MIN_FEATURE_TRANSFER) {
+                    log.warn("Only saw " + w.seenKnownFeatures() + " of " + n + " known features (" + ((double) w
+                            .seenKnownFeatures() / n * 100) + "%) -- test data may be too different from training " +
+                                     "data");
+                }
+                if (w.seenUnknownFeatures() > w.seenKnownFeatures()) {
+                    log.warn("Saw more unknown features (" + w.seenUnknownFeatures() + ") than known features (" + w
+                            .seenKnownFeatures() + ") -- test data may be too different from training data");
+                }
+            }
+            System.out.println("Query-answering time: " + (System.currentTimeMillis() - start));
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(-1);
+        }
+
+    }
+
+    protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
+        logger.fatal("Begin");
+        long begin = TimeMeasure.getNanoTime();
+        grounder(1e-2, 0.1, groundingArguments);
+        long endGrounding = TimeMeasure.getNanoTime();
+        trainer(1e-2, 0.1, trainingArguments);
+        long end = TimeMeasure.getNanoTime();
+        long groundingTime = endGrounding - begin;
+        long trainingTime = end - endGrounding;
+        long totalTime = end - begin;
+
+        logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time " +
+                             "was:\t{}.", dataSet, TimeMeasure.formatNanoDifference(groundingTime), TimeMeasure
+                             .formatNanoDifference(trainingTime), TimeMeasure.formatNanoDifference(totalTime));
     }
 
     public static void grounder(double epsilon, double alpha, String[] args) {
@@ -115,22 +183,6 @@ public class Main {
             t.printStackTrace();
             System.exit(-1);
         }
-    }
-
-    protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
-        logger.fatal("Begin");
-        long begin = TimeMeasure.getNanoTime();
-        grounder(1e-2, 0.1, groundingArguments);
-        long endGrounding = TimeMeasure.getNanoTime();
-        trainer(1e-2, 0.1, trainingArguments);
-        long end = TimeMeasure.getNanoTime();
-        long groundingTime = endGrounding - begin;
-        long trainingTime = end - endGrounding;
-        long totalTime = end - begin;
-
-        logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time " +
-                             "was:\t{}.", dataSet, TimeMeasure.formatNanoDifference(groundingTime), TimeMeasure
-                             .formatNanoDifference(trainingTime), TimeMeasure.formatNanoDifference(totalTime));
     }
 
     public static void trainer(double epsilon, double alpha, String[] args) {
@@ -175,59 +227,6 @@ public class Main {
             t.printStackTrace();
             System.exit(-1);
         }
-    }
-
-    public static void inference(double epsilon, double alpha, String[] args) {
-        org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(QueryAnswerer.class);
-        double MIN_FEATURE_TRANSFER = .1;
-        try {
-            int inputFiles = Configuration.USE_QUERIES | Configuration.USE_PARAMS;
-            int outputFiles = Configuration.USE_ANSWERS;
-            int modules = Configuration.USE_PROVER | Configuration.USE_SQUASHFUNCTION;
-            int constants = Configuration.USE_WAM | Configuration.USE_THREADS | Configuration.USE_ORDER;
-            QueryAnswerer.QueryAnswererConfiguration c = new QueryAnswerer.QueryAnswererConfiguration(args,
-                                                                                                      inputFiles,
-                                                                                                      outputFiles,
-                                                                                                      constants,
-                                                                                                      modules);
-            c.apr.epsilon = epsilon;
-            c.apr.alpha = alpha;
-//			c.squashingFunction = new Exp();
-            System.out.println(c.toString());
-            QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c
-                    .topk);
-            if (log.isInfoEnabled()) {
-                log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
-            }
-            if (c.paramsFile != null) {
-                ParamsFile file = new ParamsFile(c.paramsFile);
-                qa.addParams(c.prover, new SimpleParamVector<String>(Dictionary.load(file, new
-                        ConcurrentHashMap<String, Double>())), c.squashingFunction);
-                file.check(c);
-            }
-            long start = System.currentTimeMillis();
-            qa.findSolutions(c.queryFile, c.solutionsFile, c.maintainOrder);
-            if (c.prover.getWeighter() instanceof InnerProductWeighter) {
-                InnerProductWeighter w = (InnerProductWeighter) c.prover.getWeighter();
-                int n = w.getWeights().size();
-                int m = w.seenKnownFeatures() + w.seenUnknownFeatures();
-                if (((double) w.seenKnownFeatures() / n) < MIN_FEATURE_TRANSFER) {
-                    log.warn("Only saw " + w.seenKnownFeatures() + " of " + n + " known features (" + ((double) w
-                            .seenKnownFeatures() / n * 100) + "%) -- test data may be too different from training " +
-                                     "data");
-                }
-                if (w.seenUnknownFeatures() > w.seenKnownFeatures()) {
-                    log.warn("Saw more unknown features (" + w.seenUnknownFeatures() + ") than known features (" + w
-                            .seenKnownFeatures() + ") -- test data may be too different from training data");
-                }
-            }
-            System.out.println("Query-answering time: " + (System.currentTimeMillis() - start));
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-            System.exit(-1);
-        }
-
     }
 
 }

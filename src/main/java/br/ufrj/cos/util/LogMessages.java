@@ -49,10 +49,10 @@ public enum LogMessages {
     THEORY_SIZE("Theory size:\t{}"),
     CREATING_THEORY_WITH_PREDICATE("Creating theory with predicate:\t{}"),
     READ_CLAUSE_SIZE("Number of read clauses:\t{}"),
-    EXAMPLES_SIZE("Number of read examples lines:\t{}"),
+    EXAMPLES_SIZE("Number of read iterator lines:\t{}"),
 
-    GROUNDING_EXAMPLE("Grounding examples:\t{}"),
-    GROUNDING_EXAMPLE_TIMEOUT("Grounding examples {} timed out."),
+    GROUNDING_EXAMPLE("Grounding iterator:\t{}"),
+    GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
     ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:\t{}"),
     ERROR_BUILDING_ATOM("Error when building an atom, reason:\t{}"),
 
@@ -65,6 +65,9 @@ public enum LogMessages {
     ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
 //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
 
+    ANSWERING_QUERY("Answering query:\t{}"),
+    NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
+
     ERROR_MAIN_PROGRAM("Main program error, reason:\t{}"),
     ERROR_PARSING_FAILED("Parsing failed, reason:\t{}"),
     ERROR_READING_INPUT_FILES("Error during reading the input files, reason:\t{}"),
@@ -73,7 +76,10 @@ public enum LogMessages {
 
     //Two additional parameters to format
     ERROR_READING_FILE("Error when reading file {}, reason:\t{}"),
-    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:\t{}");
+    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:\t{}"),
+
+    ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
+    ANSWER_STATE_WITH_VALUE("State:\t{},\t{}");
 
     protected final String message;
 

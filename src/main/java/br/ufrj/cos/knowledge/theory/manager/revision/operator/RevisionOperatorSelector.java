@@ -59,7 +59,7 @@ public abstract class RevisionOperatorSelector {
     /**
      * Selects the best suited {@link RevisionOperator} to be applied on the {@link Theory}
      *
-     * @param targets the target examples
+     * @param targets the target iterator
      * @return the best suited {@link RevisionOperatorEvaluator}
      */
     public abstract RevisionOperatorEvaluator selectOperator(Example... targets);

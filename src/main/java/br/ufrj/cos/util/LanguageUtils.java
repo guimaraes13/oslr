@@ -93,16 +93,16 @@ public class LanguageUtils {
      */
     public static final String CONSTANT_SURROUNDING_CHARACTER = "\"";
     /**
-     * The positive examples sign.
+     * The positive iterator sign.
      */
     public static final String POSITIVE_EXAMPLE_SIGN = "+";
     /**
-     * The negative examples sign.
+     * The negative iterator sign.
      */
     public static final String NEGATIVE_EXAMPLE_SIGN = "-";
 
     /**
-     * The examples separator character.
+     * The iterator separator character.
      */
     public static final String EXAMPLE_SEPARATOR_CHARACTER = "\t";
     /**
@@ -265,7 +265,7 @@ public class LanguageUtils {
     }
 
     /**
-     * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
+     * Unifies the given goal to the given atom and returns the substitution {@link Map} of the {@link Term}s. If the
      * unification is not possibly, returns null.
      *
      * @param atom the atom
@@ -274,11 +274,11 @@ public class LanguageUtils {
      */
     public static Map<Term, Term> unifyAtomToGoal(Atom atom, Atom goal) {
         if (!goal.getName().equals(atom.getName())) {
-            // different predicate name, is not a ground
+            // different predicate name, is not unifiable
             return null;
         }
         if (goal.getTerms().size() != atom.getTerms().size()) {
-            // different predicate size, is not a ground
+            // different predicate size, is not unifiable
             return null;
         }
 

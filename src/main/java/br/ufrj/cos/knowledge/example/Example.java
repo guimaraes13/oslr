@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a training examples. This training examples might have more than one positive examples (e.g. in the
+ * Represents a training iterator. This training iterator might have more than one positive iterator (e.g. in the
  * case it is in the ProPPR form)
  * <p>
  * Created on 26/04/17.
@@ -47,7 +47,7 @@ public interface Example {
     public Atom getAtom();
 
     /**
-     * Gets the {@link Term}s of the positive examples.
+     * Gets the {@link Term}s of the positive iterator.
      *
      * @return the {@link Term}
      */

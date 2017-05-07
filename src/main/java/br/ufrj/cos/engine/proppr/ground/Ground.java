@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * Represents an examples grounded by ProPPR.
+ * Represents an iterator grounded by ProPPR.
  * <p>
  * Created on 05/05/17.
  *
@@ -120,7 +120,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
     }
 
     /**
-     * Grounds the examples using the {@link Prover}.
+     * Grounds the iterator using the {@link Prover}.
      *
      * @param prover the {@link Prover}
      * @return the {@link GroundedExample}

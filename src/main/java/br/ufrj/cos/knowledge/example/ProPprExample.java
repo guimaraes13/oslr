@@ -44,7 +44,7 @@ public class ProPprExample implements Example {
     protected final boolean hasPositivePart;
 
     /**
-     * Constructs the ProPPR examples
+     * Constructs the ProPPR iterator
      *
      * @param goal         the goal
      * @param atomExamples the positive and negative grounded atoms
@@ -56,7 +56,7 @@ public class ProPprExample implements Example {
     }
 
     /**
-     * Looks for positive examples into the {@link AtomExample}s.
+     * Looks for positive iterator into the {@link AtomExample}s.
      *
      * @param atomExamples the {@link AtomExample}s
      * @return {@code true} if at least one {@link AtomExample} is positive, {@code false} otherwise

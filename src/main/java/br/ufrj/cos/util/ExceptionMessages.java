@@ -35,6 +35,7 @@ public enum ExceptionMessages {
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
 
     //One additional parameters to format
+    ERROR_ANSWERING_QUERY("Error when answering the query {}."),
 
     //Two additional parameters to format
     FILE_NOT_EXISTS("File {} for {} does not exists.");

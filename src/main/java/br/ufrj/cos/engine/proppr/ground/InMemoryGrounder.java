@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.engine.proppr.ground;
 
+import br.ufrj.cos.engine.proppr.MapCleanup;
 import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.examples.InferenceExample;
@@ -60,14 +61,14 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     /**
      * Constructor with the needed parameters for single thread execution.
      *
-     * @param apr     the {@link APROptions}
-     * @param p       the {@link Prover}
-     * @param program the {@link WamProgram}
-     * @param plugins the {@link WamPlugin}s
+     * @param aprOptions the {@link APROptions}
+     * @param prover     the {@link Prover}
+     * @param program    the {@link WamProgram}
+     * @param plugins    the {@link WamPlugin}s
      */
-    public InMemoryGrounder(APROptions apr, Prover<P> p,
+    public InMemoryGrounder(APROptions aprOptions, Prover<P> prover,
                             WamProgram program, WamPlugin... plugins) {
-        super(apr, p, program, plugins);
+        super(aprOptions, prover, program, plugins);
     }
 
     /**
@@ -75,20 +76,20 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      *
      * @param numberOfThreads the number of threads
      * @param throttle        the throttle options
-     * @param apr             the {@link APROptions}
-     * @param p               the {@link Prover}
+     * @param aprOptions      the {@link APROptions}
+     * @param prover          the {@link Prover}
      * @param program         the {@link WamProgram}
      * @param plugins         the {@link WamPlugin}s
      */
     public InMemoryGrounder(int numberOfThreads, int throttle,
-                            APROptions apr, Prover<P> p, WamProgram program,
+                            APROptions aprOptions, Prover<P> prover, WamProgram program,
                             WamPlugin... plugins) {
 
-        super(numberOfThreads, throttle, apr, p, program, plugins);
+        super(numberOfThreads, throttle, aprOptions, prover, program, plugins);
     }
 
     /**
-     * Ground the examples in the {@link Iterable} and returns a {@link Map} with the {@link Ground}s, saving the
+     * Ground the iterator in the {@link Iterable} and returns a {@link Map} with the {@link Ground}s, saving the
      * discovered features in a {@link SymbolTable}.
      *
      * @param inferenceExampleIterable the {@link Iterable}

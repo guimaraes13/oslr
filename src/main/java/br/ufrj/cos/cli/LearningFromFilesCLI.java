@@ -154,11 +154,11 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     }
 
     /**
-     * Parses the {@link File}'s examples and appends they to the correspondent {@link List}.
+     * Parses the {@link File}'s iterator and appends they to the correspondent {@link List}.
      *
      * @param file           the {@link File} to parse
-     * @param atomExamples   the {@link List} to the ProbLog like examples
-     * @param proPprExamples the {@link List} to the ProPPR like examples
+     * @param atomExamples   the {@link List} to the ProbLog like iterator
+     * @param proPprExamples the {@link List} to the ProPPR like iterator
      */
     protected static void readExamplesToLists(File file,
                                               List<AtomExample> atomExamples,

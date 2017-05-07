@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.engine.proppr.ground;
+package br.ufrj.cos.engine.proppr;
 
 import edu.cmu.ml.proppr.util.multithreading.Cleanup;
 

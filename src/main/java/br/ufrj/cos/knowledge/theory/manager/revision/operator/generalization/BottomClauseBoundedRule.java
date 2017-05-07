@@ -296,7 +296,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     protected HornClause buildBottomClause(Example target) throws InstantiationException, IllegalAccessException {
         Set<Atom> relevants = relevantsBreadthFirstSearch(target.getPositiveTerms());
-        relevants.addAll(engineSystem.groundRelevants(target.getPositiveTerms()));
         Map<Term, Variable> variableMap = target.getVariableMap();
 
         return toVariableHornClauseForm(target, relevants, variableMap);

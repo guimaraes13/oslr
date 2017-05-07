@@ -29,8 +29,10 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.logic.WeightedAtom;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -74,10 +76,10 @@ public abstract class EngineSystemTranslator {
     public abstract Set<Atom> groundRelevants(Collection<Term> terms);
 
     /**
-     * Method to call the logic engine and retrieve the grounding/proved form of the given examples. This method must
-     * be as simple as possible and returns only the grounded examples. No probabilities are required here.
+     * Method to call the logic engine and retrieve the grounding/proved form of the given iterator. This method must
+     * be as simple as possible and returns only the grounded iterator. No probabilities are required here.
      *
-     * @param examples the examples to ground/prove
+     * @param examples the iterator to ground/prove
      * @return the grounded/proved set of {@link Atom}s
      */
     public abstract Set<Atom> groundExamples(Example... examples);
@@ -85,7 +87,7 @@ public abstract class EngineSystemTranslator {
     /**
      * Method to train the parameters of the logic engine.
      *
-     * @param examples the examples to train with
+     * @param examples the iterator to train with
      */
     public abstract void trainParameters(Example... examples);
 
@@ -95,10 +97,12 @@ public abstract class EngineSystemTranslator {
     public abstract void saveTrainedParameters();
 
     /**
-     * Method to infer the probability of the example based on the {@link Knowledge} and the parameters from the
+     * Method to infer the probability of the iterator based on the {@link Knowledge} and the parameters from the
      * logic engine.
      *
-     * @param example the example to infer
+     * @param examples the iterator to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}.
      */
-    public abstract void inferExample(Example example);
+    public abstract Map<Example, Set<WeightedAtom>> inferExample(Example... examples);
+
 }

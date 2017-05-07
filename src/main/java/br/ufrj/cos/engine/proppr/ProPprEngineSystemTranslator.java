@@ -25,11 +25,15 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.engine.proppr.ground.Ground;
 import br.ufrj.cos.engine.proppr.ground.InMemoryGrounder;
 import br.ufrj.cos.engine.proppr.ground.InferenceExampleIterable;
+import br.ufrj.cos.engine.proppr.query.answerer.Answer;
+import br.ufrj.cos.engine.proppr.query.answerer.InMemoryQueryAnswerer;
+import br.ufrj.cos.engine.proppr.query.answerer.QueryIterable;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
+import br.ufrj.cos.util.IterableConverter;
 import br.ufrj.cos.util.LanguageUtils;
 import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.examples.GroundedExample;
@@ -37,9 +41,11 @@ import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
 import edu.cmu.ml.proppr.learn.SRW;
+import edu.cmu.ml.proppr.learn.tools.SquashingFunction;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
+import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.SRWOptions;
 import edu.cmu.ml.proppr.util.SimpleSymbolTable;
@@ -74,10 +80,14 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected final InMemoryGrounder<P> grounder;
     protected final Trainer trainer;
     protected final int numberOfTrainingEpochs;
+    protected final Prover<P> prover;
+    protected final SquashingFunction<Goal> squashingFunction;
 
     protected ParamVector<String, ?> currentParamVector;
     protected ParamVector<String, ?> savedParamVector;
     protected SymbolTable<String> symbolTable;
+
+    protected InMemoryQueryAnswerer<P> answerer;
 
     /**
      * Constructs the class if the minimum required parameters.
@@ -89,26 +99,33 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param factsPluginName        the facts plugin's name
      * @param useTernayIndex         if is to use ternay index, makes an more efficient cache for predicates with arity
      * @param prover                 the {@link Prover}
-     * @param learner                the {@link SRWOptions}
      * @param aprOptions             the {@link APROptions}
+     * @param srwOptions             the {@link SRWOptions}
      * @param numberOfTrainingEpochs the number of training epochs per training
+     * @param normalize              if it is to normalize
+     * @param numberOfSolutions      the number of top solutions to retrieve
+     * @param squashingFunction      the {@link SquashingFunction}
      */
     public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
                                         int numberOfThreads, String factsPluginName, boolean useTernayIndex,
-                                        Prover<P> prover, SRW learner, APROptions aprOptions,
-                                        int numberOfTrainingEpochs) {
+                                        Prover<P> prover, APROptions aprOptions, SRW srwOptions,
+                                        int numberOfTrainingEpochs, boolean normalize, int numberOfSolutions,
+                                        SquashingFunction<Goal> squashingFunction) {
         super(knowledgeBase, theory, examples);
         this.program = compileTheory(theory);
         this.numberOfTrainingEpochs = numberOfTrainingEpochs;
         this.factsPlugin = buildFactsPlugin(aprOptions, factsPluginName, useTernayIndex);
+        this.prover = prover;
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
                                                program, factsPlugin);
-        this.trainer = new Trainer(learner, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
+        this.trainer = new Trainer(srwOptions, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
         this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
                                                                                                 DEFAULT_LOAD,
                                                                                                 numberOfThreads));
         this.symbolTable = new SimpleSymbolTable<>();
-
+        this.answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new WamPlugin[]{factsPlugin}, prover,
+                                                    normalize, numberOfThreads, numberOfSolutions);
+        this.squashingFunction = squashingFunction;
     }
 
     /**
@@ -294,7 +311,9 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public Set<Atom> groundRelevants(Collection<Term> terms) {
         Term clauseTerm;
         Set<InferenceExample> inferenceExamples = new HashSet<>();
+        Map<String, Set<Atom>> coveredGoals = new HashMap<>();
         for (HornClause clause : theory) {
+            if (isToSkipClause(clause.getHead(), coveredGoals)) { continue; }
             for (int i = 0; i < clause.getHead().getTerms().size(); i++) {
                 clauseTerm = clause.getHead().getTerms().get(i);
                 if (!clauseTerm.isConstant()) {
@@ -305,6 +324,34 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             }
         }
         return getGroundedAtoms(inferenceExamples);
+    }
+
+    /**
+     * Checks if the goal of the clause has been already covered by another clause. If it has, skips the clause.
+     * <p>
+     * In addition, it adds the goal to the coveredGoal, if it is not covered yet.
+     *
+     * @param goal         the goal
+     * @param coveredGoals the goals already covered
+     * @return {@code true} if the goal of the clause has been already covered by another clause
+     */
+    protected boolean isToSkipClause(Atom goal, Map<String, Set<Atom>> coveredGoals) {
+        String label = getLabelForAtom(goal);
+        Set<Atom> atoms = coveredGoals.get(label);
+        if (atoms == null) {
+            atoms = new HashSet<>();
+            atoms.add(goal);
+            coveredGoals.put(label, atoms);
+            return false;
+        } else {
+            for (Atom atom : atoms) {
+                if (LanguageUtils.isAtomUnifiableToGoal(atom, goal)) {
+                    return true;
+                }
+            }
+            atoms.add(goal);
+            return false;
+        }
     }
 
     /**
@@ -320,7 +367,6 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the relevant {@link InferenceExample}
      */
     protected static InferenceExample buildRelevantExample(Atom goalAtom, Term relevantTerm, int termIndex) {
-        //QUESTION: If the goal becomes ground, by replacing one variable, will it still works on the ProPPR's proof?
         List<Term> terms = new ArrayList<>(goalAtom.getTerms());
         terms.set(termIndex, relevantTerm);
         Query query = new Query(atomToGoal(goalAtom.getName(), terms, new HashMap<>()));
@@ -341,6 +387,16 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             atoms.addAll(groundToAtoms(ground));
         }
         return atoms;
+    }
+
+    /**
+     * Gets the label for the {@link Atom}.
+     *
+     * @param atom the {@link Atom}
+     * @return the label
+     */
+    protected static String getLabelForAtom(Atom atom) {
+        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getTerms().size();
     }
 
     /**
@@ -403,11 +459,36 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     @Override
     public void saveTrainedParameters() {
         savedParamVector = currentParamVector;
+        answerer.addParams(prover, savedParamVector, squashingFunction);
     }
 
     @Override
-    public void inferExample(Example example) {
-        //TODO: call the ProPPR query answer, return some inferred example class
+    public Map<Example, Set<WeightedAtom>> inferExample(Example... examples) {
+        IterableConverter<Example, Query> converter = new QueryIterable(examples);
+        Map<Integer, Answer<P>> answerMap = answerer.findSolutions(converter);
+        return getWeightedSolutions(answerMap, examples);
+    }
+
+    /**
+     * Creates a {@link Map} of the solutions to its correspondent {@link Example}.
+     *
+     * @param solutions the solutions
+     * @param examples  the {@link Example}s
+     * @return the {@link Map} of solutions
+     */
+    protected Map<Example, Set<WeightedAtom>> getWeightedSolutions(Map<Integer, Answer<P>> solutions,
+                                                                   Example... examples) {
+        Map<Example, Set<WeightedAtom>> weightedSolutions = new HashMap<>();
+        Set<WeightedAtom> weightedAtoms;
+        for (Map.Entry<Integer, Answer<P>> entry : solutions.entrySet()) {
+            weightedAtoms = new HashSet<>();
+            for (Map.Entry<Query, Double> solution : entry.getValue().getSolutions().entrySet()) {
+                weightedAtoms.add(new WeightedAtom(solution.getValue(), goalToAtom(solution.getKey().getRhs()[0])));
+            }
+            weightedSolutions.put(examples[entry.getKey()], weightedAtoms);
+        }
+
+        return weightedSolutions;
     }
 
 }
