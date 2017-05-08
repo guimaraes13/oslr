@@ -39,6 +39,15 @@ import java.util.Iterator;
 public class QueryIterable extends IterableConverter<Example, Query> {
 
     /**
+     * Constructs from an {@link Iterable}.
+     *
+     * @param iterable the {@link Iterable}
+     */
+    public QueryIterable(Iterable<? extends Example> iterable) {
+        super(iterable);
+    }
+
+    /**
      * Constructs from an {@link Iterator}.
      *
      * @param iterator the {@link Iterator}

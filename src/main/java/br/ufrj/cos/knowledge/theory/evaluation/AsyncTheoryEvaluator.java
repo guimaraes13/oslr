@@ -24,7 +24,7 @@ package br.ufrj.cos.knowledge.theory.evaluation;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.TimeMeasure;
@@ -103,7 +103,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     }
 
     /**
-     * Use this method to evaluate the {@link Theory} with the given timeout.
+     * Use this method to evaluateTheory the {@link Theory} with the given timeout.
      * <p>
      * {@inheritDoc}
      */

@@ -19,15 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision;
+package br.ufrj.cos.knowledge.theory.evaluation.metric;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.logic.Atom;
 
 import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Responsible for evaluating the {@link Theory} against some metric.
@@ -42,6 +45,7 @@ public abstract class TheoryMetric implements Comparator<Double> {
      * The default value of the metric, it should be proper overridden by subclasses.
      */
     protected static double DEFAULT_VALUE = 0;
+    private final EngineSystemTranslator engineSystemTranslator;
     /**
      * Flag to specify if the {@link EngineSystemTranslator} should retrain the parameters for each intermediary rule
      * candidate.
@@ -58,6 +62,15 @@ public abstract class TheoryMetric implements Comparator<Double> {
     public boolean parametersRetrainedBeforeEvaluate = false;
 
     /**
+     * Constructor with the needed parameters.
+     *
+     * @param engineSystemTranslator the {@link EngineSystemTranslator}
+     */
+    public TheoryMetric(EngineSystemTranslator engineSystemTranslator) {
+        this.engineSystemTranslator = engineSystemTranslator;
+    }
+
+    /**
      * Evaluates the {@link Theory} against the represented metric.
      *
      * @param knowledgeBase the {@link KnowledgeBase}
@@ -65,11 +78,30 @@ public abstract class TheoryMetric implements Comparator<Double> {
      * @param examples      the {@link Examples}
      * @return the evaluation value
      */
-    public abstract double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples);
+    public double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
+        Map<Example, Map<Atom, Double>> evaluationResult;
+        if (parametersRetrainedBeforeEvaluate) {
+            engineSystemTranslator.trainParameters(examples);
+            evaluationResult = engineSystemTranslator.inferExampleWithLastParameters(examples);
+        } else {
+            evaluationResult = engineSystemTranslator.inferExamples(examples);
+        }
+
+        return evaluate(evaluationResult, examples);
+    }
+
+    /**
+     * Evaluates the example based on the inferred results.
+     *
+     * @param inferredResult the results from the {@link EngineSystemTranslator}
+     * @param examples       the {@link Examples}
+     * @return the evaluated metric
+     */
+    protected abstract double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples);
 
     /**
      * Gets the default value of a metric, this value must by the worst possible value of the metric. This value
-     * should be used when one fails to evaluate the {@link Theory} with this metric (e.g. evaluation takes longer
+     * should be used when one fails to evaluateTheory the {@link Theory} with this metric (e.g. evaluation takes longer
      * than a specified timeout).
      *
      * @return the default value of the metric
@@ -103,8 +135,12 @@ public abstract class TheoryMetric implements Comparator<Double> {
      * {@link Theory}is might have the same evaluation for the same {@link Knowledge}. In addiction, two equal
      * {@link Theory}is must have the same evaluation for the same {@link Knowledge}.
      * <p>
+     * By default, as higher the metric better the theory. Override this method, otherwise.
      * {@inheritDoc}
      */
     @Override
-    public abstract int compare(Double o1, Double o2);
+    public int compare(Double o1, Double o2) {
+        return Double.compare(o1, o2);
+    }
+
 }

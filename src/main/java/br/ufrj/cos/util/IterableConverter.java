@@ -22,7 +22,9 @@
 package br.ufrj.cos.util;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Class to convert one class into another and encapsulates it into a {@link Iterator} and {@link Iterable}.
@@ -34,6 +36,18 @@ import java.util.Iterator;
 public abstract class IterableConverter<In, Out> implements Iterable<Out>, Iterator<Out> {
 
     protected Iterator<? extends In> iterator;
+
+    protected Map<Integer, In> countMap = new HashMap<>();
+    private int counter = 0;
+
+    /**
+     * Constructs from {@link Iterable}.
+     *
+     * @param iterable {@link Iterable}
+     */
+    public IterableConverter(Iterable<? extends In> iterable) {
+        this.iterator = iterable.iterator();
+    }
 
     /**
      * Constructs from {@link Iterator}.
@@ -66,7 +80,10 @@ public abstract class IterableConverter<In, Out> implements Iterable<Out>, Itera
 
     @Override
     public Out next() {
-        return processInToOut(iterator.next());
+        In in = iterator.next();
+        counter++;
+        countMap.put(counter, in);
+        return processInToOut(in);
     }
 
     /**
@@ -77,4 +94,13 @@ public abstract class IterableConverter<In, Out> implements Iterable<Out>, Itera
      */
     public abstract Out processInToOut(In in);
 
+    /**
+     * Gets a count {@link Map} of the {@link In}s. This {@link Map} associates a number, from [1, N] to each input,
+     * where N is the number of elements. This number is associated in the order a input is required.
+     *
+     * @return the count {@link Map}
+     */
+    public Map<Integer, In> getCountMap() {
+        return countMap;
+    }
 }

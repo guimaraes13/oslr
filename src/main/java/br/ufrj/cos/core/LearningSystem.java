@@ -28,8 +28,8 @@ import br.ufrj.cos.knowledge.manager.IncomingExampleManager;
 import br.ufrj.cos.knowledge.manager.KnowledgeBaseManager;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 import java.util.Map;
@@ -78,7 +78,7 @@ public class LearningSystem {
         this.examples = examples;
     }
 
-    //TODO: implement necessary methods!
+    // TODO: implement necessary methods!
     // It does not need to do all by itself know, just have the methods to receive the commands from outside sources!
     // In the future, create an extension of this class that have an atomExamples input stream and decides what to do
     // based on that.

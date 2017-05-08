@@ -42,6 +42,15 @@ import java.util.List;
 public class InferenceExampleIterable extends IterableConverter<Example, InferenceExample> {
 
     /**
+     * Constructs from an {@link Iterable}.
+     *
+     * @param iterable the {@link Iterable}
+     */
+    public InferenceExampleIterable(Iterable<? extends Example> iterable) {
+        super(iterable);
+    }
+
+    /**
      * Constructs from an {@link Iterator}.
      *
      * @param iterator the {@link Iterator}

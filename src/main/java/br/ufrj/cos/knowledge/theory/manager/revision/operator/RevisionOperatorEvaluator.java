@@ -25,7 +25,7 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
@@ -84,7 +84,8 @@ public class RevisionOperatorEvaluator {
 
     /**
      * Gets the revised theory. This method is useful because most of the {@link RevisionOperatorEvaluator} needs to
-     * previously apply the change before evaluate it. This methods allows it to store the revised {@link Theory} to
+     * previously apply the change before evaluateTheory it. This methods allows it to store the revised
+     * {@link Theory} to
      * improve performance.
      * <p>
      * If the {@link Theory} was not created (or stored) it is computed on the call of this method.

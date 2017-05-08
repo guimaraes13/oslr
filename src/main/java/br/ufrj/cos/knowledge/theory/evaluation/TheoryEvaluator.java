@@ -24,20 +24,19 @@ package br.ufrj.cos.knowledge.theory.evaluation;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Responsible for evaluate the theory against the atomExamples set and/or the knowledge base.
+ * Responsible for evaluateTheory the theory against the atomExamples set and/or the knowledge base.
  * <p>
  * Created on 24/04/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
 public class TheoryEvaluator {
 
     protected KnowledgeBase knowledgeBase;

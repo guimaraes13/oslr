@@ -29,7 +29,6 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.logic.WeightedAtom;
 
 import java.util.Collection;
 import java.util.Map;
@@ -79,7 +78,7 @@ public abstract class EngineSystemTranslator {
      * Method to call the logic engine and retrieve the grounding/proved form of the given iterator. This method must
      * be as simple as possible and returns only the grounded iterator. No probabilities are required here.
      *
-     * @param examples the iterator to ground/prove
+     * @param examples the array to ground/prove
      * @return the grounded/proved set of {@link Atom}s
      */
     public abstract Set<Atom> groundExamples(Example... examples);
@@ -87,9 +86,16 @@ public abstract class EngineSystemTranslator {
     /**
      * Method to train the parameters of the logic engine.
      *
-     * @param examples the iterator to train with
+     * @param examples the array to train with
      */
     public abstract void trainParameters(Example... examples);
+
+    /**
+     * Method to train the parameters of the logic engine.
+     *
+     * @param examples the iterable to train with
+     */
+    public abstract void trainParameters(Iterable<? extends Example> examples);
 
     /**
      * Saves the last trained parameters to the current parameters.
@@ -100,9 +106,30 @@ public abstract class EngineSystemTranslator {
      * Method to infer the probability of the iterator based on the {@link Knowledge} and the parameters from the
      * logic engine.
      *
-     * @param examples the iterator to infer
+     * @param examples the array to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Example... examples);
+
+    /**
+     * Method to infer the probability of the iterator based on the {@link Knowledge} and the parameters from the
+     * logic engine.
+     *
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends Example> examples);
+
+    /**
+     * Method to infer the probability of the iterator based on the {@link Knowledge} and the last trained parameters
+     * from the logic engine.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param examples the iterable to infer
      * @return a {@link Map} of the solutions to its correspondent {@link Example}.
      */
-    public abstract Map<Example, Set<WeightedAtom>> inferExample(Example... examples);
+    public abstract Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(Iterable<? extends Example>
+                                                                                           examples);
 
 }

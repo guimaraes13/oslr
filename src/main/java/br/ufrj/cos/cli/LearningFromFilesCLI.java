@@ -257,12 +257,13 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
 
     @Override
     public void run() {
+        //TODO: call the learning methods
         try {
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
             buildLearningSystem();
-            //TODO: call the learning methods
+            learningSystem = new LearningSystem(knowledgeBase, theory, examples);
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);

@@ -450,10 +450,12 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
 
     @Override
     public void trainParameters(Example... examples) {
-        Map<Integer, Ground<P>> map = grounder.groundExamples(new InferenceExampleIterable(examples), symbolTable);
-        currentParamVector = trainer.train(symbolTable,
-                                           map.values().stream().map(Ground::toString).collect(Collectors.toSet()),
-                                           new ArrayLearningGraphBuilder(), savedParamVector, numberOfTrainingEpochs);
+        trainParameters(new InferenceExampleIterable(examples), savedParamVector);
+    }
+
+    @Override
+    public void trainParameters(Iterable<? extends Example> examples) {
+        trainParameters(new InferenceExampleIterable(examples), savedParamVector);
     }
 
     @Override
@@ -463,32 +465,57 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
-    public Map<Example, Set<WeightedAtom>> inferExample(Example... examples) {
+    public Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
         IterableConverter<Example, Query> converter = new QueryIterable(examples);
-        Map<Integer, Answer<P>> answerMap = answerer.findSolutions(converter);
-        return getWeightedSolutions(answerMap, examples);
+        return getWeightedSolutions(converter);
+    }
+
+    @Override
+    public Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends Example> examples) {
+        IterableConverter<Example, Query> converter = new QueryIterable(examples);
+        return getWeightedSolutions(converter);
+    }
+
+    @Override
+    public Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(Iterable<? extends Example> examples) {
+        answerer.addParams(prover, currentParamVector, squashingFunction);
+        Map<Example, Map<Atom, Double>> inferExample = inferExamples(examples);
+        answerer.addParams(prover, savedParamVector, squashingFunction);
+        return inferExample;
     }
 
     /**
      * Creates a {@link Map} of the solutions to its correspondent {@link Example}.
      *
-     * @param solutions the solutions
-     * @param examples  the {@link Example}s
+     * @param converter the {@link IterableConverter} of the {@link Example}s to {@link Query}is
      * @return the {@link Map} of solutions
      */
-    protected Map<Example, Set<WeightedAtom>> getWeightedSolutions(Map<Integer, Answer<P>> solutions,
-                                                                   Example... examples) {
-        Map<Example, Set<WeightedAtom>> weightedSolutions = new HashMap<>();
-        Set<WeightedAtom> weightedAtoms;
+    protected Map<Example, Map<Atom, Double>> getWeightedSolutions(IterableConverter<Example, Query> converter) {
+        Map<Integer, Answer<P>> solutions = answerer.findSolutions(converter);
+        Map<Example, Map<Atom, Double>> mapSolutions = new HashMap<>();
+        Map<Atom, Double> atomMap;
         for (Map.Entry<Integer, Answer<P>> entry : solutions.entrySet()) {
-            weightedAtoms = new HashSet<>();
+            atomMap = new HashMap<>();
             for (Map.Entry<Query, Double> solution : entry.getValue().getSolutions().entrySet()) {
-                weightedAtoms.add(new WeightedAtom(solution.getValue(), goalToAtom(solution.getKey().getRhs()[0])));
+                atomMap.put(goalToAtom(solution.getKey().getRhs()[0]), solution.getValue());
             }
-            weightedSolutions.put(examples[entry.getKey()], weightedAtoms);
+            mapSolutions.put(converter.getCountMap().get(entry.getKey()), atomMap);
         }
 
-        return weightedSolutions;
+        return mapSolutions;
+    }
+
+    /**
+     * Trains the logic system if the given examples and initial parameters.
+     *
+     * @param iterable    the examples
+     * @param paramVector the initial parameters
+     */
+    protected void trainParameters(InferenceExampleIterable iterable, ParamVector<String, ?> paramVector) {
+        Map<Integer, Ground<P>> map = grounder.groundExamples(iterable, symbolTable);
+        currentParamVector = trainer.train(symbolTable,
+                                           map.values().stream().map(Ground::toString).collect(Collectors.toSet()),
+                                           new ArrayLearningGraphBuilder(), paramVector, numberOfTrainingEpochs);
     }
 
 }
