@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 
 /**
@@ -42,15 +41,6 @@ public class LikelihoodMetric extends AccumulatorMetric {
      */
     public static final double EPSILON = 1e-4;
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public LikelihoodMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
     protected double initialAccumulatorValue() {
         return 1;
@@ -68,6 +58,11 @@ public class LikelihoodMetric extends AccumulatorMetric {
         } else {
             return Math.max(1 - value, EPSILON);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Likelihood";
     }
 
 }

@@ -84,7 +84,6 @@ public class TimeMeasure {
      * @param format the given format
      * @return the formatted timestamp
      */
-    @SuppressWarnings("SameParameterValue")
     public static String formatNanoDifference(long begin, long end, String format) {
         return formatNanoDifference(end - begin, format);
     }

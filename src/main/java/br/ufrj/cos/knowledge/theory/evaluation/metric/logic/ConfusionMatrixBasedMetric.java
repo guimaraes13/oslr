@@ -44,17 +44,8 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
     protected int falsePositive;
     protected int falseNegative;
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public ConfusionMatrixBasedMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
-    protected double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
         initializeConfusionMatrix();
         calculateConfusionMatrix(inferredResult, examples);
         return calculateConfusionMatrixMetric();

@@ -21,8 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.logic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
-
 /**
  * Measure the F1 Score of the system given the examples. The F1 Score does only considers the probability of the proved
  * examples, only if it was proved or not.
@@ -35,18 +33,14 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
  */
 public class F1ScoreMetric extends ConfusionMatrixBasedMetric {
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public F1ScoreMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
     protected double calculateConfusionMatrixMetric() {
         return (double) (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
+    }
+
+    @Override
+    public String toString() {
+        return "F1 Score";
     }
 
 }

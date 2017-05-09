@@ -22,13 +22,17 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
+import br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
@@ -50,11 +54,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
+ * A Command Line Interface which allows experiments of learning from files.
+ * <p>
  * Created on 24/04/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
 public class LearningFromFilesCLI extends CommandLineInterface implements Runnable {
 
     /**
@@ -133,6 +138,11 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
      * The learning system.
      */
     protected LearningSystem learningSystem;
+
+    /**
+     * The engine system.
+     */
+    protected EngineSystemTranslator engineSystemTranslator;
 
     /**
      * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
@@ -262,12 +272,25 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
+            buildEngineSystemTranslator();
             buildLearningSystem();
-            learningSystem = new LearningSystem(knowledgeBase, theory, examples);
+
+            //TODO: allow setting the following variables by command line interface
+            //TODO: instantiate the null parameters
+            learningSystem.incomingExampleManager = new ReviseAllIncomingExample(learningSystem);
+            RevisionOperatorSelector operatorSelector = null;
+            RevisionManager revisionManager = new RevisionManager(operatorSelector);
+            learningSystem.theoryRevisionManager = null;
+            learningSystem.theoryEvaluator = null;
+
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
         }
+    }
+
+    protected void buildEngineSystemTranslator() {
+        //TODO: Implement
     }
 
     /**
@@ -334,7 +357,7 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
      */
     protected void buildLearningSystem() {
         logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
-        learningSystem = new LearningSystem(knowledgeBase, theory, examples);
+        learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
     }
 
     /**
@@ -400,4 +423,5 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
 
         return description.trim();
     }
+
 }

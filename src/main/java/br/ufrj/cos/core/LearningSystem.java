@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.core;
 
+import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
@@ -31,6 +32,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.logic.Atom;
 
 import java.util.Map;
 
@@ -43,6 +45,11 @@ import java.util.Map;
  */
 public class LearningSystem {
 
+    //Theory Manager
+    protected final KnowledgeBase knowledgeBase;
+    protected final Theory theory;
+    protected final Examples examples;
+    protected final EngineSystemTranslator engineSystemTranslator;
     /**
      * The {@link KnowledgeBaseManager}.
      */
@@ -60,22 +67,20 @@ public class LearningSystem {
      */
     public TheoryEvaluator theoryEvaluator;
 
-    //Theory Manager
-    protected KnowledgeBase knowledgeBase;
-    protected Theory theory;
-    protected Examples examples;
-
     /**
      * Constructs the class if the minimum required parameters.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
+     * @param knowledgeBase          the {@link KnowledgeBase}
+     * @param theory                 the {@link Theory}
+     * @param examples               the {@link Examples}
+     * @param engineSystemTranslator the {@link EngineSystemTranslator}
      */
-    public LearningSystem(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
+    public LearningSystem(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
+                          EngineSystemTranslator engineSystemTranslator) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
+        this.engineSystemTranslator = engineSystemTranslator;
     }
 
     // TODO: implement necessary methods!
@@ -89,8 +94,8 @@ public class LearningSystem {
      * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void reviseTheory(Example... targets) throws TheoryRevisionException {
-        theoryRevisionManager.revise(knowledgeBase, theory, examples, targets);
+    public synchronized void reviseTheory(Example... targets) throws TheoryRevisionException {
+        theoryRevisionManager.revise(targets);
     }
 
     /**
@@ -102,4 +107,38 @@ public class LearningSystem {
         return theoryEvaluator.evaluate();
     }
 
+    public synchronized double evaluateTheory(Theory theory, TheoryMetric metric, Example... examples) {
+        return 0;
+    }
+
+    /**
+     * Gets the {@link Examples}.
+     *
+     * @return the {@link Examples}
+     */
+    public Examples getExamples() {
+        return examples;
+    }
+
+    public void trainParameters(Example... examples) {
+        engineSystemTranslator.trainParameters(examples);
+    }
+
+    public void trainParameters(Iterable<? extends Example> examples) {
+        engineSystemTranslator.trainParameters(examples);
+    }
+
+    public Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
+        return engineSystemTranslator.inferExamples(examples);
+    }
+
+    public Map<Example, Map<Atom, Double>> inferExamples(
+            Iterable<? extends Example> examples) {
+        return engineSystemTranslator.inferExamples(examples);
+    }
+
+    public Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(
+            Iterable<? extends Example> examples) {
+        return engineSystemTranslator.inferExampleTrainingParameters(examples);
+    }
 }

@@ -30,7 +30,6 @@ import br.ufrj.cos.engine.proppr.query.answerer.InMemoryQueryAnswerer;
 import br.ufrj.cos.engine.proppr.query.answerer.QueryIterable;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.IterableConverter;
@@ -41,13 +40,15 @@ import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
 import edu.cmu.ml.proppr.learn.SRW;
+import edu.cmu.ml.proppr.learn.tools.ClippedExp;
 import edu.cmu.ml.proppr.learn.tools.SquashingFunction;
+import edu.cmu.ml.proppr.prove.FeatureDictWeighter;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
-import edu.cmu.ml.proppr.util.SRWOptions;
+import edu.cmu.ml.proppr.util.ConcurrentSymbolTable;
 import edu.cmu.ml.proppr.util.SimpleSymbolTable;
 import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.math.ParamVector;
@@ -60,6 +61,8 @@ import java.util.stream.Collectors;
 
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_CAPACITY;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
+
+//TODO: improve the way the parameters are handle by replacing the call answerer.addParams() for a local handler
 
 /**
  * Translator to convert the system's syntax to ProPPR, and vice versa
@@ -75,58 +78,73 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     public static final String PREDICATE_ARITY_SEPARATOR = "/";
 
-    protected final WamProgram program;
-    protected final FactsPlugin factsPlugin;
-    protected final InMemoryGrounder<P> grounder;
-    protected final Trainer trainer;
-    protected final int numberOfTrainingEpochs;
-    protected final Prover<P> prover;
-    protected final SquashingFunction<Goal> squashingFunction;
+    /**
+     * The facts plugins name.
+     */
+    public static final String FACTS_PLUGIN_NAME = "facts";
 
+    /**
+     * No limits on the number of solutions.
+     */
+    public static final int NO_MAX_SOLUTIONS = -1;
+
+    /**
+     * If is to use ternay index, makes an more efficient cache for predicates with arity.
+     */
+    public boolean useTernayIndex = false;
+
+    /**
+     * The number of training epochs per training.
+     */
+    public int numberOfTrainingEpochs = 5;
+
+    /**
+     * The number of threads this class is allowed to use.
+     */
+    public int numberOfThreads = 1;
+
+    /**
+     * If it is to normalize.
+     */
+    public boolean normalize = true;
+
+    /**
+     * The {@link APROptions}.
+     */
+    public APROptions aprOptions = new APROptions();
+
+    /**
+     * The {@link SRW} options.
+     */
+    public SRW srwOptions = new SRW();
+
+    /**
+     * The {@link Prover}
+     */
+    protected Prover<P> prover;
+
+    /**
+     * The {@link SquashingFunction}
+     */
+    protected SquashingFunction<Goal> squashingFunction = new ClippedExp<>();
+
+    // Input
+    protected FactsPlugin factsPlugin;
+    protected WamProgram program;
+
+    // Processing
+    protected InMemoryGrounder<P> grounder;
+    protected Trainer trainer;
+    protected InMemoryQueryAnswerer<P> answerer;
+
+    // Parameters
     protected ParamVector<String, ?> currentParamVector;
     protected ParamVector<String, ?> savedParamVector;
     protected SymbolTable<String> symbolTable;
 
-    protected InMemoryQueryAnswerer<P> answerer;
-
-    /**
-     * Constructs the class if the minimum required parameters.
-     *
-     * @param knowledgeBase          the {@link KnowledgeBase}
-     * @param theory                 the {@link Theory}
-     * @param examples               the {@link Examples}
-     * @param numberOfThreads        the number of threads this class is allowed to use
-     * @param factsPluginName        the facts plugin's name
-     * @param useTernayIndex         if is to use ternay index, makes an more efficient cache for predicates with arity
-     * @param prover                 the {@link Prover}
-     * @param aprOptions             the {@link APROptions}
-     * @param srwOptions             the {@link SRWOptions}
-     * @param numberOfTrainingEpochs the number of training epochs per training
-     * @param normalize              if it is to normalize
-     * @param numberOfSolutions      the number of top solutions to retrieve
-     * @param squashingFunction      the {@link SquashingFunction}
-     */
-    public ProPprEngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                        int numberOfThreads, String factsPluginName, boolean useTernayIndex,
-                                        Prover<P> prover, APROptions aprOptions, SRW srwOptions,
-                                        int numberOfTrainingEpochs, boolean normalize, int numberOfSolutions,
-                                        SquashingFunction<Goal> squashingFunction) {
-        super(knowledgeBase, theory, examples);
-        this.program = compileTheory(theory);
-        this.numberOfTrainingEpochs = numberOfTrainingEpochs;
-        this.factsPlugin = buildFactsPlugin(aprOptions, factsPluginName, useTernayIndex);
-        this.prover = prover;
-        this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
-                                               program, factsPlugin);
-        this.trainer = new Trainer(srwOptions, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
-        this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
-                                                                                                DEFAULT_LOAD,
-                                                                                                numberOfThreads));
-        this.symbolTable = new SimpleSymbolTable<>();
-        this.answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new WamPlugin[]{factsPlugin}, prover,
-                                                    normalize, numberOfThreads, numberOfSolutions);
-        this.squashingFunction = squashingFunction;
-    }
+    //Auxiliary variables
+    protected SymbolTable<Feature> auxiliaryFeatureTable;
+    protected FeatureDictWeighter auxiliaryWeights;
 
     /**
      * Compiles a {@link Theory} into a {@link WamProgram}, the internal representation of ProPRR.
@@ -134,18 +152,28 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param theory the {@link Theory}
      * @return the {@link WamProgram}
      */
-    protected static WamProgram compileTheory(Theory theory) {
+    public static WamProgram compileTheory(Theory theory) {
         WamProgram wamProgram = new WamBaseProgram();
+        appendRuleToProgram(theory, wamProgram);
+        wamProgram.save();
+        return wamProgram;
+    }
+
+    /**
+     * Appends the {@link HornClause}s to the {@link WamProgram}.
+     *
+     * @param hornClauses the {@link HornClause}s
+     * @param wamProgram  the {@link WamProgram}
+     */
+    public static void appendRuleToProgram(Iterable<? extends HornClause> hornClauses, WamProgram wamProgram) {
         Rule rule;
-        for (HornClause hornClause : theory) {
+        for (HornClause hornClause : hornClauses) {
             rule = clauseToRule(hornClause);
             rule.variabilize();
             wamProgram.append(new Instruction(Instruction.OP.comment, rule.toString()));
             wamProgram.insertLabel(getLabelForRule(rule));
             wamProgram.append(rule);
         }
-        wamProgram.save();
-        return wamProgram;
     }
 
     /**
@@ -154,7 +182,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param clause the {@link Clause}
      * @return the {@link Rule}
      */
-    protected static Rule clauseToRule(Clause clause) {
+    public static Rule clauseToRule(Clause clause) {
         Goal lhs = null;                //head
         Goal[] rhs = new Goal[0];       //body
         Goal[] features = new Goal[0];  //features
@@ -181,7 +209,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param rule the {@link Rule}
      * @return the label
      */
-    protected static String getLabelForRule(Rule rule) {
+    public static String getLabelForRule(Rule rule) {
         return rule.getLhs().getFunctor() + PREDICATE_ARITY_SEPARATOR + rule.getLhs().getArity();
     }
 
@@ -196,8 +224,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param variableMap the variable {@link Map}
      * @return the {@link Goal}s
      */
-    protected static Goal[] positiveLiteralsToGoals(Iterable<? extends Literal> literals,
-                                                    Map<Term, Integer> variableMap) {
+    public static Goal[] positiveLiteralsToGoals(Iterable<? extends Literal> literals,
+                                                 Map<Term, Integer> variableMap) {
         List<Goal> goals = new ArrayList<>();
         for (Literal literal : literals) {
             if (!literal.isNegated()) {
@@ -218,7 +246,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param variableMap the variable {@link Map}
      * @return the {@link Goal}s
      */
-    protected static Goal[] atomsToGoals(Iterable<? extends Atom> atoms, Map<Term, Integer> variableMap) {
+    public static Goal[] atomsToGoals(Iterable<? extends Atom> atoms, Map<Term, Integer> variableMap) {
         List<Goal> goals = new ArrayList<>();
         for (Atom atom : atoms) {
             goals.add(atomToGoal(atom, variableMap));
@@ -280,35 +308,24 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         return new Goal(name, arguments);
     }
 
-    /**
-     * Builds the {@link FactsPlugin}. It is the internal representation of facts used by ProPPR.
-     *
-     * @param aprOptions      the {@link APROptions}
-     * @param factsPluginName the plugin's name
-     * @param useTernayIndex  if it should spend more memory to create an optimized index for predicates with arity
-     *                        bigger than two
-     * @return the {@link FactsPlugin}
-     */
-    protected FactsPlugin buildFactsPlugin(APROptions aprOptions, String factsPluginName, boolean useTernayIndex) {
-        FactsPlugin factsPlugin = new FactsPlugin(aprOptions, factsPluginName, useTernayIndex);
-
-        for (Atom atom : knowledgeBase) {
-            if (!atom.isGrounded()) {
-                continue;
-            }
-            if (atom instanceof WeightedAtom) {
-                factsPlugin.addWeightedFact(atom.getName(), ((WeightedAtom) atom).getWeight(), LanguageUtils
-                        .toStringCollectionToArray(atom.getTerms()));
-            } else {
-                factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
-            }
-        }
-
-        return factsPlugin;
+    @Override
+    public synchronized void initialize() {
+        this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
+                                               program, factsPlugin);
+        this.trainer = new Trainer(srwOptions, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
+        this.answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new WamPlugin[]{factsPlugin}, prover,
+                                                    normalize, numberOfThreads, NO_MAX_SOLUTIONS);
+        this.savedParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
+                                                                                              DEFAULT_LOAD,
+                                                                                              numberOfThreads));
+        this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
+                                                                                                DEFAULT_LOAD,
+                                                                                                numberOfThreads));
+        this.symbolTable = new SimpleSymbolTable<>();
     }
 
     @Override
-    public Set<Atom> groundRelevants(Collection<Term> terms) {
+    public synchronized Set<Atom> groundRelevants(Collection<Term> terms) {
         Term clauseTerm;
         Set<InferenceExample> inferenceExamples = new HashSet<>();
         Map<String, Set<Atom>> coveredGoals = new HashMap<>();
@@ -383,7 +400,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected Set<Atom> getGroundedAtoms(Iterable<InferenceExample> examples) {
         Map<Integer, Ground<P>> groundMap = grounder.groundExamples(examples, symbolTable);
         Set<Atom> atoms = new HashSet<>();
-        for (Ground<P> ground : groundMap.values()) {
+        for (Ground<?> ground : groundMap.values()) {
             atoms.addAll(groundToAtoms(ground));
         }
         return atoms;
@@ -444,44 +461,180 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
-    public Set<Atom> groundExamples(Example... examples) {
+    public synchronized Set<Atom> groundExamples(Example... examples) {
         return getGroundedAtoms(new InferenceExampleIterable(examples));
     }
 
     @Override
-    public void trainParameters(Example... examples) {
+    public synchronized void trainParameters(Example... examples) {
         trainParameters(new InferenceExampleIterable(examples), savedParamVector);
     }
 
     @Override
-    public void trainParameters(Iterable<? extends Example> examples) {
+    public synchronized void trainParameters(Iterable<? extends Example> examples) {
         trainParameters(new InferenceExampleIterable(examples), savedParamVector);
     }
 
     @Override
-    public void saveTrainedParameters() {
+    public synchronized void saveTrainedParameters() {
         savedParamVector = currentParamVector;
         answerer.addParams(prover, savedParamVector, squashingFunction);
     }
 
     @Override
-    public Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
         IterableConverter<Example, Query> converter = new QueryIterable(examples);
         return getWeightedSolutions(converter);
     }
 
     @Override
-    public Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends Example> examples) {
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends Example> examples) {
         IterableConverter<Example, Query> converter = new QueryIterable(examples);
         return getWeightedSolutions(converter);
     }
 
     @Override
-    public Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(Iterable<? extends Example> examples) {
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Theory theory,
+                                                                      Example... examples) {
+        return inferWithTheoryExamples(theory, new QueryIterable(examples));
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Theory theory,
+                                                                      Iterable<? extends Example> examples) {
+        return inferWithTheoryExamples(theory, new QueryIterable(examples));
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends HornClause> appendClauses,
+                                                                      Iterable<? extends Example> examples) {
+        return inferExamplesAppendingClauses(appendClauses, new QueryIterable(examples));
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends HornClause> appendClauses,
+                                                                      Example... examples) {
+        return inferExamplesAppendingClauses(appendClauses, new QueryIterable(examples));
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(
+            Iterable<? extends Example> examples) {
+        trainParameters(examples);
+
+        saveAnswererParametersState();
+        answerer.addParams(prover, currentParamVector, squashingFunction);
+
+        Map<Example, Map<Atom, Double>> inferExample = inferExamples(examples);
+
+        reloadAnswererParametersState();
+        return inferExample;
+    }
+
+    /**
+     * Reloads the previous state of the answerer, saved at the calling of {@link #reloadAnswererParametersState()}
+     */
+    protected void saveAnswererParametersState() {
+        auxiliaryFeatureTable = answerer.getFeatureTable();
+        answerer.setFeatureTable(new ConcurrentSymbolTable<>());
+        auxiliaryWeights = prover.getWeighter();
+    }
+
+    /**
+     * Saves the state of the answerer to be further reload by calling {@link #saveAnswererParametersState()}
+     */
+    protected void reloadAnswererParametersState() {
+        prover.setWeighter(auxiliaryWeights);
+        answerer.setFeatureTable(auxiliaryFeatureTable);
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
+            (Theory theory, Iterable<? extends Example> examples) {
+        saveAnswererParametersState();
+
+        WamProgram wamProgram = compileTheory(theory);
+        grounder.setProgram(wamProgram);
+        answerer.setProgram(wamProgram);
+        trainParameters(examples);
+
+        answerer.addParams(prover, currentParamVector, squashingFunction);
+
+        Map<Example, Map<Atom, Double>> inferExample = inferExamples(theory, examples);
+
+        reloadAnswererParametersState();
+        answerer.setProgram(program);
+        grounder.setProgram(program);
+        return inferExample;
+    }
+
+    @Override
+    public synchronized Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
+            (Iterable<? extends HornClause> appendClauses, Iterable<? extends Example> examples) {
+        // saving state
+        saveAnswererParametersState();
+        appendRuleToProgram(appendClauses, program);
+
+        trainParameters(examples);
         answerer.addParams(prover, currentParamVector, squashingFunction);
         Map<Example, Map<Atom, Double>> inferExample = inferExamples(examples);
-        answerer.addParams(prover, savedParamVector, squashingFunction);
+
+        // reverting state
+        program.revert();
+        reloadAnswererParametersState();
+
         return inferExample;
+    }
+
+    /**
+     * After calling this method, the {@link #initialize()} method must be called, for the changes in the knowledge
+     * base to take effect.
+     * {@inheritDoc}
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     */
+    @Override
+    public synchronized void setKnowledgeBase(KnowledgeBase knowledgeBase) {
+        this.knowledgeBase = knowledgeBase;
+        this.factsPlugin = buildFactsPlugin(aprOptions, useTernayIndex);
+    }
+
+    /**
+     * After calling this method, the {@link #initialize()} method must be called, for the changes in the theory to
+     * take effect.
+     *
+     * @param theory the {@link Theory}
+     */
+    @Override
+    public synchronized void setTheory(Theory theory) {
+        this.theory = theory;
+        this.program = compileTheory(theory);
+    }
+
+    /**
+     * Builds the {@link FactsPlugin}. It is the internal representation of facts used by ProPPR.
+     *
+     * @param aprOptions     the {@link APROptions}
+     * @param useTernayIndex if it should spend more memory to create an optimized index for predicates with arity
+     *                       bigger than two
+     * @return the {@link FactsPlugin}
+     */
+    protected FactsPlugin buildFactsPlugin(APROptions aprOptions, boolean useTernayIndex) {
+        FactsPlugin factsPlugin = new FactsPlugin(aprOptions, FACTS_PLUGIN_NAME, useTernayIndex);
+
+        for (Atom atom : knowledgeBase) {
+            if (!atom.isGrounded()) {
+                continue;
+            }
+            if (atom instanceof WeightedAtom) {
+                factsPlugin.addWeightedFact(atom.getName(), ((WeightedAtom) atom).getWeight(), LanguageUtils
+                        .toStringCollectionToArray(atom.getTerms()));
+            } else {
+                factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
+            }
+        }
+
+        return factsPlugin;
     }
 
     /**
@@ -516,6 +669,51 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         currentParamVector = trainer.train(symbolTable,
                                            map.values().stream().map(Ground::toString).collect(Collectors.toSet()),
                                            new ArrayLearningGraphBuilder(), paramVector, numberOfTrainingEpochs);
+    }
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory} (appending new clauses),
+     * {@link KnowledgeBase} and the parameters from the logic engine. The parameters changes due the call of this
+     * method will not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param appendClauses the {@link HornClause} to append
+     * @param converter     the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    protected Map<Example, Map<Atom, Double>> inferExamplesAppendingClauses
+    (Iterable<? extends HornClause> appendClauses, IterableConverter<Example, Query> converter) {
+        if (appendClauses == null) {
+            return getWeightedSolutions(converter);
+        }
+        appendRuleToProgram(appendClauses, program);
+        Map<Example, Map<Atom, Double>> solutions = getWeightedSolutions(converter);
+        program.revert();
+        return solutions;
+    }
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory}, {@link KnowledgeBase} and the
+     * parameters from the logic engine. The parameters changes due the call of this
+     * method will not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param theory    the {@link Theory}
+     * @param converter the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    protected Map<Example, Map<Atom, Double>> inferWithTheoryExamples(Theory theory,
+                                                                      IterableConverter<Example, Query> converter) {
+        if (theory == null) {
+            return getWeightedSolutions(converter);
+        }
+        WamProgram wamProgram = compileTheory(theory);
+        answerer.setProgram(wamProgram);
+        Map<Example, Map<Atom, Double>> solutions = getWeightedSolutions(converter);
+        answerer.setProgram(program);
+        return solutions;
     }
 
 }

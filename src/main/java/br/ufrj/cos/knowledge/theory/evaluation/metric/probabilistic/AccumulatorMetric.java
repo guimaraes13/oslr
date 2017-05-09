@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
@@ -39,17 +38,8 @@ import java.util.Map;
  */
 public abstract class AccumulatorMetric extends TheoryMetric {
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public AccumulatorMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
-    protected double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
         Map<Atom, Double> atomValues;
         double result = initialAccumulatorValue();
         for (Example example : examples) {

@@ -34,12 +34,12 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
 public class Examples extends Knowledge<ProPprExample> {
 
     /**
      * The class to be used on the {@link Set}s within the {@link Map}s
      */
+    @SuppressWarnings("CanBeFinal")
     public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
 
     protected Map<String, Set<ProPprExample>> proPprExampleSetPredicateMap;

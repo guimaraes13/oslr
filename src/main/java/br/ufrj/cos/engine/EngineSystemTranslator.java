@@ -21,13 +21,12 @@
 
 package br.ufrj.cos.engine;
 
-import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 
 import java.util.Collection;
@@ -47,20 +46,13 @@ public abstract class EngineSystemTranslator {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-    protected Examples examples;
 
     /**
-     * Constructs the class if the minimum required parameters.
-     *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
+     * Method to initialize the fields of the class. Must be called after the proper setting of the public fields.
+     * <p>
+     * This is a trick to use flexible default parameters with empty constructors.
      */
-    public EngineSystemTranslator(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
-        this.knowledgeBase = knowledgeBase;
-        this.theory = theory;
-        this.examples = examples;
-    }
+    public abstract void initialize();
 
     /**
      * Method to call the logic engine and retrieve the grounding/proved {@link Atom} relevant to the given
@@ -103,7 +95,7 @@ public abstract class EngineSystemTranslator {
     public abstract void saveTrainedParameters();
 
     /**
-     * Method to infer the probability of the iterator based on the {@link Knowledge} and the parameters from the
+     * Method to infer the probability of the examples based on the {@link KnowledgeBase} and the parameters from the
      * logic engine.
      *
      * @param examples the array to infer
@@ -112,7 +104,7 @@ public abstract class EngineSystemTranslator {
     public abstract Map<Example, Map<Atom, Double>> inferExamples(Example... examples);
 
     /**
-     * Method to infer the probability of the iterator based on the {@link Knowledge} and the parameters from the
+     * Method to infer the probability of the examples based on the {@link KnowledgeBase} and the parameters from the
      * logic engine.
      *
      * @param examples the iterable to infer
@@ -121,15 +113,129 @@ public abstract class EngineSystemTranslator {
     public abstract Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends Example> examples);
 
     /**
-     * Method to infer the probability of the iterator based on the {@link Knowledge} and the last trained parameters
-     * from the logic engine.
+     * Method to infer the probability of the examples based on the {@link Theory}, {@link KnowledgeBase} and the
+     * parameters from the logic engine. The parameters changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param theory   the {@link Theory}
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Theory theory, Example... examples);
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory}, {@link KnowledgeBase} and the
+     * parameters from the logic engine. The parameters changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param theory   the {@link Theory}
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Theory theory, Iterable<? extends Example> examples);
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory} (appending new clauses),
+     * {@link KnowledgeBase} and the parameters from the logic engine. The parameters changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param appendClauses the {@link HornClause} to append
+     * @param examples      the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends HornClause> appendClauses,
+                                                                  Iterable<? extends Example> examples);
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory} (appending new clauses),
+     * {@link KnowledgeBase} and the parameters from the logic engine. The parameters changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param appendClauses the {@link HornClause} to append
+     * @param examples      the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends HornClause> appendClauses,
+                                                                  Example... examples);
+
+    /**
+     * Method to infer the probabilities of the grounds in the iterator based on the {@link KnowledgeBase}, training
+     * the parameters before inference. The parameters changes due the call of this method should not be stored.
      * <p>
      * This method is useful to evaluate a theory revision without save the parameters.
      *
      * @param examples the iterable to infer
      * @return a {@link Map} of the solutions to its correspondent {@link Example}.
      */
-    public abstract Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(Iterable<? extends Example>
+    public abstract Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(Iterable<? extends Example>
                                                                                            examples);
+
+    /**
+     * Method to infer the probabilities of the examples in the iterator based on the {@link Theory} and
+     * {@link KnowledgeBase}, training the parameters before inference. The changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param theory   the {@link Theory}
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
+    (Theory theory, Iterable<? extends Example> examples);
+
+    /**
+     * Method to infer the probability of the examples based on the {@link Theory} (appending new clauses),
+     * {@link KnowledgeBase}, training the parameters before inference. The changes due the call of this
+     * method should not be stored.
+     * <p>
+     * This method is useful to evaluate a theory revision without save the parameters.
+     *
+     * @param appendClauses the {@link HornClause} to append
+     * @param examples      the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
+    (Iterable<? extends HornClause> appendClauses, Iterable<? extends Example> examples);
+
+    /**
+     * Gets the {@link KnowledgeBase}.
+     *
+     * @return the {@link KnowledgeBase}
+     */
+    public KnowledgeBase getKnowledgeBase() {
+        return knowledgeBase;
+    }
+
+    /**
+     * Sets the {@link KnowledgeBase}.
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     */
+    public abstract void setKnowledgeBase(KnowledgeBase knowledgeBase);
+
+    /**
+     * Gets the {@link Theory}.
+     *
+     * @return the {@link Theory}
+     */
+    public Theory getTheory() {
+        return theory;
+    }
+
+    /**
+     * Sets the {@link Theory}.
+     *
+     * @param theory the {@link Theory}
+     */
+    public abstract void setTheory(Theory theory);
 
 }

@@ -21,10 +21,10 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
 
@@ -37,7 +37,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSe
  */
 public class RevisionManager {
 
-    @SuppressWarnings("CanBeFinal")
+    protected LearningSystem learningSystem;
     protected RevisionOperatorSelector operatorSelector;
 
     /**
@@ -51,20 +51,15 @@ public class RevisionManager {
 
     /**
      * Method to call the revision on the selected
-     * {@link br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator} and apply the changes on the
-     * current {@link Theory}
+     * {@link RevisionOperator} and apply the changes on the current {@link Theory}
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
      * @param targets       the target {@link Example}s
      * @return the revised {@link Theory}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory revise(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                         Example... targets) throws TheoryRevisionException {
+    public Theory revise(Example... targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets);
-        return operatorEvaluator.getRevisedTheory(knowledgeBase, theory, examples, targets);
+        return operatorEvaluator.getRevisedTheory(targets);
     }
 
 }

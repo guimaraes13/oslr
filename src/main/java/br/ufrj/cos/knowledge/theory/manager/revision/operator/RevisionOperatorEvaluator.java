@@ -21,10 +21,10 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
@@ -45,6 +45,7 @@ public class RevisionOperatorEvaluator {
 
     protected final RevisionOperator revisionOperator;
     protected final TheoryMetric evaluationMetric;
+    protected final TheoryEvaluator theoryEvaluator;
 
     protected Theory updatedTheory;
     protected boolean isEvaluated;
@@ -56,27 +57,27 @@ public class RevisionOperatorEvaluator {
      * @param revisionOperator the {@link RevisionOperator}
      * @param evaluationMetric the {@link TheoryMetric}
      */
-    public RevisionOperatorEvaluator(RevisionOperator revisionOperator, TheoryMetric evaluationMetric) {
+    public RevisionOperatorEvaluator(RevisionOperator revisionOperator, TheoryMetric evaluationMetric,
+                                     TheoryEvaluator theoryEvaluator) {
         this.revisionOperator = revisionOperator;
         this.evaluationMetric = evaluationMetric;
+        this.theoryEvaluator = theoryEvaluator;
     }
 
     /**
      * Evaluates a {@link Theory} as {@link RevisionOperator} was applied.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param targets       the target {@link Example}s
+     * @param examples the {@link Examples}
+     * @param targets  the target {@link Example}s
      * @return the evaluated value
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public double evaluateOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                   Example... targets) throws TheoryRevisionException {
+    public double evaluateOperator(Examples examples, Example... targets) throws TheoryRevisionException {
         if (!isEvaluated) {
             isEvaluated = true;
             updatedTheory = revisionOperator.performOperation(targets);
-            evaluationValue = evaluationMetric.evaluateTheory(knowledgeBase, theory, examples);
+            // TODO: pass the Theory in the call bellow
+            evaluationValue = theoryEvaluator.evaluateTheory(evaluationMetric, examples);
         }
 
         return evaluationValue;
@@ -90,15 +91,11 @@ public class RevisionOperatorEvaluator {
      * <p>
      * If the {@link Theory} was not created (or stored) it is computed on the call of this method.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param targets       the target {@link Example}s
+     * @param targets the target {@link Example}s
      * @return the revised {@link Theory}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory getRevisedTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                   Example... targets) throws TheoryRevisionException {
+    public Theory getRevisedTheory(Example... targets) throws TheoryRevisionException {
         if (isEvaluated) {
             isEvaluated = false;
             return updatedTheory;

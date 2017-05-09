@@ -21,9 +21,7 @@
 
 package br.ufrj.cos.knowledge.theory.manager;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
@@ -51,15 +49,11 @@ public abstract class TheoryRevisionManager {
     /**
      * Method to call the revision of the {@link Theory} on the {@link RevisionManager}
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param targets       the target {@link Example}s
+     * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void revise(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                       Example... targets) throws TheoryRevisionException {
-        revisionManager.revise(knowledgeBase, theory, examples, targets);
+    public void revise(Example... targets) throws TheoryRevisionException {
+        revisionManager.revise(targets);
     }
 
 }

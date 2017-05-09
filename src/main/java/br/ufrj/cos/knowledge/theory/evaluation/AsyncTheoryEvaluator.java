@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
@@ -53,13 +52,11 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      */
     public static final int NO_TIMEOUT = 0;
 
-    protected KnowledgeBase knowledgeBase;
-    protected Theory theory;
+    protected final TheoryEvaluator theoryEvaluator;
+    protected final TheoryMetric theoryMetric;
+
     protected Examples examples;
-
     protected HornClause hornClause;
-
-    protected TheoryMetric theoryMetric;
 
     protected int timeout = NO_TIMEOUT;
 
@@ -68,38 +65,31 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     protected boolean evaluationFinished;
 
     /**
-     * Constructor with the no timeout.
+     * Constructor with the needed parameters.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param theoryMetric  the {@link TheoryMetric}
+     * @param examples        the {@link Examples}
+     * @param theoryEvaluator the {@link TheoryEvaluator}
+     * @param theoryMetric    the {@link TheoryMetric}
+     * @param timeout         the maximum amount of time the thread is allowed to run
      */
-    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                TheoryMetric theoryMetric) {
-        this.knowledgeBase = knowledgeBase;
-        this.theory = theory;
-        this.examples = examples;
-        this.theoryMetric = theoryMetric;
-        this.evaluation = theoryMetric.getDefaultValue();
+    public AsyncTheoryEvaluator(Examples examples, TheoryEvaluator theoryEvaluator, TheoryMetric theoryMetric,
+                                int timeout) {
+        this(examples, theoryEvaluator, theoryMetric);
+        this.timeout = timeout;
     }
 
     /**
-     * Constructor with the needed parameters.
+     * Constructor with the no timeout.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param theoryMetric  the {@link TheoryMetric}
-     * @param timeout       the maximum amount of time the thread is allowed to run
+     * @param examples        the {@link Examples}
+     * @param theoryEvaluator the {@link TheoryEvaluator}
+     * @param theoryMetric    the {@link TheoryMetric}
      */
-    public AsyncTheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                TheoryMetric theoryMetric, int timeout) {
-        this.knowledgeBase = knowledgeBase;
-        this.theory = theory;
+    public AsyncTheoryEvaluator(Examples examples, TheoryEvaluator theoryEvaluator, TheoryMetric theoryMetric) {
         this.examples = examples;
+        this.theoryEvaluator = theoryEvaluator;
         this.theoryMetric = theoryMetric;
-        this.timeout = timeout;
+        this.evaluation = theoryMetric.getDefaultValue();
     }
 
     /**
@@ -133,8 +123,8 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     @Override
     public void run() {
         evaluationFinished = false;
-        theory.add(hornClause);
-        evaluation = theoryMetric.evaluateTheory(knowledgeBase, theory, examples);
+        //TODO: add horn clause here!
+        evaluation = theoryEvaluator.evaluateTheory(theoryMetric, examples);
         evaluationFinished = true;
     }
 

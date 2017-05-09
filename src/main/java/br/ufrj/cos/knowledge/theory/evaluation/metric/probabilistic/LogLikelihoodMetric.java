@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 
 /**
@@ -36,15 +35,6 @@ import br.ufrj.cos.knowledge.example.AtomExample;
  */
 public class LogLikelihoodMetric extends LikelihoodMetric {
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public LogLikelihoodMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
     protected double initialAccumulatorValue() {
         return 0;
@@ -58,6 +48,11 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
     @Override
     protected double calculateAppend(AtomExample atomExample, double value) {
         return Math.log(super.calculateAppend(atomExample, value));
+    }
+
+    @Override
+    public String toString() {
+        return "Log Likelihood";
     }
 
 }

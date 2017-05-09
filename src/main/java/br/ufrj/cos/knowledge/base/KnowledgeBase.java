@@ -47,7 +47,6 @@ import java.util.function.Predicate;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
 public class KnowledgeBase extends Knowledge<Atom> {
 
     /**

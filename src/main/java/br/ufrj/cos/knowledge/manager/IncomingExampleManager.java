@@ -23,6 +23,8 @@ package br.ufrj.cos.knowledge.manager;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.external.access.ExampleStream;
+import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -32,13 +34,25 @@ import br.ufrj.cos.external.access.ExampleStream;
  *
  * @author Victor Guimarães
  */
-public abstract class IncomingExampleManager implements Runnable {
+public abstract class IncomingExampleManager {
 
-    protected LearningSystem learningSystem;
+    protected final LearningSystem learningSystem;
 
-    @Override
-    public void run() {
-
+    /**
+     * Constructs a {@link IncomingExampleManager} with its fields.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     */
+    public IncomingExampleManager(LearningSystem learningSystem) {
+        this.learningSystem = learningSystem;
     }
+
+    /**
+     * Decides what to do with the arrived {@link Example}s.
+     *
+     * @param examples the arrived {@link Example}s
+     * @throws TheoryRevisionException in an error occurs during the revision
+     */
+    public abstract void incomingExamples(Example... examples) throws TheoryRevisionException;
 
 }

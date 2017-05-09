@@ -21,14 +21,16 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.logic.Atom;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Responsible for evaluateTheory the theory against the atomExamples set and/or the knowledge base.
@@ -39,40 +41,29 @@ import java.util.Set;
  */
 public class TheoryEvaluator {
 
-    protected KnowledgeBase knowledgeBase;
-    protected Theory theory;
-    protected Examples examples;
-
-    protected Set<TheoryMetric> theoryMetrics;
+    protected final LearningSystem learningSystem;
+    protected final Iterable<? extends TheoryMetric> theoryMetrics;
 
     /**
      * Constructs a {@link TheoryEvaluator} with its fields.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param theoryMetrics a {@link Set} of {@link TheoryMetric}
+     * @param learningSystem the {@link LearningSystem}
+     * @param theoryMetrics  a {@link Iterable} of {@link TheoryMetric}
      */
-    public TheoryEvaluator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                           Set<TheoryMetric> theoryMetrics) {
-        this.knowledgeBase = knowledgeBase;
-        this.theory = theory;
-        this.examples = examples;
+    public TheoryEvaluator(LearningSystem learningSystem, Iterable<? extends TheoryMetric> theoryMetrics) {
+        this.learningSystem = learningSystem;
         this.theoryMetrics = theoryMetrics;
     }
 
     /**
-     * Evaluates a {@link Theory}.
+     * Constructs a {@link TheoryEvaluator} with its fields.
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param theoryMetric  the {@link TheoryMetric}
-     * @return the evaluation value
+     * @param learningSystem the {@link LearningSystem}
+     * @param theoryMetrics  an array of {@link TheoryMetric}
      */
-    public static double evaluateTheory(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                        TheoryMetric theoryMetric) {
-        return theoryMetric.evaluateTheory(knowledgeBase, theory, examples);
+    public TheoryEvaluator(LearningSystem learningSystem, TheoryMetric... theoryMetrics) {
+        this.learningSystem = learningSystem;
+        this.theoryMetrics = Arrays.asList(theoryMetrics);
     }
 
     /**
@@ -83,46 +74,30 @@ public class TheoryEvaluator {
     public Map<Class<? extends TheoryMetric>, Double> evaluate() {
         Map<Class<? extends TheoryMetric>, Double> evaluations = new HashMap<>();
         for (TheoryMetric metric : theoryMetrics) {
-            evaluations.put(metric.getClass(), metric.evaluateTheory(knowledgeBase, theory, examples));
+            evaluations.put(metric.getClass(), evaluateTheory(metric, learningSystem.getExamples()));
         }
 
         return evaluations;
     }
 
     /**
-     * Gets the {@link KnowledgeBase}.
+     * Evaluates the {@link Theory} against the represented metric.
      *
-     * @return the {@link KnowledgeBase}
+     * @param examples the {@link Examples}
+     * @return the evaluation value
      */
-    public KnowledgeBase getKnowledgeBase() {
-        return knowledgeBase;
+    public double evaluateTheory(TheoryMetric metric, Examples examples) {
+        Map<Example, Map<Atom, Double>> evaluationResult;
+        if (metric.parametersRetrainedBeforeEvaluate) {
+            evaluationResult = learningSystem.inferExampleWithLastParameters(examples);
+        } else {
+            evaluationResult = learningSystem.inferExamples(examples);
+        }
+
+        return metric.evaluate(evaluationResult, examples);
     }
 
-    /**
-     * Gets the {@link Theory}.
-     *
-     * @return the {@link Theory}
-     */
-    public Theory getTheory() {
-        return theory;
-    }
-
-    /**
-     * Gets the {@link Examples}.
-     *
-     * @return the {@link Examples}
-     */
-    public Examples getExamples() {
-        return examples;
-    }
-
-    /**
-     * Gets the {@link Set} of {@link TheoryMetric}s.
-     *
-     * @return the {@link Set} of {@link TheoryMetric}s
-     */
-    public Set<TheoryMetric> getTheoryMetrics() {
-        return theoryMetrics;
-    }
+    //TODO: evaluate against a new theory, without changing the old theory and parameters (with and without retraining)
+    //TODO: evaluate with additional clauses, without changing the theory and parameters (with and without retraining)
 
 }

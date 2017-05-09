@@ -22,13 +22,13 @@
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
-import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
@@ -154,10 +154,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public int numberOfThreads = DEFAULT_NUMBER_OF_THREADS;
 
-    @SuppressWarnings("CanBeFinal")
     protected EngineSystemTranslator engineSystem;
 
     protected TheoryMetric theoryMetric;
+
+    //TODO: replace the engine system for the learning system
 
     /**
      * Constructs the class if the minimum required parameters. The other fields can be setted by direct access
@@ -169,8 +170,9 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param theoryMetric  the {@link TheoryMetric}
      */
     public BottomClauseBoundedRule(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                   EngineSystemTranslator engineSystem, TheoryMetric theoryMetric) {
-        super(knowledgeBase, theory, examples);
+                                   EngineSystemTranslator engineSystem, TheoryEvaluator theoryEvaluator,
+                                   TheoryMetric theoryMetric) {
+        super(knowledgeBase, theory, examples, theoryEvaluator);
         this.engineSystem = engineSystem;
         this.theoryMetric = theoryMetric;
     }
@@ -459,12 +461,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the {@link Future} value
      */
     protected Future<AsyncTheoryEvaluator> submitCandidate(HornClause candidate, ExecutorService evaluationPool) {
-        AsyncTheoryEvaluator theoryEvaluator;
+        AsyncTheoryEvaluator evaluator;
         try {
-            theoryEvaluator = new AsyncTheoryEvaluator(knowledgeBase, theory.copy(), examples, theoryMetric);
-            theoryEvaluator.setHornClause(candidate);
-            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) theoryEvaluator);
-        } catch (KnowledgeException e) {
+            evaluator = new AsyncTheoryEvaluator(examples, theoryEvaluator, theoryMetric, evaluationTimeout);
+            evaluator.setHornClause(candidate);
+            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
+        } catch (Exception e) {
             logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
         }
         return null;
@@ -503,7 +505,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the evaluation value
      */
     public double evaluateTheory(Theory theory) {
-        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(knowledgeBase, theory, examples, theoryMetric,
+        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(examples, theoryEvaluator, theoryMetric,
                                                                   evaluationTimeout);
         return evaluator.call().getEvaluation();
     }

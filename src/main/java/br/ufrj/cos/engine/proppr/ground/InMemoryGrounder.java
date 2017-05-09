@@ -57,6 +57,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * The empty
      */
     public static final int EMPTY = 0;
+    private WamProgram program;
 
     /**
      * Constructor with the needed parameters for single thread execution.
@@ -127,6 +128,15 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
         for (int i = 1; i < featureTable.size() + 1; i++) {
             symbolTable.insert(featureTable.getSymbol(i).name);
         }
+    }
+
+    /**
+     * Sets the {@link WamProgram}.
+     *
+     * @param program the {@link WamProgram}
+     */
+    public void setProgram(WamProgram program) {
+        this.program = program;
     }
 
 }

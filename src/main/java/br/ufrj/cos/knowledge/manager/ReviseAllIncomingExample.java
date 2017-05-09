@@ -19,28 +19,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.evaluation.metric.logic;
+package br.ufrj.cos.knowledge.manager;
+
+import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
- * Measure the recall of the system given the examples. The recall does only considers the probability of the proved
- * examples, only if it was proved or not.
- * <p>
- * The recall is the rate of correct positive examples over all positive examples.
+ * Class to revise all incoming examples as they arrive.
  * <p>
  * Created on 08/05/17.
  *
  * @author Victor Guimarães
  */
-public class RecallMetric extends ConfusionMatrixBasedMetric {
+public class ReviseAllIncomingExample extends IncomingExampleManager {
 
-    @Override
-    protected double calculateConfusionMatrixMetric() {
-        return (double) (truePositive) / (truePositive + falseNegative);
+    /**
+     * Constructs a {@link ReviseAllIncomingExample} with its fields.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     */
+    public ReviseAllIncomingExample(LearningSystem learningSystem) {
+        super(learningSystem);
     }
 
     @Override
-    public String toString() {
-        return "Recall";
+    public void incomingExamples(Example... examples) throws TheoryRevisionException {
+        learningSystem.reviseTheory(examples);
     }
 
 }

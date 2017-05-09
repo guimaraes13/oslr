@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 
 /**
@@ -42,9 +43,11 @@ public abstract class GeneralizationRevisionOperator extends RevisionOperator {
      * @param knowledgeBase the {@link KnowledgeBase}
      * @param theory        the {@link Theory}
      * @param examples      the {@link Examples}
+     * @param theoryEvaluator the {@link TheoryEvaluator}
      */
-    public GeneralizationRevisionOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
-        super(knowledgeBase, theory, examples);
+    public GeneralizationRevisionOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
+                                          TheoryEvaluator theoryEvaluator) {
+        super(knowledgeBase, theory, examples, theoryEvaluator);
     }
 
 }

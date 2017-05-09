@@ -25,6 +25,7 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
@@ -44,18 +45,22 @@ public abstract class RevisionOperator {
     protected final KnowledgeBase knowledgeBase;
     protected final Theory theory;
     protected final Examples examples;
+    protected final TheoryEvaluator theoryEvaluator;
 
     /**
      * Constructs the class if the minimum required parameters
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
+     * @param knowledgeBase   the {@link KnowledgeBase}
+     * @param theory          the {@link Theory}
+     * @param examples        the {@link Examples}
+     * @param theoryEvaluator the {@link TheoryEvaluator}
      */
-    public RevisionOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples) {
+    public RevisionOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
+                            TheoryEvaluator theoryEvaluator) {
         this.knowledgeBase = knowledgeBase;
         this.theory = theory;
         this.examples = examples;
+        this.theoryEvaluator = theoryEvaluator;
     }
 
     /**

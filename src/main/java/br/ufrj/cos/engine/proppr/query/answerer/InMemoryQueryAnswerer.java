@@ -24,11 +24,13 @@ package br.ufrj.cos.engine.proppr.query.answerer;
 import br.ufrj.cos.engine.proppr.MapCleanup;
 import edu.cmu.ml.proppr.QueryAnswerer;
 import edu.cmu.ml.proppr.prove.Prover;
+import edu.cmu.ml.proppr.prove.wam.Feature;
 import edu.cmu.ml.proppr.prove.wam.ProofGraph;
 import edu.cmu.ml.proppr.prove.wam.Query;
 import edu.cmu.ml.proppr.prove.wam.WamProgram;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
+import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 import edu.cmu.ml.proppr.util.multithreading.Transformer;
 import org.apache.logging.log4j.LogManager;
@@ -87,6 +89,42 @@ public class InMemoryQueryAnswerer<P extends ProofGraph> extends QueryAnswerer<P
                 Multithreading.DEFAULT_THROTTLE);
 
         return answerCleanup.getResultMap();
+    }
+
+    /**
+     * Gets the {@link WamProgram}.
+     *
+     * @return the {@link WamProgram}
+     */
+    public WamProgram getProgram() {
+        return program;
+    }
+
+    /**
+     * Sets the {@link WamProgram}.
+     *
+     * @param program the {@link WamProgram}
+     */
+    public void setProgram(WamProgram program) {
+        this.program = program;
+    }
+
+    /**
+     * Gets the features table.
+     *
+     * @return the features table
+     */
+    public SymbolTable<Feature> getFeatureTable() {
+        return featureTable;
+    }
+
+    /**
+     * Sets the features table.
+     *
+     * @param featureTable the features table
+     */
+    public void setFeatureTable(SymbolTable<Feature> featureTable) {
+        this.featureTable = featureTable;
     }
 
 }

@@ -21,8 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.logic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
-
 /**
  * Measure the precision of the system given the examples. The precision does only considers the probability of the
  * proved examples, only if it was proved or not.
@@ -35,18 +33,14 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
  */
 public class PrecisionMetric extends ConfusionMatrixBasedMetric {
 
-    /**
-     * Constructor with the needed parameters.
-     *
-     * @param engineSystemTranslator the {@link EngineSystemTranslator}
-     */
-    public PrecisionMetric(EngineSystemTranslator engineSystemTranslator) {
-        super(engineSystemTranslator);
-    }
-
     @Override
     protected double calculateConfusionMatrixMetric() {
         return (double) (truePositive) / (truePositive + falsePositive);
+    }
+
+    @Override
+    public String toString() {
+        return "Precision";
     }
 
 }
