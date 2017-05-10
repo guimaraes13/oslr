@@ -23,8 +23,10 @@ package br.ufrj.cos.cli;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.engine.EngineSystemTranslator;
+import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
@@ -33,9 +35,15 @@ import br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.AccuracyMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.PrecisionMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.RecallMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.SelectFirstRevisionOperator;
@@ -275,31 +283,15 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
 
     @Override
     public void run() {
-        //TODO: call the learning methods
         try {
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
             buildEngineSystemTranslator();
             buildLearningSystem();
-
-            //TODO: allow setting the following variables by command line interface
-            //TODO: instantiate the null parameters
-            learningSystem.incomingExampleManager = new ReviseAllIncomingExample(learningSystem);
-            List<TheoryMetric> metrics = new ArrayList<>();
-            metrics.add(new LikelihoodMetric());
-            learningSystem.theoryEvaluator = new TheoryEvaluator(learningSystem, metrics);
-
-            List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
-            operatorEvaluator.add(
-                    new RevisionOperatorEvaluator(new BottomClauseBoundedRule(learningSystem, metrics.get(0))));
-
-            RevisionOperatorSelector revisionOperator = new SelectFirstRevisionOperator(operatorEvaluator);
-            RevisionManager revisionManager = new RevisionManager(revisionOperator);
-
-            learningSystem.theoryRevisionManager = new TheoryRevisionManager(learningSystem, revisionManager);
-
-            //TODO: pass the examples to the incoming
+            //TODO: allow setting the system by command line interface or by a configuration file
+            //TODO: log the configuration
+            reviseExamples();
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
@@ -307,10 +299,57 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     }
 
     /**
+     * Call the method to revise the examples
+     */
+    protected void reviseExamples() {
+        for (Example example : examples) {
+            try {
+                learningSystem.incomingExampleManager.incomingExamples(example);
+            } catch (TheoryRevisionException e) {
+                logger.error(LogMessages.ERROR_REVISING_THEORY, e);
+            }
+        }
+    }
+
+    /**
+     * Builds the {@link LearningSystem}.
+     */
+    protected void buildLearningSystem() {
+        logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
+        TheoryMetric[] metrics = new TheoryMetric[]{
+                new AccuracyMetric(),
+                new PrecisionMetric(),
+                new RecallMetric(),
+                new F1ScoreMetric(),
+                new LikelihoodMetric(),
+                new LogLikelihoodMetric(),
+        };
+
+        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule(learningSystem, new LikelihoodMetric());
+        bottomClause.internalMetric = new F1ScoreMetric();
+        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
+        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
+
+        RevisionOperatorSelector revisionOperator = new SelectFirstRevisionOperator(operatorEvaluator);
+        RevisionManager revisionManager = new RevisionManager(revisionOperator);
+
+        learningSystem.incomingExampleManager = new ReviseAllIncomingExample(learningSystem);
+        learningSystem.theoryEvaluator = new TheoryEvaluator(learningSystem, metrics);
+        learningSystem.theoryRevisionManager = new TheoryRevisionManager(learningSystem, revisionManager);
+
+        learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
+    }
+
+    /**
      * Builds the {@link EngineSystemTranslator}.
      */
     protected void buildEngineSystemTranslator() {
-        //TODO: Implement
+        logger.info(LogMessages.BUILDING_ENGINE_SYSTEM_TRANSLATOR.toString(),
+                    ProPprEngineSystemTranslator.class.getSimpleName());
+        this.engineSystemTranslator = new ProPprEngineSystemTranslator<>();
+        engineSystemTranslator.setKnowledgeBase(knowledgeBase);
+        engineSystemTranslator.setTheory(theory);
+        engineSystemTranslator.initialize();
     }
 
     /**
@@ -370,14 +409,6 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
         logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
 
         examples = new Examples(proPprExamples, atomExamples);
-    }
-
-    /**
-     * Builds the {@link LearningSystem}.
-     */
-    protected void buildLearningSystem() {
-        logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
-        learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
     }
 
     /**

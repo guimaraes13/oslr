@@ -44,6 +44,7 @@ public enum LogMessages {
 
     //One additional parameters to format
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
+    BUILDING_ENGINE_SYSTEM_TRANSLATOR("Build the engine system translator:\t{}"),
     CREATING_KNOWLEDGE_BASE_WITH_PREDICATE("Creating knowledge base with predicate:\t{}"),
     KNOWLEDGE_BASE_SIZE("Knowledge base size:\t{}"),
     THEORY_SIZE("Theory size:\t{}"),

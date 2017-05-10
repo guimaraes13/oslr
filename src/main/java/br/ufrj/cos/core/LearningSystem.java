@@ -151,7 +151,7 @@ public class LearningSystem {
      * @param examples the {@link Example}s
      */
     public void trainParameters(Example... examples) {
-        engineSystemTranslator.get().trainParameters(examples);
+        engineSystemTranslator.trainParameters(examples);
     }
 
     /**
@@ -160,7 +160,14 @@ public class LearningSystem {
      * @param examples the {@link Example}s
      */
     public void trainParameters(Iterable<? extends Example> examples) {
-        engineSystemTranslator.get().trainParameters(examples);
+        engineSystemTranslator.trainParameters(examples);
+    }
+
+    /**
+     * Saves the trained parameters.
+     */
+    public void saveTrainedParameters() {
+        engineSystemTranslator.saveTrainedParameters();
     }
 
     /**
@@ -170,7 +177,7 @@ public class LearningSystem {
      * @return the {@link Map} of results.
      */
     public Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
-        return engineSystemTranslator.get().inferExamples(examples);
+        return engineSystemTranslator.inferExamples(examples);
     }
 
     /**
@@ -181,7 +188,7 @@ public class LearningSystem {
      */
     public Map<Example, Map<Atom, Double>> inferExamples(
             Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExamples(examples);
+        return engineSystemTranslator.inferExamples(examples);
     }
 
     /**

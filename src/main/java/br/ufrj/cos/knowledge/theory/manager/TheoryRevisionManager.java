@@ -66,6 +66,8 @@ public class TheoryRevisionManager {
 
         if (metric.compare(revised, current) > 0) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
+            learningSystem.trainParameters(targets);
+            learningSystem.saveTrainedParameters();
         }
     }
 
