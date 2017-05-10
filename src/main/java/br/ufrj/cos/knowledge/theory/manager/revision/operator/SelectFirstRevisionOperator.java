@@ -19,37 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.engine.proppr;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
-import edu.cmu.ml.proppr.util.multithreading.Cleanup;
+import br.ufrj.cos.knowledge.example.Example;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
+import java.util.List;
 
 /**
- * Class to gather a {@link Cleanup}'s result into a {@link Map}.
- * <p>
- * Created on 05/05/17.
+ * Created on 10/05/17.
  *
  * @author Victor Guimarães
  */
-public class MapCleanup<Result> extends Cleanup<Result> {
+public class SelectFirstRevisionOperator extends RevisionOperatorSelector {
 
-    protected final Map<Integer, Result> resultMap = new ConcurrentHashMap<>();
-
-    @Override
-    public Runnable cleanup(Future<Result> in, int id) {
-        return new MapCleanupRun<>(resultMap, in, id);
-    }
+    private final List<RevisionOperatorEvaluator> evaluators;
 
     /**
-     * Gets the {@link Map} of {@link Result} with the ids as keys.
+     * Constructs the class if the minimum required parameters
      *
-     * @return the {@link Map} of {@link Result}
+     * @param operatorEvaluators the {@link RevisionOperatorEvaluator}s
      */
-    public Map<Integer, Result> getResultMap() {
-        return resultMap;
+    public SelectFirstRevisionOperator(List<RevisionOperatorEvaluator> operatorEvaluators) {
+        super(operatorEvaluators);
+        this.evaluators = operatorEvaluators;
+    }
+
+    @Override
+    public RevisionOperatorEvaluator selectOperator(Example... targets) {
+        return evaluators.get(0);
     }
 
 }

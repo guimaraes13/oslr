@@ -51,19 +51,19 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
      */
     public static final Logger logger = LogManager.getLogger();
 
-    protected InferenceExample inferenceExample;
-    protected int id;
+    protected final InferenceExample inferenceExample;
+    protected final int id;
 
-    protected Prover<P> prover;
-    protected APROptions aprOptions;
-    protected SymbolTable<Feature> featureTable;
-    protected WamProgram masterProgram;
-    protected WamPlugin[] masterPlugins;
+    protected final Prover<P> prover;
+    protected final APROptions aprOptions;
+    protected final SymbolTable<Feature> featureTable;
+    protected final WamProgram masterProgram;
+    protected final WamPlugin[] masterPlugins;
 
-    protected Grounder.GroundingStatistics statistics;
-    protected boolean includeUnlabeledGraphs;
+    protected final Grounder.GroundingStatistics statistics;
+    protected final boolean includeUnlabeledGraphs;
 
-    protected StatusLogger status;
+    protected final StatusLogger status;
 
     protected P proofGraph = null;
     protected GroundedExample groundedExample;

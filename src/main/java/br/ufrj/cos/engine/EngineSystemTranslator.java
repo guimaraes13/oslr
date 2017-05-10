@@ -38,11 +38,15 @@ import java.util.Set;
  * internal representation of the system from the logic representation of the inference engine, so the logic engine
  * could be easily replaced by simplify implementing another subclass of this one.
  * <p>
+ * In addition, it implements {@link ThreadLocal}, which isolates the changes made by each thread. This class does
+ * not store examples, only the knowledge base and theory. And only the theory and internal parameters are guaranteed
+ * to be thread-local by the {@link ThreadLocal}.
+ * <p>
  * Created on 25/04/17.
  *
  * @author Victor Guimarães
  */
-public abstract class EngineSystemTranslator {
+public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTranslator> {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
@@ -53,6 +57,9 @@ public abstract class EngineSystemTranslator {
      * This is a trick to use flexible default parameters with empty constructors.
      */
     public abstract void initialize();
+
+    @Override
+    protected abstract EngineSystemTranslator initialValue();
 
     /**
      * Method to call the logic engine and retrieve the grounding/proved {@link Atom} relevant to the given

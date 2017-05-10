@@ -28,7 +28,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
- * suggesting the {@link LearningSystem} to revise the theory, whenever it believes it is necessary.
+ * suggesting the {@link LearningSystem} to getBestRevisionOperator the theory, whenever it believes it is necessary.
  * <p>
  * Created on 24/04/17.
  *

@@ -21,10 +21,7 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
 
@@ -37,8 +34,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSe
  */
 public class RevisionManager {
 
-    protected LearningSystem learningSystem;
-    protected RevisionOperatorSelector operatorSelector;
+    protected final RevisionOperatorSelector operatorSelector;
 
     /**
      * Constructs with the {@link RevisionOperatorSelector}
@@ -50,16 +46,15 @@ public class RevisionManager {
     }
 
     /**
-     * Method to call the revision on the selected
-     * {@link RevisionOperator} and apply the changes on the current {@link Theory}
+     * Method to select the best suited {@link RevisionOperatorEvaluator} given the examples.
      *
-     * @param targets       the target {@link Example}s
-     * @return the revised {@link Theory}
+     * @param targets the target {@link Example}s
+     * @return the best suited {@link RevisionOperatorEvaluator}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory revise(Example... targets) throws TheoryRevisionException {
-        RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets);
-        return operatorEvaluator.getRevisedTheory(targets);
+    @SuppressWarnings("RedundantThrows")
+    public RevisionOperatorEvaluator getBestRevisionOperator(Example... targets) throws TheoryRevisionException {
+        return operatorSelector.selectOperator(targets);
     }
 
 }

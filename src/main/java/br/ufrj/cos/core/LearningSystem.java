@@ -33,8 +33,12 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.logic.Term;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Responsible for the execution and control of the entire system.
@@ -47,7 +51,6 @@ public class LearningSystem {
 
     //Theory Manager
     protected final KnowledgeBase knowledgeBase;
-    protected final Theory theory;
     protected final Examples examples;
     protected final EngineSystemTranslator engineSystemTranslator;
     /**
@@ -59,13 +62,14 @@ public class LearningSystem {
      */
     public IncomingExampleManager incomingExampleManager;
     /**
-     * The {@link TheoryRevisionManager}.
-     */
-    public TheoryRevisionManager theoryRevisionManager;
-    /**
      * The {@link TheoryEvaluator}.
      */
     public TheoryEvaluator theoryEvaluator;
+    /**
+     * The {@link TheoryRevisionManager}.
+     */
+    public TheoryRevisionManager theoryRevisionManager;
+    protected Theory theory;
 
     /**
      * Constructs the class if the minimum required parameters.
@@ -82,11 +86,6 @@ public class LearningSystem {
         this.examples = examples;
         this.engineSystemTranslator = engineSystemTranslator;
     }
-
-    // TODO: implement necessary methods!
-    // It does not need to do all by itself know, just have the methods to receive the commands from outside sources!
-    // In the future, create an extension of this class that have an atomExamples input stream and decides what to do
-    // based on that.
 
     /**
      * Method to call the revision on the {@link Theory} bases on the target {@link Example}s.
@@ -107,8 +106,14 @@ public class LearningSystem {
         return theoryEvaluator.evaluate();
     }
 
-    public synchronized double evaluateTheory(Theory theory, TheoryMetric metric, Example... examples) {
-        return 0;
+    /**
+     * Evaluates the {@link Theory} using the given {@link TheoryMetric}.
+     *
+     * @param metric the {@link TheoryMetric}
+     * @return the evaluation
+     */
+    public synchronized double evaluateTheory(TheoryMetric metric) {
+        return theoryEvaluator.evaluateTheory(metric, examples);
     }
 
     /**
@@ -120,25 +125,181 @@ public class LearningSystem {
         return examples;
     }
 
+    /**
+     * Delegates the grounding of the relevants to the {@link EngineSystemTranslator}.
+     *
+     * @param terms the {@link Term}s
+     * @return the grounds
+     */
+    public Set<Atom> groundRelevants(Collection<Term> terms) {
+        return engineSystemTranslator.get().groundRelevants(terms);
+    }
+
+    /**
+     * Delegates the grounding of the examples to the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     * @return the grounds
+     */
+    public Set<Atom> groundExamples(Example... examples) {
+        return engineSystemTranslator.get().groundExamples(examples);
+    }
+
+    /**
+     * Delegates the training of the parameters to the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     */
     public void trainParameters(Example... examples) {
-        engineSystemTranslator.trainParameters(examples);
+        engineSystemTranslator.get().trainParameters(examples);
     }
 
+    /**
+     * Delegates the training of the parameters to the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     */
     public void trainParameters(Iterable<? extends Example> examples) {
-        engineSystemTranslator.trainParameters(examples);
+        engineSystemTranslator.get().trainParameters(examples);
     }
 
+    /**
+     * Delegates the inference of the examples to the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     * @return the {@link Map} of results.
+     */
     public Map<Example, Map<Atom, Double>> inferExamples(Example... examples) {
-        return engineSystemTranslator.inferExamples(examples);
+        return engineSystemTranslator.get().inferExamples(examples);
     }
 
+    /**
+     * Delegates the inference of the examples to the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     * @return the {@link Map} of results.
+     */
     public Map<Example, Map<Atom, Double>> inferExamples(
             Iterable<? extends Example> examples) {
-        return engineSystemTranslator.inferExamples(examples);
+        return engineSystemTranslator.get().inferExamples(examples);
     }
 
-    public Map<Example, Map<Atom, Double>> inferExampleWithLastParameters(
-            Iterable<? extends Example> examples) {
-        return engineSystemTranslator.inferExampleTrainingParameters(examples);
+    /**
+     * Delegates the inference of the examples, with {@link Theory} modifications, to the
+     * {@link EngineSystemTranslator}.
+     * <p>
+     * This method do not change the {@link Theory} nor the internal parameters of the {@link EngineSystemTranslator}.
+     *
+     * @param theory   the {@link Theory}
+     * @param examples the {@link Example}s
+     * @return the {@link Map} of results.
+     */
+    public Map<Example, Map<Atom, Double>> inferExamples(Theory theory,
+                                                         Iterable<? extends Example> examples) {
+        return engineSystemTranslator.get().inferExamples(theory, examples);
     }
+
+    /**
+     * Delegates the inference of the examples, with {@link Theory} modifications, to the
+     * {@link EngineSystemTranslator}.
+     * <p>
+     * This method do not change the {@link Theory} nor the internal parameters of the {@link EngineSystemTranslator}.
+     *
+     * @param appendClauses clauses to be appended to the {@link Theory}
+     * @param examples      the {@link Example}s
+     * @return the {@link Map} of results.
+     */
+    public Map<Example, Map<Atom, Double>> inferExamples(
+            Iterable<? extends HornClause> appendClauses,
+            Iterable<? extends Example> examples) {
+        return engineSystemTranslator.get().inferExamples(appendClauses, examples);
+    }
+
+    /**
+     * Delegates the inference of the examples to the {@link EngineSystemTranslator}.
+     * <p>
+     * In addition, the parameters are trained before the inference.
+     * <p>
+     * This method do not change the {@link Theory} nor the internal parameters of the {@link EngineSystemTranslator}.
+     *
+     * @param examples the {@link Example}s
+     * @return the {@link Map} of results.
+     */
+    public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(
+            Iterable<? extends Example> examples) {
+        return engineSystemTranslator.get().inferExampleTrainingParameters(examples);
+    }
+
+    /**
+     * Delegates the inference of the examples, with {@link Theory} modifications, to the
+     * {@link EngineSystemTranslator}.
+     * <p>
+     * In addition, the parameters are trained before the inference.
+     * <p>
+     * This method do not change the {@link Theory} nor the internal parameters of the {@link EngineSystemTranslator}.
+     *
+     * @param appendClauses clauses to be appended to the {@link Theory}
+     * @param examples      the {@link Example}s
+     * @return the {@link Map} of results.
+     */
+    public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(
+            Iterable<? extends HornClause> appendClauses,
+            Iterable<? extends Example> examples) {
+        return engineSystemTranslator.get().inferExampleTrainingParameters(appendClauses, examples);
+    }
+
+    /**
+     * Delegates the inference of the examples, with {@link Theory} modifications, to the
+     * {@link EngineSystemTranslator}.
+     * <p>
+     * In addition, the parameters are trained before the inference.
+     * <p>
+     * This method do not change the {@link Theory} nor the internal parameters of the {@link EngineSystemTranslator}.
+     *
+     * @param theory   the {@link Theory}
+     * @param examples the {@link Example}s
+     * @return the {@link Map} of results.
+     */
+    public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(Theory theory,
+                                                                          Iterable<? extends Example> examples) {
+        return engineSystemTranslator.get().inferExampleTrainingParameters(theory, examples);
+    }
+
+    /**
+     * Gets the {@link Theory}.
+     *
+     * @return the {@link Theory}
+     */
+    public Theory getTheory() {
+        return theory;
+    }
+
+    /**
+     * Sets the {@link Theory}.
+     *
+     * @param theory the {@link Theory}
+     */
+    public void setTheory(Theory theory) {
+        this.theory = theory;
+        this.engineSystemTranslator.setTheory(theory);
+    }
+
+    /**
+     * Gets the {@link KnowledgeBase}.
+     *
+     * @return the {@link KnowledgeBase}
+     */
+    public KnowledgeBase getKnowledgeBase() {
+        return knowledgeBase;
+    }
+
+    /**
+     * Gets the {@link TheoryEvaluator}.
+     *
+     * @return the {@link TheoryEvaluator}
+     */
+    public TheoryEvaluator getTheoryEvaluator() {
+        return theoryEvaluator;
+    }
+
 }

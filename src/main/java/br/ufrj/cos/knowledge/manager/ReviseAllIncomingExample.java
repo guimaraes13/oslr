@@ -26,7 +26,7 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
- * Class to revise all incoming examples as they arrive.
+ * Class to getBestRevisionOperator all incoming examples as they arrive.
  * <p>
  * Created on 08/05/17.
  *

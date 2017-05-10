@@ -53,14 +53,13 @@ public class KnowledgeBase extends Knowledge<Atom> {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
-
+    protected final Map<Term, Set<Atom>> termAtomMap;
+    protected final Map<Term, Set<Term>> termNeighbours;
     /**
      * The class to be used on the {@link Set}s within the {@link Map}s
      */
+    @SuppressWarnings("CanBeFinal")
     public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
-
-    protected Map<Term, Set<Atom>> termAtomMap;
-    protected Map<Term, Set<Term>> termNeighbours;
 
     /**
      * Constructs from a {@link Collection} of {@link Atom}s

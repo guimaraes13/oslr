@@ -63,6 +63,7 @@ public class InMemoryQueryAnswerer<P extends ProofGraph> extends QueryAnswerer<P
      * @param numberOfThreads   the number of threads this class is allowed to use
      * @param numberOfSolutions the number of top solutions to retrieve
      */
+    @SuppressWarnings("SameParameterValue")
     public InMemoryQueryAnswerer(APROptions aprOptions, WamProgram program,
                                  WamPlugin[] plugins,
                                  Prover<P> prover, boolean normalize, int numberOfThreads, int numberOfSolutions) {

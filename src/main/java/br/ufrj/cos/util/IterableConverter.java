@@ -35,9 +35,9 @@ import java.util.Map;
  */
 public abstract class IterableConverter<In, Out> implements Iterable<Out>, Iterator<Out> {
 
-    protected Iterator<? extends In> iterator;
+    protected final Iterator<? extends In> iterator;
 
-    protected Map<Integer, In> countMap = new HashMap<>();
+    protected final Map<Integer, In> countMap = new HashMap<>();
     private int counter = 0;
 
     /**

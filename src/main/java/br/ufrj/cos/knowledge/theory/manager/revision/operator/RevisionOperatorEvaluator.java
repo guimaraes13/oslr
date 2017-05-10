@@ -24,7 +24,6 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
@@ -44,8 +43,6 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 public class RevisionOperatorEvaluator {
 
     protected final RevisionOperator revisionOperator;
-    protected final TheoryMetric evaluationMetric;
-    protected final TheoryEvaluator theoryEvaluator;
 
     protected Theory updatedTheory;
     protected boolean isEvaluated;
@@ -55,13 +52,9 @@ public class RevisionOperatorEvaluator {
      * Constructs with the needed parameters
      *
      * @param revisionOperator the {@link RevisionOperator}
-     * @param evaluationMetric the {@link TheoryMetric}
      */
-    public RevisionOperatorEvaluator(RevisionOperator revisionOperator, TheoryMetric evaluationMetric,
-                                     TheoryEvaluator theoryEvaluator) {
+    public RevisionOperatorEvaluator(RevisionOperator revisionOperator) {
         this.revisionOperator = revisionOperator;
-        this.evaluationMetric = evaluationMetric;
-        this.theoryEvaluator = theoryEvaluator;
     }
 
     /**
@@ -76,8 +69,8 @@ public class RevisionOperatorEvaluator {
         if (!isEvaluated) {
             isEvaluated = true;
             updatedTheory = revisionOperator.performOperation(targets);
-            // TODO: pass the Theory in the call bellow
-            evaluationValue = theoryEvaluator.evaluateTheory(evaluationMetric, examples);
+            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(revisionOperator.getTheoryMetric(),
+                                                                                   examples, updatedTheory);
         }
 
         return evaluationValue;
@@ -101,6 +94,15 @@ public class RevisionOperatorEvaluator {
             return updatedTheory;
         }
         return revisionOperator.performOperation(targets);
+    }
+
+    /**
+     * Gets the {@link TheoryMetric}.
+     *
+     * @return the {@link TheoryMetric}
+     */
+    public TheoryMetric getTheoryMetric() {
+        return revisionOperator.getTheoryMetric();
     }
 
 }

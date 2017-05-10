@@ -21,10 +21,13 @@
 
 package br.ufrj.cos.knowledge.theory.manager;
 
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 
 /**
  * Responsible for applying the revision on theory, whenever it is called to.
@@ -33,16 +36,19 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  *
  * @author Victor Guimarães
  */
-public abstract class TheoryRevisionManager {
+public class TheoryRevisionManager {
 
+    protected final LearningSystem learningSystem;
     protected final RevisionManager revisionManager;
 
     /**
      * Constructs the class if the minimum required parameters
      *
+     * @param learningSystem  the {@link LearningSystem}
      * @param revisionManager the {@link RevisionManager}
      */
-    public TheoryRevisionManager(RevisionManager revisionManager) {
+    public TheoryRevisionManager(LearningSystem learningSystem, RevisionManager revisionManager) {
+        this.learningSystem = learningSystem;
         this.revisionManager = revisionManager;
     }
 
@@ -53,7 +59,14 @@ public abstract class TheoryRevisionManager {
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
     public void revise(Example... targets) throws TheoryRevisionException {
-        revisionManager.revise(targets);
+        RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
+        TheoryMetric metric = revisionOperator.getTheoryMetric();
+        double current = learningSystem.evaluateTheory(metric);
+        double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
+
+        if (metric.compare(revised, current) > 0) {
+            learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
+        }
     }
 
 }

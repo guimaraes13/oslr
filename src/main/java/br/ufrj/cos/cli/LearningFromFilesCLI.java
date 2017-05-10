@@ -31,8 +31,15 @@ import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric;
+import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.SelectFirstRevisionOperator;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
@@ -60,6 +67,7 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("CanBeFinal")
 public class LearningFromFilesCLI extends CommandLineInterface implements Runnable {
 
     /**
@@ -278,17 +286,29 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
             //TODO: allow setting the following variables by command line interface
             //TODO: instantiate the null parameters
             learningSystem.incomingExampleManager = new ReviseAllIncomingExample(learningSystem);
-            RevisionOperatorSelector operatorSelector = null;
-            RevisionManager revisionManager = new RevisionManager(operatorSelector);
-            learningSystem.theoryRevisionManager = null;
-            learningSystem.theoryEvaluator = null;
+            List<TheoryMetric> metrics = new ArrayList<>();
+            metrics.add(new LikelihoodMetric());
+            learningSystem.theoryEvaluator = new TheoryEvaluator(learningSystem, metrics);
 
+            List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
+            operatorEvaluator.add(
+                    new RevisionOperatorEvaluator(new BottomClauseBoundedRule(learningSystem, metrics.get(0))));
+
+            RevisionOperatorSelector revisionOperator = new SelectFirstRevisionOperator(operatorEvaluator);
+            RevisionManager revisionManager = new RevisionManager(revisionOperator);
+
+            learningSystem.theoryRevisionManager = new TheoryRevisionManager(learningSystem, revisionManager);
+
+            //TODO: pass the examples to the incoming
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
         }
     }
 
+    /**
+     * Builds the {@link EngineSystemTranslator}.
+     */
     protected void buildEngineSystemTranslator() {
         //TODO: Implement
     }

@@ -44,14 +44,14 @@ import java.util.concurrent.Callable;
  */
 public class GroundTransformer<P extends ProofGraph> extends Transformer<InferenceExample, Ground<P>> {
 
-    protected Prover<P> prover;
-    protected APROptions aprOptions;
-    protected SymbolTable<Feature> featureTable;
-    protected WamProgram masterProgram;
-    protected WamPlugin[] masterPlugins;
-    protected Grounder.GroundingStatistics statistics;
-    protected boolean includeUnlabeledGraphs;
-    protected StatusLogger status;
+    protected final Prover<P> prover;
+    protected final APROptions aprOptions;
+    protected final SymbolTable<Feature> featureTable;
+    protected final WamProgram masterProgram;
+    protected final WamPlugin[] masterPlugins;
+    protected final Grounder.GroundingStatistics statistics;
+    protected final boolean includeUnlabeledGraphs;
+    protected final StatusLogger status;
 
     /**
      * Constructor with the needed parameters to build the {@link Ground}.

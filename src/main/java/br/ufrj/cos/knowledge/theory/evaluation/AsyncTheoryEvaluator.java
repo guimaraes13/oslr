@@ -55,7 +55,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     protected final TheoryEvaluator theoryEvaluator;
     protected final TheoryMetric theoryMetric;
 
-    protected Examples examples;
+    protected final Examples examples;
     protected HornClause hornClause;
 
     protected int timeout = NO_TIMEOUT;
@@ -123,8 +123,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     @Override
     public void run() {
         evaluationFinished = false;
-        //TODO: add horn clause here!
-        evaluation = theoryEvaluator.evaluateTheory(theoryMetric, examples);
+        evaluation = theoryEvaluator.evaluateTheory(theoryMetric, examples, hornClause);
         evaluationFinished = true;
     }
 

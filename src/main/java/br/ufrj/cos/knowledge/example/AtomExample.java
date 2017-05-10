@@ -106,6 +106,7 @@ public class AtomExample extends Atom implements Example {
      * @param name     the proposition name
      * @param positive the value of the example, true for positive; false for negative
      */
+    @SuppressWarnings("SameParameterValue")
     public AtomExample(String name, boolean positive) {
         this(name, null, positive);
     }

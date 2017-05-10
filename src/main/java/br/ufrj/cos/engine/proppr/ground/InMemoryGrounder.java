@@ -26,11 +26,13 @@ import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.Prover;
+import edu.cmu.ml.proppr.prove.wam.Feature;
 import edu.cmu.ml.proppr.prove.wam.ProofGraph;
 import edu.cmu.ml.proppr.prove.wam.WamProgram;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.ConcurrentSymbolTable;
+import edu.cmu.ml.proppr.util.StatusLogger;
 import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 import edu.cmu.ml.proppr.util.multithreading.Transformer;
@@ -57,7 +59,6 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * The empty
      */
     public static final int EMPTY = 0;
-    private WamProgram program;
 
     /**
      * Constructor with the needed parameters for single thread execution.
@@ -82,6 +83,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * @param program         the {@link WamProgram}
      * @param plugins         the {@link WamPlugin}s
      */
+    @SuppressWarnings("SameParameterValue")
     public InMemoryGrounder(int numberOfThreads, int throttle,
                             APROptions aprOptions, Prover<P> prover, WamProgram program,
                             WamPlugin... plugins) {
@@ -101,8 +103,10 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
                                                   SymbolTable<String> masterFeatures) {
         MapCleanup<Ground<P>> groundCleanup = new MapCleanup<>();
         try {
-            this.statistics = new GroundingStatistics();
-            this.featureTable = new ConcurrentSymbolTable<>(ConcurrentSymbolTable.HASHING_STRATEGIES.identity);
+            StatusLogger status = new StatusLogger();
+            GroundingStatistics statistics = new GroundingStatistics();
+            SymbolTable<Feature> featureTable = new ConcurrentSymbolTable<>(ConcurrentSymbolTable.HASHING_STRATEGIES
+                                                                                    .identity);
             Multithreading<InferenceExample, Ground<P>> multithreading
                     = new Multithreading<>(logger, status, true);
 
@@ -112,7 +116,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
 
             multithreading.executeJob(nthreads, inferenceExampleIterable, transformer, groundCleanup, throttle);
             saveFeaturesToSymbolTable(masterFeatures);
-            reportStatistics(EMPTY);
+            reportStatistics(statistics);
         } catch (Exception e) {
             logger.error(LogMessages.ERROR_GROUNDING_EXAMPLE.toString(), e);
         }
@@ -131,12 +135,34 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     }
 
     /**
-     * Sets the {@link WamProgram}.
+     * Logs the {@link GroundingStatistics}.
      *
-     * @param program the {@link WamProgram}
+     * @param statistics the {@link GroundingStatistics}
      */
-    public void setProgram(WamProgram program) {
-        this.program = program;
+    protected void reportStatistics(GroundingStatistics statistics) {
+        if (!logger.isInfoEnabled()) { return; }
+        int skipped = statistics.noPosNeg + statistics.emptyGraph;
+        logger.info("Grounded: " + (statistics.count - skipped));
+        logger.info("Skipped: " + skipped + " = " + statistics.noPosNeg + " with no labeled solutions; " + statistics
+                .emptyGraph + " with empty graphs");
+        logger.info("totalPos: " + statistics.totalPos
+                            + " totalNeg: " + statistics.totalNeg
+                            + " coveredPos: " + statistics.coveredPos
+                            + " coveredNeg: " + statistics.coveredNeg);
+        if (statistics.totalPos > 0) {
+            logger.info("For positive examples " + statistics.coveredPos
+                                + "/" + statistics.totalPos
+                                + " proveable [" + ((100.0 * statistics.coveredPos) / statistics.totalPos) + "%]");
+        }
+        if (statistics.totalNeg > 0) {
+            logger.info("For negative examples " + statistics.coveredNeg
+                                + "/" + statistics.totalNeg
+                                + " proveable [" + ((100.0 * statistics.coveredNeg) / statistics.totalNeg) + "%]");
+        }
+        if (statistics.worstX != null) {
+            logger.info("Example with fewest [" + 100.0 * statistics.smallestFractionCovered + "%] pos examples " +
+                                "covered: " + statistics.worstX.getQuery());
+        }
     }
 
 }

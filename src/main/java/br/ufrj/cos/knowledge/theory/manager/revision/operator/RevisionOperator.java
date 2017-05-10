@@ -21,18 +21,18 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 
 /**
- * Responsible for changing the {@link br.ufrj.cos.knowledge.theory.Theory}.
+ * Responsible for changing the {@link Theory}.
  * <p>
  * There are two main types of {@link RevisionOperator}, generalization and specialisation. The former makes the
- * {@link br.ufrj.cos.knowledge.theory.Theory} more generic, proving more atomExamples. The later makes it more
+ * {@link Theory} more generic, proving more atomExamples. The later makes it more
  * specific,
  * proving less atomExamples.
  * <p>
@@ -42,25 +42,23 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  */
 public abstract class RevisionOperator {
 
-    protected final KnowledgeBase knowledgeBase;
-    protected final Theory theory;
-    protected final Examples examples;
-    protected final TheoryEvaluator theoryEvaluator;
+    protected final LearningSystem learningSystem;
+
+    /**
+     * The external metric of the operator, this metric will be used to evaluated the theory by applying the operator.
+     * In addition, a operator might have internal metrics to take internal decision.
+     */
+    protected final TheoryMetric theoryMetric;
 
     /**
      * Constructs the class if the minimum required parameters
      *
-     * @param knowledgeBase   the {@link KnowledgeBase}
-     * @param theory          the {@link Theory}
-     * @param examples        the {@link Examples}
-     * @param theoryEvaluator the {@link TheoryEvaluator}
+     * @param learningSystem the {@link LearningSystem}
+     * @param theoryMetric   the {@link TheoryMetric}
      */
-    public RevisionOperator(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                            TheoryEvaluator theoryEvaluator) {
-        this.knowledgeBase = knowledgeBase;
-        this.theory = theory;
-        this.examples = examples;
-        this.theoryEvaluator = theoryEvaluator;
+    public RevisionOperator(LearningSystem learningSystem, TheoryMetric theoryMetric) {
+        this.learningSystem = learningSystem;
+        this.theoryMetric = theoryMetric;
     }
 
     /**
@@ -71,5 +69,23 @@ public abstract class RevisionOperator {
      * @throws TheoryRevisionException in an error occurs during the revision
      */
     public abstract Theory performOperation(Example... targets) throws TheoryRevisionException;
+
+    /**
+     * Gets the {@link TheoryMetric}.
+     *
+     * @return the {@link TheoryMetric}
+     */
+    public TheoryMetric getTheoryMetric() {
+        return theoryMetric;
+    }
+
+    /**
+     * Gets the {@link TheoryEvaluator}.
+     *
+     * @return the {@link TheoryEvaluator}
+     */
+    public TheoryEvaluator getTheoryEvaluator() {
+        return learningSystem.getTheoryEvaluator();
+    }
 
 }

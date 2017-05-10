@@ -27,6 +27,7 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.HornClause;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,14 +83,17 @@ public class TheoryEvaluator {
 
     /**
      * Evaluates the {@link Theory} against the represented metric.
+     * <p>
+     * The parameters and theory changes due the call of this method should not be stored.
      *
+     * @param metric   the {@link TheoryMetric}
      * @param examples the {@link Examples}
      * @return the evaluation value
      */
     public double evaluateTheory(TheoryMetric metric, Examples examples) {
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (metric.parametersRetrainedBeforeEvaluate) {
-            evaluationResult = learningSystem.inferExampleWithLastParameters(examples);
+            evaluationResult = learningSystem.inferExampleTrainingParameters(examples);
         } else {
             evaluationResult = learningSystem.inferExamples(examples);
         }
@@ -97,7 +101,47 @@ public class TheoryEvaluator {
         return metric.evaluate(evaluationResult, examples);
     }
 
-    //TODO: evaluate against a new theory, without changing the old theory and parameters (with and without retraining)
-    //TODO: evaluate with additional clauses, without changing the theory and parameters (with and without retraining)
+    /**
+     * Evaluates the {@link Theory} against the represented metric, appending new {@link HornClause}.
+     * <p>
+     * The parameters and theory changes due the call of this method should not be stored.
+     *
+     * @param metric   the {@link TheoryMetric}
+     * @param examples the {@link Examples}
+     * @param theory   the {@link Theory}
+     * @return the evaluation value
+     */
+    public double evaluateTheory(TheoryMetric metric, Examples examples, Theory theory) {
+        Map<Example, Map<Atom, Double>> evaluationResult;
+        if (metric.parametersRetrainedBeforeEvaluate) {
+            evaluationResult = learningSystem.inferExampleTrainingParameters(theory, examples);
+        } else {
+            evaluationResult = learningSystem.inferExamples(theory, examples);
+        }
+
+        return metric.evaluate(evaluationResult, examples);
+    }
+
+    /**
+     * Evaluates the {@link Theory} against the represented metric, appending new {@link HornClause}.
+     * <p>
+     * The parameters and theory changes due the call of this method should not be stored.
+     *
+     * @param metric        the {@link TheoryMetric}
+     * @param examples      the {@link Examples}
+     * @param appendClauses new {@link HornClause}s to append to the theory.
+     * @return the evaluation value
+     */
+    public double evaluateTheory(TheoryMetric metric, Examples examples, HornClause... appendClauses) {
+        Iterable<HornClause> iterable = Arrays.asList(appendClauses);
+        Map<Example, Map<Atom, Double>> evaluationResult;
+        if (metric.parametersRetrainedBeforeEvaluate) {
+            evaluationResult = learningSystem.inferExampleTrainingParameters(iterable, examples);
+        } else {
+            evaluationResult = learningSystem.inferExamples(iterable, examples);
+        }
+
+        return metric.evaluate(evaluationResult, examples);
+    }
 
 }

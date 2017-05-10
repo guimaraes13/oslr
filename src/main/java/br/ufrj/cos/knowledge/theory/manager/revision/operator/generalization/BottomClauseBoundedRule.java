@@ -21,21 +21,17 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
+import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
-import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
-import br.ufrj.cos.util.HornClauseUtils;
-import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
-import br.ufrj.cos.util.VariableGenerator;
+import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,6 +52,7 @@ import java.util.stream.Collectors;
  * @see <a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7424026&isnumber=7423894">Looking at the
  * Bottom and the Top: A Hybrid Logical Relational Learning System Based on Answer Sets</a>
  */
+@SuppressWarnings("CanBeFinal")
 public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
 
     /**
@@ -86,7 +83,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     /**
      * The default value for {@link #improvementThreshold}
      */
-    public double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
+    public static final double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
 
     /**
      * The class to use as the variable generator
@@ -145,7 +142,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     /**
      * The maximum amount of time, in seconds, allowed to the evaluation of the {@link Theory}.
      * <p>
-     * Default is 300 seconds (i.e. 5 minutes).
+     * By default, is 300 seconds (i.e. 5 minutes).
      */
     public int evaluationTimeout = DEFAULT_EVALUATION_TIMEOUT;
 
@@ -154,42 +151,43 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public int numberOfThreads = DEFAULT_NUMBER_OF_THREADS;
 
-    protected EngineSystemTranslator engineSystem;
-
-    protected TheoryMetric theoryMetric;
-
-    //TODO: replace the engine system for the learning system
+    /**
+     * A internal metric to be used on the optimization of the candidate clauses.
+     * <p>
+     * If not specified, the {@link #theoryMetric} will be used.
+     */
+    public TheoryMetric internalMetric = theoryMetric;
 
     /**
-     * Constructs the class if the minimum required parameters. The other fields can be setted by direct access
+     * Constructs the class if the minimum required parameters
      *
-     * @param knowledgeBase the {@link KnowledgeBase}
-     * @param theory        the {@link Theory}
-     * @param examples      the {@link Examples}
-     * @param engineSystem  the {@link EngineSystemTranslator}
-     * @param theoryMetric  the {@link TheoryMetric}
+     * @param learningSystem the {@link LearningSystem}
+     * @param theoryMetric   the {@link TheoryMetric}
      */
-    public BottomClauseBoundedRule(KnowledgeBase knowledgeBase, Theory theory, Examples examples,
-                                   EngineSystemTranslator engineSystem, TheoryEvaluator theoryEvaluator,
-                                   TheoryMetric theoryMetric) {
-        super(knowledgeBase, theory, examples, theoryEvaluator);
-        this.engineSystem = engineSystem;
-        this.theoryMetric = theoryMetric;
+    public BottomClauseBoundedRule(LearningSystem learningSystem, TheoryMetric theoryMetric) {
+        super(learningSystem, theoryMetric);
     }
 
     @Override
     public Theory performOperation(Example... targets) throws TheoryRevisionException {
-        int initialSize = theory.size();
-        for (Example example : targets) {
-            if (!example.isPositive() || isCovered(example)) {
-                if (example.isPositive()) { logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example); }
-                continue;
-            }
-            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-            theory.add(buildRuleForExample(example));
-        }
+        try {
+            Theory theory = learningSystem.getTheory().copy();
 
-        return theory;
+            int initialSize = theory.size();
+            for (Example example : targets) {
+                if (!example.isPositive() || isCovered(example)) {
+                    if (example.isPositive()) {
+                        logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
+                    }
+                    continue;
+                }
+                logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+                theory.add(buildRuleForExample(example));
+            }
+            return theory;
+        } catch (KnowledgeException e) {
+            throw new TheoryRevisionException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
+        }
     }
 
     /**
@@ -199,7 +197,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return {@code true} if it has, {@code false} otherwise
      */
     protected boolean isCovered(Example example) {
-        Collection<? extends Atom> grounds = engineSystem.groundExamples(example);
+        Collection<? extends Atom> grounds = learningSystem.groundExamples(example);
         for (AtomExample ground : example.getGroundedQuery()) {
             if (ground.isPositive() && !grounds.contains(ground.getAtom())) {
                 return false;
@@ -264,11 +262,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             if (currentClause == null) {
                 break;
             }
-            if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
+            if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
                     improvementThreshold) {
                 bestClause = currentClause;
             } else {
-                if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
+                if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
                         !generic) {
                     bestClause = currentClause;
                 }
@@ -355,7 +353,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             currentDistance = termDistance.get(currentTerm);
 
             if (!Objects.equals(currentDistance, previousDistance)) {
-                atoms.addAll(engineSystem.groundRelevants(currentRelevants));
+                atoms.addAll(learningSystem.groundRelevants(currentRelevants));
                 currentRelevants.clear();
                 previousDistance = currentDistance;
             }
@@ -363,10 +361,10 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 currentRelevants.add(currentTerm);
             }
 
-            atoms.addAll(knowledgeBase.getAtomsWithTerm(currentTerm));
+            atoms.addAll(learningSystem.getKnowledgeBase().getAtomsWithTerm(currentTerm));
 
             if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
-                for (Term neighbour : knowledgeBase.getTermNeighbours(currentTerm)) {
+                for (Term neighbour : learningSystem.getKnowledgeBase().getTermNeighbours(currentTerm)) {
                     if (!termDistance.containsKey(neighbour)) {
                         termDistance.put(neighbour, currentDistance + 1);
                         queue.add(neighbour);
@@ -429,10 +427,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param evaluationMap the {@link Map} with the evaluations
      * @return the best evaluated {@link HornClause}
      */
+    @SuppressWarnings("SameParameterValue")
     protected AsyncTheoryEvaluator retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator>> futures,
                                                             Map<HornClause, Double> evaluationMap) {
         AsyncTheoryEvaluator evaluated;
-        double bestClauseValue = theoryMetric.getDefaultValue();
+        double bestClauseValue = internalMetric.getDefaultValue();
         AsyncTheoryEvaluator bestClause = null;
         for (Future<AsyncTheoryEvaluator> future : futures) {
             try {
@@ -440,7 +439,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 if (evaluationMap != null) {
                     evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
                 }
-                if (theoryMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
+                if (internalMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
                     bestClauseValue = evaluated.getEvaluation();
                     bestClause = evaluated;
                 }
@@ -463,7 +462,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     protected Future<AsyncTheoryEvaluator> submitCandidate(HornClause candidate, ExecutorService evaluationPool) {
         AsyncTheoryEvaluator evaluator;
         try {
-            evaluator = new AsyncTheoryEvaluator(examples, theoryEvaluator, theoryMetric, evaluationTimeout);
+            evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(), learningSystem.getTheoryEvaluator(),
+                                                 internalMetric, evaluationTimeout);
             evaluator.setHornClause(candidate);
             return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
         } catch (Exception e) {
@@ -505,7 +505,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the evaluation value
      */
     public double evaluateTheory(Theory theory) {
-        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(examples, theoryEvaluator, theoryMetric,
+        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
+                                                                  learningSystem.getTheoryEvaluator(), internalMetric,
                                                                   evaluationTimeout);
         return evaluator.call().getEvaluation();
     }

@@ -43,9 +43,9 @@ public class MapCleanupRun<Result> implements Runnable {
      */
     public static final Logger logger = LogManager.getLogger();
 
-    protected Map<Integer, Result> integerMap;
-    protected Future<Result> input;
-    protected Integer id;
+    protected final Map<Integer, Result> integerMap;
+    protected final Future<Result> input;
+    protected final Integer id;
 
     /**
      * Constructor with the minimal parameters.

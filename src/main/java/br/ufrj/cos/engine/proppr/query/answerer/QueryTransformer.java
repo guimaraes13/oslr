@@ -45,14 +45,14 @@ import java.util.concurrent.Callable;
  */
 public class QueryTransformer<P extends ProofGraph> extends Transformer<Query, Answer<P>> {
 
-    protected WamProgram masterProgram;
-    protected WamPlugin[] masterPlugins;
-    protected Prover<P> prover;
-    protected boolean normalizer;
-    protected APROptions aprOptions;
-    protected SymbolTable<Feature> featureTable;
-    protected int numberOfSolutions;
-    protected StatusLogger status;
+    protected final WamProgram masterProgram;
+    protected final WamPlugin[] masterPlugins;
+    protected final Prover<P> prover;
+    protected final boolean normalizer;
+    protected final APROptions aprOptions;
+    protected final SymbolTable<Feature> featureTable;
+    protected final int numberOfSolutions;
+    protected final StatusLogger status;
 
     /**
      * Constructor with the needed parameters to build the {@link Answer}.

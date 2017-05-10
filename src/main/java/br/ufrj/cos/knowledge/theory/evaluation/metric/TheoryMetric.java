@@ -38,12 +38,8 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("CanBeFinal")
 public abstract class TheoryMetric implements Comparator<Double> {
-
-    /**
-     * The default value of the metric, it should be proper overridden by subclasses.
-     */
-    protected static double DEFAULT_VALUE = 0;
 
     /**
      * Flag to specify if the {@link EngineSystemTranslator} should retrain the parameters for each intermediary rule
@@ -59,6 +55,10 @@ public abstract class TheoryMetric implements Comparator<Double> {
      * Also, notice that some {@link TheoryMetric}s may be insensitive to parameters.
      */
     public boolean parametersRetrainedBeforeEvaluate = false;
+    /**
+     * The default value of the metric, it should be proper overridden by subclasses.
+     */
+    protected double DEFAULT_VALUE = 0;
 
     /**
      * Evaluates the example based on the inferred results.
@@ -106,6 +106,7 @@ public abstract class TheoryMetric implements Comparator<Double> {
      * {@link Theory}is must have the same evaluation for the same {@link Knowledge}.
      * <p>
      * By default, as higher the metric better the theory. Override this method, otherwise.
+     * <p>
      * {@inheritDoc}
      */
     @Override
