@@ -25,11 +25,13 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.*;
 
+import java.io.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Class to centralize useful method with respect with to the logic language.
@@ -309,5 +311,19 @@ public class LanguageUtils {
         }
 
         return variableMap;
+    }
+
+    /**
+     * Reads a file to a {@link String}
+     *
+     * @param filePath the file's path
+     * @return the content of the file
+     * @throws FileNotFoundException        if the file does not exists
+     * @throws UnsupportedEncodingException if the encoding is not supported
+     */
+    public static String readFileToString(String filePath) throws FileNotFoundException, UnsupportedEncodingException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
+                                                                         DEFAULT_INPUT_ENCODE));
+        return reader.lines().collect(Collectors.joining("\n")).trim();
     }
 }

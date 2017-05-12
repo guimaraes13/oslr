@@ -27,6 +27,12 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsible for changing the {@link Theory}.
@@ -40,25 +46,29 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  *
  * @author Victor Guimarães
  */
-public abstract class RevisionOperator {
+public abstract class RevisionOperator implements Initializable {
 
-    protected final LearningSystem learningSystem;
+    protected LearningSystem learningSystem;
 
     /**
      * The external metric of the operator, this metric will be used to evaluated the theory by applying the operator.
      * In addition, a operator might have internal metrics to take internal decision.
      */
-    protected final TheoryMetric theoryMetric;
+    protected TheoryMetric theoryMetric;
 
-    /**
-     * Constructs the class if the minimum required parameters
-     *
-     * @param learningSystem the {@link LearningSystem}
-     * @param theoryMetric   the {@link TheoryMetric}
-     */
-    public RevisionOperator(LearningSystem learningSystem, TheoryMetric theoryMetric) {
-        this.learningSystem = learningSystem;
-        this.theoryMetric = theoryMetric;
+    @Override
+    public void initialize() throws InitializationException {
+        List<String> fields = new ArrayList<>();
+        if (learningSystem == null) {
+            fields.add(LearningSystem.class.getSimpleName());
+        }
+        if (theoryMetric == null) {
+            fields.add(TheoryMetric.class.getSimpleName());
+        }
+
+        if (fields.size() > 0) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+        }
     }
 
     /**
@@ -80,12 +90,41 @@ public abstract class RevisionOperator {
     }
 
     /**
+     * Sets the {@link TheoryMetric} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param theoryMetric the {@link TheoryMetric}
+     * @throws InitializationException if the {@link TheoryMetric} is already set
+     */
+    public void setTheoryMetric(TheoryMetric theoryMetric) throws InitializationException {
+        if (this.theoryMetric != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            TheoryMetric.class.getSimpleName()));
+        }
+        this.theoryMetric = theoryMetric;
+    }
+
+    /**
      * Gets the {@link TheoryEvaluator}.
      *
      * @return the {@link TheoryEvaluator}
      */
     public TheoryEvaluator getTheoryEvaluator() {
         return learningSystem.getTheoryEvaluator();
+    }
+
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        if (this.learningSystem != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            LearningSystem.class.getSimpleName()));
+        }
+        this.learningSystem = learningSystem;
+
     }
 
 }

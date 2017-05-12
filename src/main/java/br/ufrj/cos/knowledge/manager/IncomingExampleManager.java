@@ -25,6 +25,9 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.external.access.ExampleStream;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -34,9 +37,15 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  *
  * @author Victor Guimarães
  */
-public abstract class IncomingExampleManager {
+public abstract class IncomingExampleManager implements Initializable {
 
-    protected final LearningSystem learningSystem;
+    protected LearningSystem learningSystem;
+
+    /**
+     * Default constructor to be in compliance to {@link Initializable} interface.
+     */
+    public IncomingExampleManager() {
+    }
 
     /**
      * Constructs a {@link IncomingExampleManager} with its fields.
@@ -47,6 +56,14 @@ public abstract class IncomingExampleManager {
         this.learningSystem = learningSystem;
     }
 
+    @Override
+    public void initialize() throws InitializationException {
+        if (learningSystem == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
+        }
+    }
+
     /**
      * Decides what to do with the arrived {@link Example}s.
      *
@@ -54,5 +71,19 @@ public abstract class IncomingExampleManager {
      * @throws TheoryRevisionException in an error occurs during the revision
      */
     public abstract void incomingExamples(Example... examples) throws TheoryRevisionException;
+
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        if (this.learningSystem != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            LearningSystem.class.getSimpleName()));
+        }
+        this.learningSystem = learningSystem;
+    }
 
 }

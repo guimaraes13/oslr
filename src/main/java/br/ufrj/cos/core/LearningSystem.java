@@ -69,6 +69,13 @@ public class LearningSystem {
      * The {@link TheoryRevisionManager}.
      */
     public TheoryRevisionManager theoryRevisionManager;
+    /**
+     * If the system will be executed in parallel and thread access control will be necessary.
+     * <p>
+     * If it is {@code true}, thread local instances of the {@link EngineSystemTranslator} will be passed on methods
+     * that evaluates examples retraining parameters or changing the {@link Theory}.
+     */
+    public boolean concurrent = false;
     protected Theory theory;
 
     /**
@@ -132,7 +139,20 @@ public class LearningSystem {
      * @return the grounds
      */
     public Set<Atom> groundRelevants(Collection<Term> terms) {
-        return engineSystemTranslator.get().groundRelevants(terms);
+        return getEngineSystemTranslator().groundRelevants(terms);
+    }
+
+    /**
+     * Gets the {@link EngineSystemTranslator}.
+     *
+     * @return the {@link EngineSystemTranslator}
+     */
+    protected EngineSystemTranslator getEngineSystemTranslator() {
+        if (concurrent) {
+            return engineSystemTranslator.get();
+        } else {
+            return engineSystemTranslator;
+        }
     }
 
     /**
@@ -142,7 +162,7 @@ public class LearningSystem {
      * @return the grounds
      */
     public Set<Atom> groundExamples(Example... examples) {
-        return engineSystemTranslator.get().groundExamples(examples);
+        return getEngineSystemTranslator().groundExamples(examples);
     }
 
     /**
@@ -203,7 +223,7 @@ public class LearningSystem {
      */
     public Map<Example, Map<Atom, Double>> inferExamples(Theory theory,
                                                          Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExamples(theory, examples);
+        return getEngineSystemTranslator().inferExamples(theory, examples);
     }
 
     /**
@@ -219,7 +239,7 @@ public class LearningSystem {
     public Map<Example, Map<Atom, Double>> inferExamples(
             Iterable<? extends HornClause> appendClauses,
             Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExamples(appendClauses, examples);
+        return getEngineSystemTranslator().inferExamples(appendClauses, examples);
     }
 
     /**
@@ -234,7 +254,7 @@ public class LearningSystem {
      */
     public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(
             Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExampleTrainingParameters(examples);
+        return getEngineSystemTranslator().inferExampleTrainingParameters(examples);
     }
 
     /**
@@ -252,7 +272,7 @@ public class LearningSystem {
     public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(
             Iterable<? extends HornClause> appendClauses,
             Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExampleTrainingParameters(appendClauses, examples);
+        return getEngineSystemTranslator().inferExampleTrainingParameters(appendClauses, examples);
     }
 
     /**
@@ -269,7 +289,7 @@ public class LearningSystem {
      */
     public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters(Theory theory,
                                                                           Iterable<? extends Example> examples) {
-        return engineSystemTranslator.get().inferExampleTrainingParameters(theory, examples);
+        return getEngineSystemTranslator().inferExampleTrainingParameters(theory, examples);
     }
 
     /**
@@ -309,4 +329,12 @@ public class LearningSystem {
         return theoryEvaluator;
     }
 
+    /**
+     * Gets the {@link IncomingExampleManager}.
+     *
+     * @return the {@link IncomingExampleManager}
+     */
+    public IncomingExampleManager getIncomingExampleManager() {
+        return incomingExampleManager;
+    }
 }

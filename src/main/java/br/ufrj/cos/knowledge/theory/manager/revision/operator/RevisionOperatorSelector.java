@@ -23,6 +23,9 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
 import java.util.Collection;
 
@@ -33,17 +36,16 @@ import java.util.Collection;
  *
  * @author Victor Guimarães
  */
-public abstract class RevisionOperatorSelector {
+public abstract class RevisionOperatorSelector implements Initializable {
 
-    protected final Collection<RevisionOperatorEvaluator> operatorEvaluators;
+    protected Collection<RevisionOperatorEvaluator> operatorEvaluators;
 
-    /**
-     * Constructs the class if the minimum required parameters
-     *
-     * @param operatorEvaluators the {@link RevisionOperatorEvaluator}s
-     */
-    public RevisionOperatorSelector(Collection<RevisionOperatorEvaluator> operatorEvaluators) {
-        this.operatorEvaluators = operatorEvaluators;
+    @Override
+    public void initialize() throws InitializationException {
+        if (operatorEvaluators == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, RevisionOperatorEvaluator.class.getSimpleName()));
+        }
     }
 
     /**
@@ -53,5 +55,20 @@ public abstract class RevisionOperatorSelector {
      * @return the best suited {@link RevisionOperatorEvaluator}
      */
     public abstract RevisionOperatorEvaluator selectOperator(Example... targets);
+
+    /**
+     * Sets the {@link RevisionOperatorEvaluator} set if it is not yet set. If it is already set, throws an error.
+     *
+     * @param operatorEvaluators the {@link RevisionOperatorEvaluator} set
+     * @throws InitializationException if the {@link RevisionOperatorEvaluator} set is already set
+     */
+    public void setOperatorEvaluators(
+            Collection<RevisionOperatorEvaluator> operatorEvaluators) throws InitializationException {
+        if (this.operatorEvaluators != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            RevisionOperatorEvaluator.class.getSimpleName()));
+        }
+        this.operatorEvaluators = operatorEvaluators;
+    }
 
 }

@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * Responsible for holding a {@link Collection} of objects that complains with a given {@link Predicate}.
+ * Responsible for holding a {@link Collection} of objects that complies with a given {@link Predicate}.
  * <p>
  * Created on 25/04/17.
  *

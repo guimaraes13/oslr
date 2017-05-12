@@ -21,6 +21,8 @@
 
 package br.ufrj.cos.knowledge.manager;
 
+import br.ufrj.cos.knowledge.base.KnowledgeBase;
+
 /**
  * Responsible for managing the knowledge. It should hold methods to decide whether to move a fact (clause) from the
  * knowledge base to the atomExamples (theory) or the opposite.
@@ -33,5 +35,12 @@ package br.ufrj.cos.knowledge.manager;
  * @author Victor Guimarães
  */
 public abstract class KnowledgeBaseManager {
+
+    /**
+     * Sets the {@link KnowledgeBase}.
+     *
+     * @param knowledgeBase the {@link KnowledgeBase}
+     */
+    public abstract void setKnowledgeBase(KnowledgeBase knowledgeBase);
 
 }

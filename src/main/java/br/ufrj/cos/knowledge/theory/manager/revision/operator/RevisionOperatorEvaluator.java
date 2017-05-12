@@ -21,11 +21,15 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
 /**
  * Responsible for evaluating an specific {@link RevisionOperator}.
@@ -40,21 +44,32 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  *
  * @author Victor Guimarães
  */
-public class RevisionOperatorEvaluator {
+public class RevisionOperatorEvaluator implements Initializable {
 
-    protected final RevisionOperator revisionOperator;
+    protected RevisionOperator revisionOperator;
 
     protected Theory updatedTheory;
     protected boolean isEvaluated;
     protected double evaluationValue;
 
     /**
-     * Constructs with the needed parameters
+     * Constructs a {@link RevisionOperatorEvaluator} with its fields.
      *
      * @param revisionOperator the {@link RevisionOperator}
      */
     public RevisionOperatorEvaluator(RevisionOperator revisionOperator) {
         this.revisionOperator = revisionOperator;
+    }
+
+    /**
+     * Default constructor to be in compliance to {@link Initializable} interface.
+     */
+    public RevisionOperatorEvaluator() {
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        revisionOperator.initialize();
     }
 
     /**
@@ -105,4 +120,36 @@ public class RevisionOperatorEvaluator {
         return revisionOperator.getTheoryMetric();
     }
 
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        revisionOperator.setLearningSystem(learningSystem);
+    }
+
+    /**
+     * Gets the {@link RevisionOperator}.
+     *
+     * @return the {@link RevisionOperator}
+     */
+    public RevisionOperator getRevisionOperator() {
+        return revisionOperator;
+    }
+
+    /**
+     * Sets the {@link RevisionOperator} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param revisionOperator the {@link RevisionOperator}
+     * @throws InitializationException if the {@link RevisionOperator} is already set
+     */
+    public void setRevisionOperator(RevisionOperator revisionOperator) throws InitializationException {
+        if (this.revisionOperator != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            RevisionOperator.class.getSimpleName()));
+        }
+        this.revisionOperator = revisionOperator;
+    }
 }

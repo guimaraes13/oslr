@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.util.Initializable;
 
 /**
  * Class to getBestRevisionOperator all incoming examples as they arrive.
@@ -33,6 +34,13 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
  * @author Victor Guimarães
  */
 public class ReviseAllIncomingExample extends IncomingExampleManager {
+
+    /**
+     * Default constructor to be in compliance to {@link Initializable} interface.
+     */
+    public ReviseAllIncomingExample() {
+        super();
+    }
 
     /**
      * Constructs a {@link ReviseAllIncomingExample} with its fields.

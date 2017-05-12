@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.cli;
 
+import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
@@ -33,12 +34,17 @@ import org.apache.logging.log4j.Logger;
  *
  * @author Victor Guimarães
  */
-public abstract class CommandLineInterface {
+public abstract class CommandLineInterface implements Runnable, Initializable {
 
     /**
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+
+    /**
+     * The configuration file path.
+     */
+    public String configurationFilePath;
 
     protected Options options;
 
@@ -50,9 +56,9 @@ public abstract class CommandLineInterface {
     public static void main(String[] args) {
         try {
             logger.info(LogMessages.PROGRAM_BEGIN);
-            LearningFromFilesCLI main = new LearningFromFilesCLI();
-            main.parseOptions(args);
-
+            CommandLineInterface main = new LearningFromFilesCLI();
+            main = main.parseOptions(args);
+            main.initialize();
             logger.info(main.toString());
             main.run();
         } catch (Exception e) {
@@ -66,8 +72,9 @@ public abstract class CommandLineInterface {
      * Parses the command line arguments based on the available {@link Option}s
      *
      * @param arguments the command line arguments
+     * @return a new configured {@link CommandLineInterface}
      */
-    public void parseOptions(String[] arguments) {
+    public CommandLineInterface parseOptions(String[] arguments) {
         CommandLineParser parser = new DefaultParser();
         if (options == null) {
             initializeOptions();
@@ -75,10 +82,11 @@ public abstract class CommandLineInterface {
         try {
             logger.trace(LogMessages.PARSING_INPUT_ARGUMENTS);
             CommandLine commandLine = parser.parse(options, arguments);
-            parseOptions(commandLine);
+            return parseOptions(commandLine);
         } catch (ParseException | CommandLineInterrogationException e) {
             logger.error(LogMessages.ERROR_PARSING_FAILED, e);
         }
+        return null;
     }
 
     /**
@@ -90,8 +98,10 @@ public abstract class CommandLineInterface {
      * Method to set the proper fields based on the {@link Option}s parsed from the command line arguments
      *
      * @param commandLine the parsed command line arguments
+     * @return a new configured {@link CommandLineInterface}
      * @throws CommandLineInterrogationException semantic error on the command line arguments
      */
-    protected abstract void parseOptions(CommandLine commandLine) throws CommandLineInterrogationException;
+    protected abstract CommandLineInterface parseOptions(
+            CommandLine commandLine) throws CommandLineInterrogationException;
 
 }

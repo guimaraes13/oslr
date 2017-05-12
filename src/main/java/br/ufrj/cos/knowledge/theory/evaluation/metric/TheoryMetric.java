@@ -27,6 +27,7 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.util.Initializable;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -39,7 +40,7 @@ import java.util.Map;
  * @author Victor Guimarães
  */
 @SuppressWarnings("CanBeFinal")
-public abstract class TheoryMetric implements Comparator<Double> {
+public abstract class TheoryMetric implements Comparator<Double>, Initializable {
 
     /**
      * Flag to specify if the {@link EngineSystemTranslator} should retrain the parameters for each intermediary rule

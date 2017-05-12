@@ -28,6 +28,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.Bot
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.util.Initializable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -46,17 +47,10 @@ import java.util.Set;
  *
  * @author Victor Guimarães
  */
-public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTranslator> {
+public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTranslator> implements Initializable {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
-
-    /**
-     * Method to initialize the fields of the class. Must be called after the proper setting of the public fields.
-     * <p>
-     * This is a trick to use flexible default parameters with empty constructors.
-     */
-    public abstract void initialize();
 
     @Override
     protected abstract EngineSystemTranslator initialValue();

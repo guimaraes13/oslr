@@ -28,10 +28,11 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Responsible for evaluateTheory the theory against the atomExamples set and/or the knowledge base.
@@ -40,10 +41,16 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
-public class TheoryEvaluator {
+public class TheoryEvaluator implements Initializable {
 
-    protected final LearningSystem learningSystem;
-    protected final Iterable<? extends TheoryMetric> theoryMetrics;
+    protected LearningSystem learningSystem;
+    protected Iterable<? extends TheoryMetric> theoryMetrics;
+
+    /**
+     * Default constructor to be in compliance to {@link Initializable} interface.
+     */
+    public TheoryEvaluator() {
+    }
 
     /**
      * Constructs a {@link TheoryEvaluator} with its fields.
@@ -65,6 +72,21 @@ public class TheoryEvaluator {
     public TheoryEvaluator(LearningSystem learningSystem, TheoryMetric... theoryMetrics) {
         this.learningSystem = learningSystem;
         this.theoryMetrics = Arrays.asList(theoryMetrics);
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        List<String> fields = new ArrayList<>();
+        if (learningSystem == null) {
+            fields.add(LearningSystem.class.getSimpleName());
+        }
+        if (theoryMetrics == null) {
+            fields.add(TheoryMetric.class.getSimpleName());
+        }
+
+        if (fields.size() > 0) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+        }
     }
 
     /**
@@ -144,4 +166,32 @@ public class TheoryEvaluator {
         return metric.evaluate(evaluationResult, examples);
     }
 
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        if (this.learningSystem != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            LearningSystem.class.getSimpleName()));
+        }
+        this.learningSystem = learningSystem;
+    }
+
+    /**
+     * Sets the {@link TheoryMetric} set if it is not yet set. If it is already set, throws an error.
+     *
+     * @param theoryMetrics the {@link TheoryMetric} set
+     * @throws InitializationException if the {@link TheoryMetric} set is already set
+     */
+    public void setTheoryMetrics(
+            Iterable<? extends TheoryMetric> theoryMetrics) throws InitializationException {
+        if (this.theoryMetrics != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            TheoryMetric.class.getSimpleName()));
+        }
+        this.theoryMetrics = theoryMetrics;
+    }
 }

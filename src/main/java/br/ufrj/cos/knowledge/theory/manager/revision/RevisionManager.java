@@ -24,6 +24,9 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
 /**
  * Responsible for applying the revision operator on the {@link br.ufrj.cos.knowledge.theory.Theory}.
@@ -32,18 +35,9 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSe
  *
  * @author Victor Guimarães
  */
-public class RevisionManager {
+public class RevisionManager implements Initializable {
 
-    protected final RevisionOperatorSelector operatorSelector;
-
-    /**
-     * Constructs with the {@link RevisionOperatorSelector}
-     *
-     * @param operatorSelector the {@link RevisionOperatorSelector}
-     */
-    public RevisionManager(RevisionOperatorSelector operatorSelector) {
-        this.operatorSelector = operatorSelector;
-    }
+    protected RevisionOperatorSelector operatorSelector;
 
     /**
      * Method to select the best suited {@link RevisionOperatorEvaluator} given the examples.
@@ -55,6 +49,28 @@ public class RevisionManager {
     @SuppressWarnings("RedundantThrows")
     public RevisionOperatorEvaluator getBestRevisionOperator(Example... targets) throws TheoryRevisionException {
         return operatorSelector.selectOperator(targets);
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        if (operatorSelector == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, RevisionOperatorSelector.class.getSimpleName()));
+        }
+    }
+
+    /**
+     * Sets the {@link RevisionOperatorSelector} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param operatorSelector the {@link RevisionOperatorSelector}
+     * @throws InitializationException if the {@link RevisionOperatorSelector} is already set
+     */
+    public void setOperatorSelector(RevisionOperatorSelector operatorSelector) throws InitializationException {
+        if (this.operatorSelector != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            RevisionOperatorSelector.class.getSimpleName()));
+        }
+        this.operatorSelector = operatorSelector;
     }
 
 }

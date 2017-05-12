@@ -22,7 +22,9 @@
 package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.util.InitializationException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,16 +34,16 @@ import java.util.List;
  */
 public class SelectFirstRevisionOperator extends RevisionOperatorSelector {
 
-    private final List<RevisionOperatorEvaluator> evaluators;
+    private List<RevisionOperatorEvaluator> evaluators;
 
-    /**
-     * Constructs the class if the minimum required parameters
-     *
-     * @param operatorEvaluators the {@link RevisionOperatorEvaluator}s
-     */
-    public SelectFirstRevisionOperator(List<RevisionOperatorEvaluator> operatorEvaluators) {
-        super(operatorEvaluators);
-        this.evaluators = operatorEvaluators;
+    @Override
+    public void initialize() throws InitializationException {
+        super.initialize();
+        if (operatorEvaluators instanceof List) {
+            evaluators = (List<RevisionOperatorEvaluator>) operatorEvaluators;
+        } else {
+            evaluators = new ArrayList<>(operatorEvaluators);
+        }
     }
 
     @Override

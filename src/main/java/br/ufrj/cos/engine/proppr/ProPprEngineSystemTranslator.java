@@ -39,14 +39,19 @@ import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
+import edu.cmu.ml.proppr.learn.RegularizationSchedule;
+import edu.cmu.ml.proppr.learn.Regularize;
+import edu.cmu.ml.proppr.learn.RegularizeL2;
 import edu.cmu.ml.proppr.learn.SRW;
 import edu.cmu.ml.proppr.learn.tools.ClippedExp;
 import edu.cmu.ml.proppr.learn.tools.SquashingFunction;
+import edu.cmu.ml.proppr.prove.DprProver;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
+import edu.cmu.ml.proppr.util.SRWOptions;
 import edu.cmu.ml.proppr.util.SimpleSymbolTable;
 import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.math.ParamVector;
@@ -100,30 +105,31 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public int numberOfThreads = 1;
 
     /**
-     * If it is to normalize.
+     * If it is to normalizeAnswers.
      */
-    public boolean normalize = true;
+    public boolean normalizeAnswers = true;
 
     /**
      * The {@link APROptions}.
      */
     public APROptions aprOptions = new APROptions();
-
     /**
-     * The {@link SRW} options.
+     * The {@link Regularize}.
      */
-    public SRW srwOptions = new SRW();
-
+    public Regularize regularize = new RegularizeL2();
     /**
      * The {@link Prover}
      */
-    protected Prover<P> prover;
-
+    @SuppressWarnings("unchecked")
+    public Prover<P> prover = (Prover<P>) new DprProver();
     /**
      * The {@link SquashingFunction}
      */
-    protected SquashingFunction<Goal> squashingFunction = new ClippedExp<>();
-
+    public SquashingFunction<Goal> squashingFunction = new ClippedExp<>();
+    /**
+     * The {@link SRW} options.
+     */
+    protected SRW srw = new SRW();
     // Input
     protected FactsPlugin factsPlugin;
     protected WamProgram program;
@@ -303,7 +309,9 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public synchronized void initialize() {
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
                                                program, factsPlugin);
-        this.trainer = new Trainer(srwOptions, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
+        this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
+        this.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
+        this.trainer = new Trainer(srw, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
         this.savedParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
                                                                                               DEFAULT_LOAD,
                                                                                               numberOfThreads));
@@ -320,9 +328,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         copy.useTernayIndex = this.useTernayIndex;
         copy.numberOfTrainingEpochs = this.numberOfTrainingEpochs;
         copy.numberOfThreads = this.numberOfThreads;
-        copy.normalize = this.normalize;
+        copy.normalizeAnswers = this.normalizeAnswers;
         copy.aprOptions = this.aprOptions;
-        copy.srwOptions = this.srwOptions;
+        copy.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
+        copy.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
+        copy.regularize = regularize;
         copy.prover = this.prover.copy();
         copy.squashingFunction = this.squashingFunction;
         copy.knowledgeBase = this.knowledgeBase;
@@ -542,7 +552,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected InMemoryQueryAnswerer<P> buildAnswerer(ParamVector<String, ?> parameters, WamProgram program) {
         Prover<P> prover = this.prover.copy();
         InMemoryQueryAnswerer<P> answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover, normalize, numberOfThreads, NO_MAX_SOLUTIONS);
+                WamPlugin[]{factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
         answerer.addParams(prover, parameters, squashingFunction);
         return answerer;
     }
@@ -679,7 +689,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     protected InMemoryQueryAnswerer<P> buildAnswerer() {
         return new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover, normalize, numberOfThreads, NO_MAX_SOLUTIONS);
+                WamPlugin[]{factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
     }
 
     /**
@@ -690,7 +700,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     protected InMemoryQueryAnswerer<P> buildAnswerer(WamProgram program) {
         return new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover.copy(), normalize, numberOfThreads, NO_MAX_SOLUTIONS);
+                WamPlugin[]{factsPlugin}, prover.copy(), normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
     }
 
     /**

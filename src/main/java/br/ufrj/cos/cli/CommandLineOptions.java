@@ -33,21 +33,28 @@ import org.apache.commons.cli.OptionBuilder;
  */
 @SuppressWarnings({"deprecation", "AccessStaticViaInstance", "JavaDoc"})
 public enum CommandLineOptions {
-    HELP(new Option("h", "help", false, "print this message")),
+    YAML(OptionBuilder.withArgName("yaml")
+                 .withLongOpt("yaml")
+                 .hasArg()
+                 .withDescription("the yaml configuration file. The yaml configuration file is used to set all " +
+                                          "the options of the system. If it is not provided, the default one will" +
+                                          " be used. The command line options override the yaml file.")
+                 .create("y")),
+    HELP(new Option("h", "help", false, "print this message.")),
     KNOWLEDGE_BASE(OptionBuilder.withArgName("base")
                            .withLongOpt("knowledgeBase")
                            .hasArgs(Option.UNLIMITED_VALUES)
-                           .withDescription("the input knowledge base file(s)")
+                           .withDescription("the input knowledge base file(s).")
                            .create("k")),
     THEORY(OptionBuilder.withArgName("theory")
                    .withLongOpt("theory")
                    .hasArgs(Option.UNLIMITED_VALUES)
-                   .withDescription("the input theory file(s)")
+                   .withDescription("the input theory file(s).")
                    .create("t")),
-    EXAMPLES(OptionBuilder.withArgName("Examples")
+    EXAMPLES(OptionBuilder.withArgName("examples")
                      .withLongOpt("example")
                      .hasArgs(Option.UNLIMITED_VALUES)
-                     .withDescription("the input example file(s)")
+                     .withDescription("the input example file(s).")
                      .create("e"));
     protected final Option option;
 

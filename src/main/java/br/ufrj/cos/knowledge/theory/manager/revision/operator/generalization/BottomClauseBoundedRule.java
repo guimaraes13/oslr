@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
-import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
@@ -86,9 +85,14 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public static final double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
 
     /**
+     * The class name of the variable generator
+     */
+    public String variableGeneratorClassName = "br.ufrj.cos.util.VariableGenerator";
+
+    /**
      * The class to use as the variable generator
      */
-    public Class<? extends VariableGenerator> VARIABLE_GENERATOR_CLASS = VariableGenerator.class;
+    public Class<? extends VariableGenerator> variableGeneratorClass = VariableGenerator.class;
 
     /**
      * Represents the maximum depth on the transitivity of the relevant concept. A {@link Atom} is relevant to the
@@ -156,16 +160,21 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * <p>
      * If not specified, the {@link #theoryMetric} will be used.
      */
-    public TheoryMetric internalMetric = theoryMetric;
+    public TheoryMetric internalMetric;
 
-    /**
-     * Constructs the class if the minimum required parameters
-     *
-     * @param learningSystem the {@link LearningSystem}
-     * @param theoryMetric   the {@link TheoryMetric}
-     */
-    public BottomClauseBoundedRule(LearningSystem learningSystem, TheoryMetric theoryMetric) {
-        super(learningSystem, theoryMetric);
+    @SuppressWarnings("unchecked")
+    @Override
+    public void initialize() throws InitializationException {
+        super.initialize();
+        if (internalMetric == null) {
+            internalMetric = theoryMetric;
+        }
+        try {
+            variableGeneratorClass = (Class<? extends VariableGenerator>) Class.forName(variableGeneratorClassName);
+        } catch (ClassNotFoundException e) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS
+                                                                    .toString(), variableGeneratorClassName), e);
+        }
     }
 
     @Override
@@ -390,7 +399,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     protected HornClause toVariableHornClauseForm(Example target, Collection<? extends Atom> body,
                                                   Map<Term, Variable> variableMap) throws IllegalAccessException,
             InstantiationException {
-        VariableGenerator variableGenerator = VARIABLE_GENERATOR_CLASS.newInstance();
+        VariableGenerator variableGenerator = variableGeneratorClass.newInstance();
         //Maps the Term::getName to each Variable in the values of variableMap and makes a Set of it
         variableGenerator.setUsedNames(variableMap.values().stream().map(Term::getName).collect(Collectors.toSet()));
         Conjunction conjunction = new Conjunction(body.size());

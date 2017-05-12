@@ -76,7 +76,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
      * @param program           the {@link WamProgram}
      * @param plugins           the {@link WamPlugin}s
      * @param prover            the {@link Prover}
-     * @param normalize         if it is to normalize
+     * @param normalize         if it is to normalizeAnswers
      * @param aprOptions        the {@link APROptions}
      * @param featureTable      the {@link SymbolTable} of {@link Feature}s
      * @param numberOfSolutions the number of solutions to retrieve
@@ -114,7 +114,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
      * @param plugins   the {@link WamPlugin}s
      * @param prover    the {@link Prover}
      * @param query     the {@link Query}
-     * @param normalize if it is to normalize
+     * @param normalize if it is to normalizeAnswers
      * @param id        the id
      * @return this class with the solutions in it.
      * @throws LogicProgramException if a error on the logic program occurs

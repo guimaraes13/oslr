@@ -24,6 +24,7 @@ package br.ufrj.cos.cli;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
+import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
@@ -31,6 +32,7 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
+import br.ufrj.cos.knowledge.manager.IncomingExampleManager;
 import br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
@@ -54,9 +56,9 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.*;
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -66,7 +68,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * A Command Line Interface which allows experiments of learning from files.
@@ -76,7 +81,7 @@ import java.util.*;
  * @author Victor Guimarães
  */
 @SuppressWarnings("CanBeFinal")
-public class LearningFromFilesCLI extends CommandLineInterface implements Runnable {
+public class LearningFromFilesCLI extends CommandLineInterface {
 
     /**
      * The logger
@@ -84,57 +89,114 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     public static final Logger logger = LogManager.getLogger();
 
     /**
-     * The knowledge base collection class.
+     * The default yaml configuration file.
      */
-    public Class<? extends Collection> KNOWLEDGE_BASE_COLLECTION_CLASS = ArrayList.class;
-    /**
-     * The knowledge base predicate.
-     */
-    public Class<? extends ClausePredicate> KNOWLEDGE_BASE_PREDICATE = GroundedFactPredicate.class;
+    public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
 
     /**
-     * The most generic {@link Atom} subclass allowed in the knowledge base.
+     * The knowledge base collection class name.
      */
-    public Class<? extends Atom> KNOWLEDGE_BASE_ANCESTRAL_CLASS = Atom.class;
-
+    public String knowledgeBaseCollectionClassName = ArrayList.class.getName();
     /**
-     * The theory collection class.
+     * The knowledge base predicate name.
      */
-    public Class<? extends Collection> THEORY_COLLECTION_CLASS = ArrayList.class;
-
+    public String knowledgeBasePredicateClassName = GroundedFactPredicate.class.getName();
     /**
-     * The theory predicate.
+     * The most generic {@link Atom} subclass name allowed in the knowledge base.
      */
-    public Class<? extends ClausePredicate> THEORY_PREDICATE = null;
-
+    public String knowledgeBaseAncestralClassName = Atom.class.getName();
+    /**
+     * The theory collection class name.
+     */
+    public String theoryCollectionClassName = ArrayList.class.getName();
+    /**
+     * The theory predicate class name.
+     */
+    public String theoryPredicateClassName = null;
+    /**
+     * The theory predicate class.
+     */
+    public Class<? extends ClausePredicate> theoryPredicateClass = null;
+    /**
+     * The most generic {@link HornClause} subclass name allowed in the theory.
+     */
+    public String theoryBaseAncestralClassName = null;
     /**
      * The most generic {@link HornClause} subclass allowed in the theory.
      */
-    public Class<? extends HornClause> THEORY_BASE_ANCESTRAL_CLASS = null;
-
-    /**
-     * Argument options.
-     */
-    protected Set<Option> optionSet;
-
-    //Input fields
+    public Class<? extends HornClause> theoryBaseAncestralClass = null;
     /**
      * Input knowledge base files.
      */
-    protected File[] knowledgeBaseFiles;
-
+    public File[] knowledgeBaseFiles;
     /**
      * Input theory files.
      */
-    protected File[] theoryFiles;
-
+    public File[] theoryFiles;
     /**
      * Input example files.
      */
-    protected File[] exampleFiles;
+    public File[] exampleFiles;
+    /**
+     * The evaluation metrics for the {@link TheoryEvaluator}.
+     */
+    public TheoryMetric[] theoryMetrics;
+
+    //Input fields
+    /**
+     * The {@link RevisionOperatorEvaluator}s.
+     */
+    public RevisionOperatorEvaluator[] revisionOperatorEvaluators;
+    /**
+     * The {@link RevisionOperatorSelector}.
+     */
+    public RevisionOperatorSelector revisionOperatorSelector;
+    /**
+     * The {@link RevisionManager}.
+     */
+    public RevisionManager revisionManager;
+    /**
+     * The {@link IncomingExampleManager}.
+     */
+    public IncomingExampleManager incomingExampleManager;
+    /**
+     * The {@link TheoryEvaluator}.
+     */
+    public TheoryEvaluator theoryEvaluator;
+    /**
+     * The {@link TheoryRevisionManager}.
+     */
+    public TheoryRevisionManager theoryRevisionManager;
+    /**
+     * The engine system.
+     */
+    public EngineSystemTranslator engineSystemTranslator;
+
+    /**
+     * If the system will be executed in parallel and thread access control will be necessary.
+     * <p>
+     * If it is {@code true}, thread local instances of the {@link EngineSystemTranslator} will be passed on methods
+     * that evaluates examples retraining parameters or changing the {@link Theory}.
+     */
+    public boolean controlConcurrence = false;
+    /**
+     * The knowledge base collection class.
+     */
+    protected Class<? extends Collection> knowledgeBaseCollectionClass;
+    /**
+     * The knowledge base predicate.
+     */
+    protected Class<? extends ClausePredicate> knowledgeBasePredicateClass;
+    /**
+     * The most generic {@link Atom} subclass allowed in the knowledge base.
+     */
+    protected Class<? extends Atom> knowledgeBaseAncestralClass;
+    /**
+     * The theory collection class.
+     */
+    protected Class<? extends Collection> theoryCollectionClass;
 
     //Processing fields
-
     /**
      * Knowledge base representation.
      */
@@ -154,11 +216,6 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
      * The learning system.
      */
     protected LearningSystem learningSystem;
-
-    /**
-     * The engine system.
-     */
-    protected EngineSystemTranslator engineSystemTranslator;
 
     /**
      * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
@@ -202,42 +259,75 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void initializeOptions() {
-        buildOptionSet();
-        this.options = new Options();
-
-        for (Option option : optionSet) {
-            options.addOption(option);
+    public void initialize() throws InitializationException {
+        try {
+            knowledgeBaseCollectionClass = (Class<? extends Collection>)
+                    Class.forName(knowledgeBaseCollectionClassName);
+            knowledgeBasePredicateClass = (Class<? extends ClausePredicate>)
+                    Class.forName(knowledgeBasePredicateClassName);
+            knowledgeBaseAncestralClass = (Class<? extends Atom>) Class.forName(knowledgeBaseAncestralClassName);
+            theoryCollectionClass = (Class<? extends Collection>) Class.forName(theoryCollectionClassName);
+            if (theoryPredicateClassName != null && !theoryPredicateClassName.isEmpty()) {
+                theoryPredicateClass = (Class<? extends ClausePredicate>) Class.forName(theoryPredicateClassName);
+            }
+            if (theoryBaseAncestralClassName != null && !theoryBaseAncestralClassName.isEmpty()) {
+                theoryBaseAncestralClass = (Class<? extends HornClause>) Class.forName(theoryBaseAncestralClassName);
+            }
+        } catch (ClassNotFoundException e) {
+            throw new InitializationException(ExceptionMessages.ERROR_GETTING_CLASS_BY_NAME.toString(), e);
         }
     }
 
-    /**
-     * Builds the {@link Set} of {@link Option}s to be parsed from the command line.
-     */
-    protected void buildOptionSet() {
-        optionSet = new HashSet<>();
-        optionSet.add(CommandLineOptions.HELP.getOption());
-        optionSet.add(CommandLineOptions.KNOWLEDGE_BASE.getOption());
-        optionSet.add(CommandLineOptions.THEORY.getOption());
-        optionSet.add(CommandLineOptions.EXAMPLES.getOption());
+    @Override
+    protected void initializeOptions() {
+        if (options == null) { options = new Options(); }
+
+        options.addOption(CommandLineOptions.HELP.getOption());
+        options.addOption(CommandLineOptions.KNOWLEDGE_BASE.getOption());
+        options.addOption(CommandLineOptions.THEORY.getOption());
+        options.addOption(CommandLineOptions.EXAMPLES.getOption());
+        options.addOption(CommandLineOptions.YAML.getOption());
     }
 
     @Override
-    public void parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
+    public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
         try {
             if (commandLine.hasOption(CommandLineOptions.HELP.getOptionName())) {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp(this.getClass().getSimpleName(), options, true);
-                return;
+                System.exit(0);
             }
-
-            knowledgeBaseFiles = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
-            theoryFiles = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
-            exampleFiles = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
+            LearningFromFilesCLI cli = readYamlFile(commandLine);
+            cli.knowledgeBaseFiles = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
+            cli.theoryFiles = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
+            cli.exampleFiles = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
+            return cli;
         } catch (Exception e) {
             throw new CommandLineInterrogationException(e);
         }
+    }
+
+    /**
+     * Reads the yaml configuration file and returns a version of this class from it.
+     *
+     * @param commandLine the {@link CommandLine}
+     * @return the read {@link LearningFromFilesCLI}
+     * @throws FileNotFoundException if the file does not exists
+     * @throws YamlException         if an error occurs when reading the yaml
+     */
+    protected LearningFromFilesCLI readYamlFile(CommandLine commandLine) throws FileNotFoundException, YamlException {
+        File yamlFile;
+        if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
+            yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
+        } else {
+            yamlFile = new File(DEFAULT_YAML_CONFIGURATION_FILE);
+        }
+        YamlReader reader = new YamlReader(new FileReader(yamlFile));
+        LearningFromFilesCLI cli = reader.read(LearningFromFilesCLI.class);
+        cli.configurationFilePath = yamlFile.getAbsolutePath();
+        return cli;
     }
 
     /**
@@ -284,18 +374,33 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     @Override
     public void run() {
         try {
+            logConfigurations();
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
             buildEngineSystemTranslator();
             buildLearningSystem();
-            //TODO: allow setting the system by command line interface or by a configuration file
-            //TODO: log the configuration
+            //TODO: test the revision
             reviseExamples();
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
                 e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
+        } catch (InitializationException e) {
+            logger.error(LogMessages.ERROR_INITIALIZING_COMPONENTS, e);
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+            logger.error(LogMessages.ERROR_READING_CONFIGURATION_FILE, e);
         }
+    }
+
+    /**
+     * Logs the configurations from the configuration file.
+     *
+     * @throws FileNotFoundException        if the file does not exists
+     * @throws UnsupportedEncodingException if the encoding is not supported
+     */
+    protected void logConfigurations() throws FileNotFoundException, UnsupportedEncodingException {
+        logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, LanguageUtils.readFileToString
+                (configurationFilePath));
     }
 
     /**
@@ -313,40 +418,171 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
 
     /**
      * Builds the {@link LearningSystem}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void buildLearningSystem() {
+    protected void buildLearningSystem() throws InitializationException {
         logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
-        TheoryMetric[] metrics = new TheoryMetric[]{
-                new AccuracyMetric(),
-                new PrecisionMetric(),
-                new RecallMetric(),
-                new F1ScoreMetric(),
-                new LikelihoodMetric(),
-                new LogLikelihoodMetric(),
-        };
-
-        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule(learningSystem, new LikelihoodMetric());
-        bottomClause.internalMetric = new F1ScoreMetric();
-        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
-        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
-
-        RevisionOperatorSelector revisionOperator = new SelectFirstRevisionOperator(operatorEvaluator);
-        RevisionManager revisionManager = new RevisionManager(revisionOperator);
-
-        learningSystem.incomingExampleManager = new ReviseAllIncomingExample(learningSystem);
-        learningSystem.theoryEvaluator = new TheoryEvaluator(learningSystem, metrics);
-        learningSystem.theoryRevisionManager = new TheoryRevisionManager(learningSystem, revisionManager);
-
         learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
+        learningSystem.concurrent = controlConcurrence;
+        List<TheoryMetric> theoryMetrics = initializeMetrics();
+        List<RevisionOperatorEvaluator> operatorEvaluator = initializeOperators();
+        initializeOperatorSelector(operatorEvaluator);
+        initializeRevisionManager();
+        initializeIncomingExampleManager();
+        learningSystem.incomingExampleManager = incomingExampleManager;
+        initializeTheoryEvaluator(theoryMetrics);
+        learningSystem.theoryEvaluator = theoryEvaluator;
+        initializeTheoryRevisionManager(revisionManager);
+        learningSystem.theoryRevisionManager = theoryRevisionManager;
+    }
+
+    /**
+     * Initializes the {@link TheoryRevisionManager}.
+     *
+     * @param revisionManager the {@link RevisionManager}
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void initializeTheoryRevisionManager(RevisionManager revisionManager) throws InitializationException {
+        if (theoryRevisionManager == null) {
+            theoryRevisionManager = new TheoryRevisionManager();
+        }
+        theoryRevisionManager.setLearningSystem(learningSystem);
+        theoryRevisionManager.setRevisionManager(revisionManager);
+        theoryRevisionManager.initialize();
+    }
+
+    /**
+     * Initializes the {@link TheoryEvaluator}.
+     *
+     * @param theoryMetrics the {@link TheoryMetric}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void initializeTheoryEvaluator(List<TheoryMetric> theoryMetrics) throws InitializationException {
+        if (theoryEvaluator == null) {
+            theoryEvaluator = new TheoryEvaluator();
+        }
+        theoryEvaluator.setLearningSystem(learningSystem);
+        theoryEvaluator.setTheoryMetrics(theoryMetrics);
+        theoryEvaluator.initialize();
+    }
+
+    /**
+     * Initializes the {@link IncomingExampleManager}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void initializeIncomingExampleManager() throws InitializationException {
+        if (incomingExampleManager == null) {
+            incomingExampleManager = new ReviseAllIncomingExample();
+        }
+        incomingExampleManager.setLearningSystem(learningSystem);
+        incomingExampleManager.initialize();
+    }
+
+    /**
+     * Initializes the {@link RevisionManager}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void initializeRevisionManager() throws InitializationException {
+        if (revisionManager == null) {
+            revisionManager = new RevisionManager();
+        }
+        revisionManager.setOperatorSelector(revisionOperatorSelector);
+        revisionManager.initialize();
+    }
+
+    /**
+     * Initializes the {@link RevisionOperatorSelector}.
+     *
+     * @param operatorEvaluator the {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void initializeOperatorSelector(
+            Collection<RevisionOperatorEvaluator> operatorEvaluator) throws InitializationException {
+        if (revisionOperatorSelector == null) {
+            revisionOperatorSelector = new SelectFirstRevisionOperator();
+        }
+        revisionOperatorSelector.setOperatorEvaluators(operatorEvaluator);
+        revisionOperatorSelector.initialize();
+    }
+
+    /**
+     * Initializes the {@link RevisionOperatorEvaluator}s.
+     *
+     * @return the {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected List<RevisionOperatorEvaluator> initializeOperators() throws InitializationException {
+        List<RevisionOperatorEvaluator> operatorEvaluator;
+        if (revisionOperatorEvaluators == null || revisionOperatorEvaluators.length == 0) {
+            operatorEvaluator = defaultRevisionOperator();
+        } else {
+            operatorEvaluator = Arrays.asList(revisionOperatorEvaluators);
+        }
+        for (RevisionOperatorEvaluator operator : operatorEvaluator) {
+            operator.setLearningSystem(learningSystem);
+            operator.initialize();
+        }
+        return operatorEvaluator;
+    }
+
+    /**
+     * Builds the default {@link RevisionOperatorEvaluator}s.
+     *
+     * @return the default {@link RevisionOperatorEvaluator}s
+     */
+    protected List<RevisionOperatorEvaluator> defaultRevisionOperator() {
+        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
+        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
+        bottomClause.internalMetric = new F1ScoreMetric();
+        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
+        return operatorEvaluator;
+    }
+
+    /**
+     * Initializes the {@link TheoryMetric}s.
+     *
+     * @return the {@link TheoryMetric}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected List<TheoryMetric> initializeMetrics() throws InitializationException {
+        List<TheoryMetric> metrics = (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
+                Arrays.asList(theoryMetrics));
+        for (TheoryMetric metric : metrics) {
+            metric.initialize();
+        }
+        return metrics;
+    }
+
+    /**
+     * Builds the default {@link TheoryMetric}s.
+     *
+     * @return the default {@link TheoryMetric}s
+     */
+    protected List<TheoryMetric> defaultTheoryMetrics() {
+        List<TheoryMetric> metrics = new ArrayList<>();
+        metrics.add(new AccuracyMetric());
+        metrics.add(new PrecisionMetric());
+        metrics.add(new RecallMetric());
+        metrics.add(new F1ScoreMetric());
+
+        metrics.add(new LikelihoodMetric());
+        metrics.add(new LogLikelihoodMetric());
+        return metrics;
     }
 
     /**
      * Builds the {@link EngineSystemTranslator}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void buildEngineSystemTranslator() {
+    protected void buildEngineSystemTranslator() throws InitializationException {
+        if (engineSystemTranslator == null) { engineSystemTranslator = new ProPprEngineSystemTranslator<>(); }
         logger.info(LogMessages.BUILDING_ENGINE_SYSTEM_TRANSLATOR.toString(),
-                    ProPprEngineSystemTranslator.class.getSimpleName());
-        this.engineSystemTranslator = new ProPprEngineSystemTranslator<>();
+                    engineSystemTranslator.getClass().getSimpleName());
+
         engineSystemTranslator.setKnowledgeBase(knowledgeBase);
         engineSystemTranslator.setTheory(theory);
         engineSystemTranslator.initialize();
@@ -360,11 +596,11 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
      */
     protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException {
         List<Clause> clauses = readInputKnowledge(knowledgeBaseFiles);
-        ClausePredicate predicate = KNOWLEDGE_BASE_PREDICATE.newInstance();
+        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
         logger.debug(LogMessages.CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
 
-        knowledgeBase = new KnowledgeBase(KNOWLEDGE_BASE_COLLECTION_CLASS.newInstance(), predicate);
-        knowledgeBase.addAll(clauses, KNOWLEDGE_BASE_ANCESTRAL_CLASS);
+        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
         logger.info(LogMessages.KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
     }
 
@@ -381,14 +617,14 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
         List<Clause> clauses = readInputKnowledge(theoryFiles);
 
         ClausePredicate predicate = null;
-        if (THEORY_PREDICATE != null && THEORY_BASE_ANCESTRAL_CLASS != null) {
-            predicate = THEORY_PREDICATE.getConstructor(THEORY_BASE_ANCESTRAL_CLASS.getClass())
-                    .newInstance(THEORY_BASE_ANCESTRAL_CLASS);
+        if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {
+            predicate = theoryPredicateClass.getConstructor(theoryBaseAncestralClass.getClass())
+                    .newInstance(theoryBaseAncestralClass);
             logger.debug(LogMessages.CREATING_THEORY_WITH_PREDICATE.toString(), predicate);
         }
 
-        theory = new Theory(THEORY_COLLECTION_CLASS.newInstance(), predicate);
-        theory.addAll(clauses, THEORY_BASE_ANCESTRAL_CLASS);
+        theory = new Theory(theoryCollectionClass.newInstance(), predicate);
+        theory.addAll(clauses, theoryBaseAncestralClass);
         logger.info(LogMessages.THEORY_SIZE.toString(), theory.size());
     }
 
@@ -429,30 +665,26 @@ public class LearningFromFilesCLI extends CommandLineInterface implements Runnab
     }
 
     /**
-     * Gets the {@link KnowledgeBase}'s files
+     * Sets the {@link EngineSystemTranslator} if it is not yet set. If it is already set, throws an error.
      *
-     * @return the {@link KnowledgeBase}'s files
+     * @param engineSystemTranslator the {@link EngineSystemTranslator}
+     * @throws KnowledgeException if the {@link EngineSystemTranslator} is already set
      */
-    public File[] getKnowledgeBaseFiles() {
-        return knowledgeBaseFiles;
+    public void setEngineSystemTranslator(EngineSystemTranslator engineSystemTranslator) throws KnowledgeException {
+        if (isEngineSystemTranslatorSet()) {
+            throw new KnowledgeException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                       EngineSystemTranslator.class.getSimpleName()));
+        }
+        this.engineSystemTranslator = engineSystemTranslator;
     }
 
     /**
-     * Gets the {@link Theory}'s files
+     * Checks if the {@link EngineSystemTranslator} is already set.
      *
-     * @return the {@link Theory}'s files
+     * @return {@code true} if it is, otherwise {@code false}
      */
-    public File[] getTheoryFiles() {
-        return theoryFiles;
-    }
-
-    /**
-     * Gets the {@link Examples}'s files
-     *
-     * @return the {@link Examples}'s files
-     */
-    public File[] getExampleFiles() {
-        return exampleFiles;
+    public boolean isEngineSystemTranslatorSet() {
+        return this.engineSystemTranslator != null;
     }
 
     @Override

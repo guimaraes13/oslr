@@ -21,8 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
-import br.ufrj.cos.core.LearningSystem;
-import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 
 /**
@@ -34,15 +32,5 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
  * @author Victor Guimarães
  */
 public abstract class GeneralizationRevisionOperator extends RevisionOperator {
-
-    /**
-     * Constructs the class if the minimum required parameters
-     *
-     * @param learningSystem the {@link LearningSystem}
-     * @param theoryMetric   the {@link TheoryMetric}
-     */
-    public GeneralizationRevisionOperator(LearningSystem learningSystem, TheoryMetric theoryMetric) {
-        super(learningSystem, theoryMetric);
-    }
 
 }

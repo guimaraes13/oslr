@@ -19,18 +19,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision.operator.specialization;
-
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
+package br.ufrj.cos.util;
 
 /**
- * Represents a specialization operator i.e. an operator that, if applied, makes the Theory more specific
- * (proving less atomExamples).
+ * Interface to allow objects to have default constructors and be latter initialized. This allows the objects to be
+ * loaded by configuration files.
  * <p>
- * Created on 26/04/17.
+ * Created on 12/05/17.
  *
  * @author Victor Guimarães
  */
-public abstract class SpecializationRevisionOperator extends RevisionOperator {
+public interface Initializable {
+
+    /**
+     * Method to allow the implementation of this interface to initializes itself.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    public default void initialize() throws InitializationException {
+
+    }
 
 }

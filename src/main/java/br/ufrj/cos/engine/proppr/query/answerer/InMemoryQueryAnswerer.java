@@ -59,7 +59,7 @@ public class InMemoryQueryAnswerer<P extends ProofGraph> extends QueryAnswerer<P
      * @param program           the {@link WamProgram}
      * @param plugins           the {@link WamPlugin}s
      * @param prover            the {@link Prover}
-     * @param normalize         if it is to normalize
+     * @param normalize         if it is to normalizeAnswers
      * @param numberOfThreads   the number of threads this class is allowed to use
      * @param numberOfSolutions the number of top solutions to retrieve
      */

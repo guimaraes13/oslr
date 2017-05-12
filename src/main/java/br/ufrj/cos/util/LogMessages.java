@@ -42,7 +42,20 @@ public enum LogMessages {
                                              "the timeout is too low; or the metric returns the default value for " +
                                              "all" + " evaluations"),
 
+    ERROR_READING_CONFIGURATION_FILE("Error when reading the configuration file, reason:"),
+    ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
+    ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:"),
+    ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
+    ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:"),
+
+    ERROR_MAIN_PROGRAM("Main program error, reason:"),
+    ERROR_PARSING_FAILED("Parsing failed, reason:"),
+    ERROR_READING_INPUT_FILES("Error during reading the input files, reason:"),
+    ERROR_REVISING_THEORY("Error when revising the theory, reason:"),
+    ERROR_EVALUATING_CANDIDATE_THEORY("Error when evaluating a candidate theory, reason:"),
+
     //One additional parameters to format
+
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
     BUILDING_ENGINE_SYSTEM_TRANSLATOR("Build the engine system translator:\t{}"),
     CREATING_KNOWLEDGE_BASE_WITH_PREDICATE("Creating knowledge base with predicate:\t{}"),
@@ -54,8 +67,6 @@ public enum LogMessages {
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),
     GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
-    ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:\t{}"),
-    ERROR_BUILDING_ATOM("Error when building an atom, reason:\t{}"),
 
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
     BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
@@ -63,22 +74,19 @@ public enum LogMessages {
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
-    ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:\t{}"),
+
 //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
+
+    CONFIGURATION_FILE("Configuration File:\t{}\n--------------- CONFIGURATION FILE " +
+                               "---------------\n{}\n--------------- CONFIGURATION FILE ---------------"),
 
     ANSWERING_QUERY("Answering query:\t{}"),
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
 
-    ERROR_MAIN_PROGRAM("Main program error, reason:\t{}"),
-    ERROR_PARSING_FAILED("Parsing failed, reason:\t{}"),
-    ERROR_READING_INPUT_FILES("Error during reading the input files, reason:\t{}"),
-    ERROR_REVISING_THEORY("Error when revising the theory, reason:\t{}"),
-    ERROR_EVALUATING_CANDIDATE_THEORY("Error when evaluating a candidate theory, reason:\t{}"),
+    ERROR_READING_FILE("Error when reading file {}, reason:"),
+    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:"),
 
     //Two additional parameters to format
-    ERROR_READING_FILE("Error when reading file {}, reason:\t{}"),
-    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:\t{}"),
-
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
     ANSWER_STATE_WITH_VALUE("State:\t{},\t{}");
 

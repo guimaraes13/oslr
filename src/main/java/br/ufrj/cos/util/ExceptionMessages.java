@@ -21,6 +21,8 @@
 
 package br.ufrj.cos.util;
 
+import java.util.List;
+
 /**
  * Centralizes all the exception messages from the system.
  * <p>
@@ -33,9 +35,12 @@ public enum ExceptionMessages {
     //No additional parameters to format
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
+    ERROR_GETTING_CLASS_BY_NAME("Error when getting the class by its name."),
 
     //One additional parameters to format
     ERROR_ANSWERING_QUERY("Error when answering the query {}."),
+    ERROR_RESET_FIELD_NOT_ALLOWED("Reset {} is not allowed."),
+    ERROR_GETTING_VARIABLE_GENERATOR_CLASS("Error when getting the variable generator class by its name:\t{}"),
 
     //Two additional parameters to format
     FILE_NOT_EXISTS("File {} for {} does not exists.");
@@ -44,6 +49,26 @@ public enum ExceptionMessages {
 
     ExceptionMessages(String message) {
         this.message = message;
+    }
+
+    public static String errorFieldsSet(Object clazz, List<String> fields) {
+        StringBuilder message = new StringBuilder();
+        int i = 0;
+        for (; i < fields.size() - 1; i++) {
+            message.append(fields.get(i));
+        }
+        if (fields.size() > 1) {
+            message.append(" and ");
+        }
+        message.append(fields.get(i));
+        message.append(", at class ");
+        message.append(clazz.getClass().getSimpleName());
+        message.append(", must be set prior initialize.");
+        return message.toString();
+    }
+
+    public static String errorFieldsSet(Object clazz, String field) {
+        return field + ", at class " + clazz.getClass().getSimpleName() + ", must be set prior initialize.";
     }
 
     @Override

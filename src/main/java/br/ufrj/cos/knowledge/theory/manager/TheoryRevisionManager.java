@@ -28,6 +28,12 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsible for applying the revision on theory, whenever it is called to.
@@ -36,10 +42,16 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEv
  *
  * @author Victor Guimarães
  */
-public class TheoryRevisionManager {
+public class TheoryRevisionManager implements Initializable {
 
-    protected final LearningSystem learningSystem;
-    protected final RevisionManager revisionManager;
+    protected LearningSystem learningSystem;
+    protected RevisionManager revisionManager;
+
+    /**
+     * Default constructor to be in compliance to {@link Initializable} interface.
+     */
+    public TheoryRevisionManager() {
+    }
 
     /**
      * Constructs the class if the minimum required parameters
@@ -50,6 +62,21 @@ public class TheoryRevisionManager {
     public TheoryRevisionManager(LearningSystem learningSystem, RevisionManager revisionManager) {
         this.learningSystem = learningSystem;
         this.revisionManager = revisionManager;
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        List<String> fields = new ArrayList<>();
+        if (learningSystem == null) {
+            fields.add(LearningSystem.class.getSimpleName());
+        }
+        if (revisionManager == null) {
+            fields.add(RevisionManager.class.getSimpleName());
+        }
+
+        if (fields.size() > 0) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+        }
     }
 
     /**
@@ -69,6 +96,35 @@ public class TheoryRevisionManager {
             learningSystem.trainParameters(targets);
             learningSystem.saveTrainedParameters();
         }
+    }
+
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        if (this.learningSystem != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            LearningSystem.class.getSimpleName()));
+        }
+        this.learningSystem = learningSystem;
+
+    }
+
+    /**
+     * Sets the {@link RevisionManager} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param revisionManager the {@link RevisionManager}
+     * @throws InitializationException if the {@link RevisionManager} is already set
+     */
+    public void setRevisionManager(RevisionManager revisionManager) throws InitializationException {
+        if (this.revisionManager != null) {
+            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                            RevisionManager.class.getSimpleName()));
+        }
+        this.revisionManager = revisionManager;
     }
 
 }
