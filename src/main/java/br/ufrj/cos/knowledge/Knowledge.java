@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 public class Knowledge<T> implements Collection<T> {
 
     protected final Collection<T> collection;
-    protected Predicate<? super T> acceptPredicate;
+    protected final Predicate<? super T> acceptPredicate;
 
     /**
      * Constructs from a {@link Collection} of {@link T}
@@ -60,6 +60,8 @@ public class Knowledge<T> implements Collection<T> {
         this.collection = collection;
         if (acceptPredicate != null) {
             this.acceptPredicate = acceptPredicate;
+        } else {
+            this.acceptPredicate = o -> true;
         }
     }
 

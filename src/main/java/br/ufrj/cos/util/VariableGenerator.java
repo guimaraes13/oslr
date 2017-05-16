@@ -24,6 +24,7 @@ package br.ufrj.cos.util;
 import br.ufrj.cos.logic.Variable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -42,6 +43,10 @@ public class VariableGenerator implements Iterator<Variable> {
     protected int counter = 1;
 
     protected Collection<String> usedNames;
+
+    public VariableGenerator() {
+        usedNames = new HashSet<>();
+    }
 
     @Override
     public boolean hasNext() {
@@ -83,8 +88,10 @@ public class VariableGenerator implements Iterator<Variable> {
      * @param usedNames the used names
      */
     public void setUsedNames(Collection<String> usedNames) {
-        this.usedNames = usedNames;
-        this.counter = usedNames.size();
+        if (usedNames != null) {
+            this.usedNames = usedNames;
+            this.counter = usedNames.size();
+        }
     }
 
 }

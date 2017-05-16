@@ -25,10 +25,13 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Template for confusion matrix based metrics. Calculates the confusion matrix of the system given the examples.
@@ -69,9 +72,10 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
      */
     protected void calculateConfusionMatrix(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
         Map<Atom, Double> atomValues;
-        for (Example example : examples) {
+        Set<ProPprExample> provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e))
+                .collect(Collectors.toSet());
+        for (Example example : provedExamples) {
             atomValues = inferredResult.get(example);
-            if (atomValues == null) { continue; }
             for (AtomExample atomExample : example.getGroundedQuery()) {
                 incrementMatrixCell(atomValues, atomExample);
             }
@@ -92,7 +96,7 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
      * @param atomExample the ground example
      */
     protected void incrementMatrixCell(Map<Atom, Double> atomValues, AtomExample atomExample) {
-        if (atomValues.containsKey(atomExample.getAtom())) {
+        if (atomValues != null && atomValues.containsKey(atomExample.getAtom())) {
             // the example was proved
             if (atomExample.isPositive()) {
                 truePositive++;

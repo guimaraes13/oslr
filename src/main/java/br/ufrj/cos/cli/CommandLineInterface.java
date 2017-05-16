@@ -22,6 +22,7 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +41,14 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+    /**
+     * Argument short option prefix.
+     */
+    public static final String ARGUMENTS_SHORT_OPTION_PREFIX = "-";
+    /**
+     * Argument long option prefix.
+     */
+    public static final String ARGUMENTS_LONG_OPTION_PREFIX = "--";
 
     /**
      * The configuration file path.
@@ -47,6 +56,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     public String configurationFilePath;
 
     protected Options options;
+    /**
+     * The command line arguments.
+     */
+    protected String[] cliArguments;
 
     /**
      * The main method
@@ -55,12 +68,15 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static void main(String[] args) {
         try {
-            logger.info(LogMessages.PROGRAM_BEGIN);
             CommandLineInterface main = new LearningFromFilesCLI();
             main = main.parseOptions(args);
-            main.initialize();
-            logger.info(main.toString());
-            main.run();
+            logger.info(LogMessages.PROGRAM_BEGIN);
+            if (main != null) {
+                main.cliArguments = args;
+                main.initialize();
+                logger.info(main.toString());
+                main.run();
+            }
         } catch (Exception e) {
             logger.error(LogMessages.ERROR_MAIN_PROGRAM, e);
         } finally {
@@ -103,5 +119,51 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     protected abstract CommandLineInterface parseOptions(
             CommandLine commandLine) throws CommandLineInterrogationException;
+
+    /**
+     * Formats an array of command line arguments appending a configuration file at the end.
+     *
+     * @param arguments    the input arguments
+     * @param option       the option to add
+     * @param optionValues the value of the option
+     * @return the formatted string
+     */
+    public static String formatArgumentsWithOption(String[] arguments, Option option, String... optionValues) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        consumeArguments(arguments, option, stringBuilder);
+
+        stringBuilder.append(ARGUMENTS_LONG_OPTION_PREFIX);
+        stringBuilder.append(option.getLongOpt());
+        stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
+        for (String optionValue : optionValues) { stringBuilder.append(optionValue); }
+        return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Consumes the input arguments skipping the given option.
+     *
+     * @param arguments     the arguments
+     * @param option        the option
+     * @param stringBuilder the string builder to append
+     */
+    protected static void consumeArguments(String[] arguments, Option option, StringBuilder stringBuilder) {
+        for (int i = 0; i < arguments.length; ) {
+            if (arguments[i].equals(ARGUMENTS_LONG_OPTION_PREFIX + option.getLongOpt())
+                    || arguments[i].equals(ARGUMENTS_SHORT_OPTION_PREFIX + option.getOpt())) {
+                i++;
+                while (i < arguments.length && !arguments[i].startsWith(ARGUMENTS_SHORT_OPTION_PREFIX)) { i++; }
+                continue;
+            }
+            stringBuilder.append(arguments[i]);
+            stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
+            i++;
+            while (i < arguments.length && !arguments[i].startsWith(ARGUMENTS_SHORT_OPTION_PREFIX)) {
+                stringBuilder.append(arguments[i]);
+                stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
+                i++;
+            }
+        }
+    }
 
 }

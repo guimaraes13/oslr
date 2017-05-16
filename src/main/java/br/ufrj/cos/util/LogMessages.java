@@ -54,7 +54,15 @@ public enum LogMessages {
     ERROR_REVISING_THEORY("Error when revising the theory, reason:"),
     ERROR_EVALUATING_CANDIDATE_THEORY("Error when evaluating a candidate theory, reason:"),
 
+    BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation."),
+    END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
+    THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no improvements."),
+
     //One additional parameters to format
+    RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
+
+    ERROR_PROVING_GOAL("Could not prove the goal:\t{}"),
+    COMMAND_LINE_ARGUMENTS("Command line arguments:\t{}"),
 
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
     BUILDING_ENGINE_SYSTEM_TRANSLATOR("Build the engine system translator:\t{}"),
@@ -69,7 +77,7 @@ public enum LogMessages {
     GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
 
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
-    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
+    BUILDING_CLAUSE_FROM_EXAMPLE("Building clause from the example:\t{}"),
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
@@ -87,6 +95,7 @@ public enum LogMessages {
     ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:"),
 
     //Two additional parameters to format
+    EVALUATED_TIMEOUT_PROPORTION("{}% out of {} rules has finished the evaluation within the timeout."),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
     ANSWER_STATE_WITH_VALUE("State:\t{},\t{}");
 

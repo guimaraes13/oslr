@@ -82,10 +82,10 @@ public class RevisionOperatorEvaluator implements Initializable {
      */
     public double evaluateOperator(Examples examples, Example... targets) throws TheoryRevisionException {
         if (!isEvaluated) {
-            isEvaluated = true;
             updatedTheory = revisionOperator.performOperation(targets);
             evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(revisionOperator.getTheoryMetric(),
                                                                                    examples, updatedTheory);
+            isEvaluated = true;
         }
 
         return evaluationValue;
@@ -152,4 +152,12 @@ public class RevisionOperatorEvaluator implements Initializable {
         }
         this.revisionOperator = revisionOperator;
     }
+
+    /**
+     * Clears the revised theory.
+     */
+    public void clearCachedTheory() {
+        isEvaluated = false;
+    }
+
 }

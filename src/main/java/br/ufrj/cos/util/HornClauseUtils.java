@@ -205,7 +205,8 @@ public class HornClauseUtils {
     protected static <T> void appendAllCandidatesToQueue(Iterable<T> candidates, Queue<Set<T>> queue) {
         Set<T> currentSetBase;
         Set<T> currentSet;
-        for (int i = 0; i < queue.size(); i++) {
+        int size = queue.size();
+        for (int i = 0; i < size; i++) {
             currentSetBase = queue.poll();
             for (T t : candidates) {
                 currentSet = new HashSet<>(currentSetBase);
@@ -220,10 +221,10 @@ public class HornClauseUtils {
      * safe, an empty {@link Set} is returned.
      *
      * @param head            the head of the {@link HornClause}
-     * @param candidateBodies a {@link Iterable} of candidate bodies
+     * @param candidateBodies a {@link Collection} of candidate bodies
      * @return the {@link Set} of safe {@link HornClause}s
      */
-    protected static Set<HornClause> buildSafeClauses(Atom head, Iterable<Set<Literal>> candidateBodies) {
+    protected static Set<HornClause> buildSafeClauses(Atom head, Collection<Set<Literal>> candidateBodies) {
         Set<HornClause> hornClauses = new HashSet<>();
         for (Set<Literal> candidateBody : candidateBodies) {
             if (isRuleSafe(head, candidateBody)) {
@@ -231,6 +232,9 @@ public class HornClauseUtils {
             }
         }
         return hornClauses;
+//        return candidateBodies.stream().filter(literals -> isRuleSafe(head, literals))
+//                .map(literals -> new HornClause(head, new Conjunction(literals)))
+//                .collect(Collectors.toSet());
     }
 
     /**

@@ -36,6 +36,7 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -336,5 +337,14 @@ public class LearningSystem {
      */
     public IncomingExampleManager getIncomingExampleManager() {
         return incomingExampleManager;
+    }
+
+    /**
+     * Saves the {@link EngineSystemTranslator}'s parameters into files within the working directory.
+     *
+     * @param workingDirectory the working directory
+     */
+    public void saveParameters(File workingDirectory) {
+        engineSystemTranslator.saveParameters(workingDirectory);
     }
 }

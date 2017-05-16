@@ -105,7 +105,6 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
             thread.join(timeout * TimeMeasure.SECONDS_TO_MILLISECONDS_MULTIPLIER);
             if (thread.isAlive()) {
                 logger.trace(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), timeout);
-            } else {
                 thread.interrupt();
             }
         } catch (InterruptedException e) {

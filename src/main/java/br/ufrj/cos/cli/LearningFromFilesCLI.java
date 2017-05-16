@@ -63,6 +63,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -72,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A Command Line Interface which allows experiments of learning from files.
@@ -93,6 +95,18 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
 
+    /**
+     * The name of the saved theory file.
+     */
+    public static final String THEORY_FILE_NAME = "theory.pl";
+    /**
+     * The output configuration file name.
+     */
+    public static final String CONFIG_FILE_NAME = "configuration.yaml";
+    /**
+     * The output arguments file name.
+     */
+    public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
     /**
      * The knowledge base collection class name.
      */
@@ -128,21 +142,23 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * Input knowledge base files.
      */
-    public File[] knowledgeBaseFiles;
+    public String[] knowledgeBaseFilePaths;
     /**
      * Input theory files.
      */
-    public File[] theoryFiles;
+    public String[] theoryFilePaths;
     /**
      * Input example files.
      */
-    public File[] exampleFiles;
+    public String[] exampleFilePaths;
+    /**
+     * The output directory to save the files in.
+     */
+    public String outputDirectoryPath;
     /**
      * The evaluation metrics for the {@link TheoryEvaluator}.
      */
     public TheoryMetric[] theoryMetrics;
-
-    //Input fields
     /**
      * The {@link RevisionOperatorEvaluator}s.
      */
@@ -171,7 +187,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The engine system.
      */
     public EngineSystemTranslator engineSystemTranslator;
-
     /**
      * If the system will be executed in parallel and thread access control will be necessary.
      * <p>
@@ -187,6 +202,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The knowledge base predicate.
      */
     protected Class<? extends ClausePredicate> knowledgeBasePredicateClass;
+
+    //Processing fields
     /**
      * The most generic {@link Atom} subclass allowed in the knowledge base.
      */
@@ -195,27 +212,26 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The theory collection class.
      */
     protected Class<? extends Collection> theoryCollectionClass;
-
-    //Processing fields
     /**
      * Knowledge base representation.
      */
     protected KnowledgeBase knowledgeBase;
-
     /**
      * Theory representation.
      */
     protected Theory theory;
-
     /**
      * Examples representation.
      */
     protected Examples examples;
-
     /**
      * The learning system.
      */
     protected LearningSystem learningSystem;
+    /**
+     * The output directory to save the files in.
+     */
+    protected File outputDirectory;
 
     /**
      * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
@@ -289,6 +305,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         options.addOption(CommandLineOptions.THEORY.getOption());
         options.addOption(CommandLineOptions.EXAMPLES.getOption());
         options.addOption(CommandLineOptions.YAML.getOption());
+        options.addOption(CommandLineOptions.OUTPUT_DIRECTORY.getOption());
     }
 
     @Override
@@ -300,11 +317,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
                 System.exit(0);
             }
             LearningFromFilesCLI cli = readYamlFile(commandLine);
-            cli.knowledgeBaseFiles = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
-            cli.theoryFiles = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
-            cli.exampleFiles = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
+            cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE
+                    .getOptionName());
+            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
+            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
+            cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName());
             return cli;
-        } catch (Exception e) {
+        } catch (FileNotFoundException | YamlException e) {
             throw new CommandLineInterrogationException(e);
         }
     }
@@ -317,7 +336,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */
-    protected LearningFromFilesCLI readYamlFile(CommandLine commandLine) throws FileNotFoundException, YamlException {
+    protected LearningFromFilesCLI readYamlFile(CommandLine commandLine) throws FileNotFoundException,
+            YamlException {
         File yamlFile;
         if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
             yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
@@ -325,7 +345,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             yamlFile = new File(DEFAULT_YAML_CONFIGURATION_FILE);
         }
         YamlReader reader = new YamlReader(new FileReader(yamlFile));
-        LearningFromFilesCLI cli = reader.read(LearningFromFilesCLI.class);
+        LearningFromFilesCLI cli = reader.read(this.getClass());
         cli.configurationFilePath = yamlFile.getAbsolutePath();
         return cli;
     }
@@ -336,45 +356,19 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @param commandLine the parsed command line
      * @param optionName  the {@link Option} to get the parsed {@link String}s.
      * @return the {@link File}s
-     * @throws FileNotFoundException if a file does not exists
      */
-    protected File[] getFilesFromOption(CommandLine commandLine, String optionName) throws FileNotFoundException {
+    protected String[] getFilesFromOption(CommandLine commandLine, String optionName) {
         if (commandLine.hasOption(optionName)) {
-            return readPathsToFiles(commandLine.getOptionValues(optionName), options.getOption(optionName)
-                    .getLongOpt());
+            return commandLine.getOptionValues(optionName);
         }
 
-        return new File[0];
-    }
-
-    /**
-     * Reads the file paths to {@link File} objects.
-     *
-     * @param paths     the file paths
-     * @param inputName the input name
-     * @return the {@link File}s
-     * @throws FileNotFoundException if a file does not exists
-     */
-    protected File[] readPathsToFiles(String paths[], String inputName) throws FileNotFoundException {
-        File[] files = new File[paths.length];
-        File file;
-        for (int i = 0; i < paths.length; i++) {
-            file = new File(paths[i]);
-            if (file.exists()) {
-                files[i] = file;
-            } else {
-                throw new FileNotFoundException(String.format(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
-                        .getAbsoluteFile(), inputName));
-            }
-        }
-
-        return files;
+        return new String[0];
     }
 
     @Override
     public void run() {
         try {
-            logConfigurations();
+            saveConfigurations();
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
@@ -382,25 +376,53 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             buildLearningSystem();
             //TODO: test the revision
             reviseExamples();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException
-                e) {
+
+            //TODO: save knowledge base, theory and examples to files
+            //TODO: write the options of the saved files into the argument file
+            saveParameters();
+        } catch (ReflectiveOperationException e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
         } catch (InitializationException e) {
             logger.error(LogMessages.ERROR_INITIALIZING_COMPONENTS, e);
-        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+        } catch (IOException e) {
             logger.error(LogMessages.ERROR_READING_CONFIGURATION_FILE, e);
         }
     }
 
     /**
+     * Saves the parameters to files.
+     *
+     * @throws IOException if an error occurs with the file
+     */
+    protected void saveParameters() throws IOException {
+        LanguageUtils.saveTheoryToFile(learningSystem.getTheory(), new File(outputDirectory, THEORY_FILE_NAME));
+        learningSystem.saveParameters(outputDirectory);
+    }
+
+    /**
      * Logs the configurations from the configuration file.
      *
-     * @throws FileNotFoundException        if the file does not exists
-     * @throws UnsupportedEncodingException if the encoding is not supported
+     * @throws IOException if an error occurs with the file
      */
-    protected void logConfigurations() throws FileNotFoundException, UnsupportedEncodingException {
-        logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, LanguageUtils.readFileToString
-                (configurationFilePath));
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    protected void saveConfigurations() throws IOException {
+        String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
+        if (outputDirectoryPath != null) {
+            outputDirectory = new File(outputDirectoryPath);
+        } else {
+            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
+            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
+        }
+        outputDirectory.mkdirs();
+        File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
+        String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
+                                                                configurationFile.getCanonicalPath());
+        LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
+        LanguageUtils.writeStringToFile(configFileContent, configurationFile);
+
+        logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
+                    Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
+        logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
     }
 
     /**
@@ -532,10 +554,14 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Builds the default {@link RevisionOperatorEvaluator}s.
      *
      * @return the default {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected List<RevisionOperatorEvaluator> defaultRevisionOperator() {
+    protected List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
         List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
         BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
+        TheoryMetric metric = new LogLikelihoodMetric();
+        metric.parametersRetrainedBeforeEvaluate = true;
+        bottomClause.setTheoryMetric(metric);
         bottomClause.internalMetric = new F1ScoreMetric();
         operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
         return operatorEvaluator;
@@ -593,9 +619,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
      * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException  if a file does not exists
      */
-    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException {
-        List<Clause> clauses = readInputKnowledge(knowledgeBaseFiles);
+    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = readInputKnowledge(LanguageUtils.readPathsToFiles(knowledgeBaseFilePaths,
+                                                                                 CommandLineOptions.KNOWLEDGE_BASE
+                                                                                         .getOptionName()));
         ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
         logger.debug(LogMessages.CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
 
@@ -611,10 +640,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @throws IllegalAccessException    if an error occurs when instantiating a new object by reflection
      * @throws InvocationTargetException if an error occurs when instantiating a new object by reflection
      * @throws InstantiationException    if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException     if a file does not exists
      */
     protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException {
-        List<Clause> clauses = readInputKnowledge(theoryFiles);
+            InvocationTargetException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = readInputKnowledge(LanguageUtils.readPathsToFiles(theoryFilePaths,
+                                                                                 CommandLineOptions.THEORY
+                                                                                         .getOptionName()));
 
         ClausePredicate predicate = null;
         if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {
@@ -633,13 +665,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InstantiationException if an error occurs when instantiating a new set
      * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @throws FileNotFoundException  if a file does not exists
      */
-    protected void buildExampleSet() throws InstantiationException, IllegalAccessException {
+    protected void buildExampleSet() throws InstantiationException, IllegalAccessException, FileNotFoundException {
         List<InputStream> inputStreams = new ArrayList<>();
         List<AtomExample> atomExamples = new ArrayList<>();
         List<ProPprExample> proPprExamples = new ArrayList<>();
         logger.trace(LogMessages.READING_INPUT_FILES);
-        for (File file : exampleFiles) {
+        for (File file : LanguageUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName()
+                                                       )) {
             readExamplesToLists(file, atomExamples, proPprExamples);
         }
         logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
@@ -694,15 +728,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
                 "\n" +
                 "\t" +
                 "Knowledge base files:\t" +
-                Arrays.deepToString(knowledgeBaseFiles) +
+                Arrays.deepToString(knowledgeBaseFilePaths) +
                 "\n" +
                 "\t" +
                 "Theory files:\t\t\t" +
-                Arrays.deepToString(theoryFiles) +
+                Arrays.deepToString(theoryFilePaths) +
                 "\n" +
                 "\t" +
                 "Example files:\t\t\t" +
-                Arrays.deepToString(exampleFiles);
+                Arrays.deepToString(exampleFilePaths);
 
         return description.trim();
     }

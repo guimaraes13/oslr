@@ -108,14 +108,14 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
             SymbolTable<Feature> featureTable = new ConcurrentSymbolTable<>(ConcurrentSymbolTable.HASHING_STRATEGIES
                                                                                     .identity);
             Multithreading<InferenceExample, Ground<P>> multithreading
-                    = new Multithreading<>(logger, status, true);
+                    = new Multithreading<>(status, true);
 
             Transformer<InferenceExample, Ground<P>> transformer
                     = new GroundTransformer<>(prover, apr, featureTable, masterProgram, masterPlugins, statistics,
                                               includeUnlabeledGraphs, status);
 
             multithreading.executeJob(nthreads, inferenceExampleIterable, transformer, groundCleanup, throttle);
-            saveFeaturesToSymbolTable(masterFeatures);
+            saveFeaturesToSymbolTable(featureTable, masterFeatures);
             reportStatistics(statistics);
         } catch (Exception e) {
             logger.error(LogMessages.ERROR_GROUNDING_EXAMPLE.toString(), e);
@@ -126,11 +126,12 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     /**
      * Saves the discovered features to a {@link SymbolTable}.
      *
-     * @param symbolTable the {@link SymbolTable}
+     * @param source      the source {@link SymbolTable}
+     * @param destination the destination {@link SymbolTable}
      */
-    protected void saveFeaturesToSymbolTable(SymbolTable<String> symbolTable) {
-        for (int i = 1; i < featureTable.size() + 1; i++) {
-            symbolTable.insert(featureTable.getSymbol(i).name);
+    protected void saveFeaturesToSymbolTable(SymbolTable<Feature> source, SymbolTable<String> destination) {
+        for (int i = 1; i < source.size() + 1; i++) {
+            destination.insert(source.getSymbol(i).name);
         }
     }
 
@@ -140,29 +141,47 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * @param statistics the {@link GroundingStatistics}
      */
     protected void reportStatistics(GroundingStatistics statistics) {
-        if (!logger.isInfoEnabled()) { return; }
+        if (!logger.isTraceEnabled()) { return; }
         int skipped = statistics.noPosNeg + statistics.emptyGraph;
-        logger.info("Grounded: " + (statistics.count - skipped));
-        logger.info("Skipped: " + skipped + " = " + statistics.noPosNeg + " with no labeled solutions; " + statistics
+        logger.trace("Grounded: " + (statistics.count - skipped));
+        logger.trace("Skipped: " + skipped + " = " + statistics.noPosNeg + " with no labeled solutions; " + statistics
                 .emptyGraph + " with empty graphs");
-        logger.info("totalPos: " + statistics.totalPos
+        logger.trace("totalPos: " + statistics.totalPos
                             + " totalNeg: " + statistics.totalNeg
                             + " coveredPos: " + statistics.coveredPos
                             + " coveredNeg: " + statistics.coveredNeg);
         if (statistics.totalPos > 0) {
-            logger.info("For positive examples " + statistics.coveredPos
+            logger.trace("For positive examples " + statistics.coveredPos
                                 + "/" + statistics.totalPos
                                 + " proveable [" + ((100.0 * statistics.coveredPos) / statistics.totalPos) + "%]");
         }
         if (statistics.totalNeg > 0) {
-            logger.info("For negative examples " + statistics.coveredNeg
+            logger.trace("For negative examples " + statistics.coveredNeg
                                 + "/" + statistics.totalNeg
                                 + " proveable [" + ((100.0 * statistics.coveredNeg) / statistics.totalNeg) + "%]");
         }
         if (statistics.worstX != null) {
-            logger.info("Example with fewest [" + 100.0 * statistics.smallestFractionCovered + "%] pos examples " +
+            logger.trace("Example with fewest [" + 100.0 * statistics.smallestFractionCovered + "%] pos examples " +
                                 "covered: " + statistics.worstX.getQuery());
         }
+    }
+
+    /**
+     * Gets the {@link WamProgram}.
+     *
+     * @return the {@link WamProgram}
+     */
+    public WamProgram getProgram() {
+        return masterProgram;
+    }
+
+    /**
+     * Sets the {@link WamProgram}.
+     *
+     * @param program the {@link WamProgram}
+     */
+    public void setProgram(WamProgram program) {
+        this.masterProgram = program;
     }
 
 }

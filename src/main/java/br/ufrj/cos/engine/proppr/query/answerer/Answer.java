@@ -34,6 +34,7 @@ import edu.cmu.ml.proppr.util.SymbolTable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -124,7 +125,8 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
         P pg = prover.makeProofGraph(new InferenceExample(query, null, null), aprOptions, featureTable,
                                      program, plugins);
         logger.trace(LogMessages.ANSWERING_QUERY.toString(), query);
-        Map<State, Double> dist = prover.prove(pg, status);
+        Map<State, Double> dist = prove(prover, pg);
+        if (dist == null) { return null; }
         solutions = new TreeMap<>();
         for (Map.Entry<State, Double> s : dist.entrySet()) {
             if (s.getKey().isCompleted()) {
@@ -142,6 +144,22 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
         logger.trace(LogMessages.NUMBER_OF_QUERY_ANSWERS.toString(), solutionDist.size());
 
         return this;
+    }
+
+    /**
+     * Tries to prove the examples and make the {@link ProofGraph}.
+     *
+     * @param prover the {@link Prover}
+     * @param pg     the initial {@link ProofGraph}
+     * @return the graph in a {@link Map}
+     */
+    protected Map<State, Double> prove(Prover<P> prover, P pg) {
+        try {
+            return prover.prove(pg, status);
+        } catch (LogicProgramException e) {
+            logger.trace(LogMessages.ERROR_PROVING_GOAL.toString(), Arrays.deepToString(query.getRhs()));
+        }
+        return null;
     }
 
     /**

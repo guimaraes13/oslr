@@ -31,6 +31,9 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEv
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LogMessages;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,11 @@ import java.util.List;
  * @author Victor Guimarães
  */
 public class TheoryRevisionManager implements Initializable {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     protected LearningSystem learningSystem;
     protected RevisionManager revisionManager;
@@ -93,9 +101,12 @@ public class TheoryRevisionManager implements Initializable {
 
         if (metric.compare(revised, current) > 0) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
-            learningSystem.trainParameters(targets);
+            learningSystem.trainParameters(learningSystem.getExamples());
             learningSystem.saveTrainedParameters();
+        } else {
+            logger.debug(LogMessages.THEORY_MODIFICATION_SKIPPED);
         }
+        revisionOperator.clearCachedTheory();
     }
 
     /**

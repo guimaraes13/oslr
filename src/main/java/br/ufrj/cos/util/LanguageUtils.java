@@ -23,6 +23,7 @@ package br.ufrj.cos.util;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
+import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 
 import java.io.*;
@@ -111,6 +112,21 @@ public class LanguageUtils {
      * The pattern of simple constant, the ones without the {@link #CONSTANT_SURROUNDING_CHARACTER}.
      */
     public static final Pattern SIMPLE_CONSTANT_PATTERN = Pattern.compile("[a-z][a-zA-Z0-9_]*");
+
+    /**
+     * Pattern to simplify the class name keeping only the upper case letters.
+     */
+    public static final String SIMPLE_CLASS_NAME_PATTERN = "(.*\\.|[a-z]*)";
+
+    /**
+     * The name formatter separator.
+     */
+    public static final String NAME_FORMATTER_SEPARATOR = "_";
+
+    /**
+     * Arguments separator.
+     */
+    public static final String ARGUMENTS_SEPARATOR = " ";
 
     /**
      * Checks if the name can be a simple constant ou need the {@link #CONSTANT_SURROUNDING_CHARACTER}, i.e. there is
@@ -248,7 +264,11 @@ public class LanguageUtils {
             InstantiationException {
         List<Term> terms = atom.getTerms().getClass().newInstance();
         for (Term term : atom.getTerms()) {
-            terms.add(variableMap.computeIfAbsent(term, k -> generator.next()));
+            if (term.isConstant()) {
+                terms.add(variableMap.computeIfAbsent(term, k -> generator.next()));
+            } else {
+                terms.add(term);
+            }
         }
 
         return new Atom(atom.getName(), terms);
@@ -326,4 +346,74 @@ public class LanguageUtils {
                                                                          DEFAULT_INPUT_ENCODE));
         return reader.lines().collect(Collectors.joining("\n")).trim();
     }
+
+    /**
+     * Writes a {@link String} to a file.
+     *
+     * @param content the content of the file
+     * @param file    the file to write to
+     * @throws IOException if an error occurs during the writing
+     */
+    public static void writeStringToFile(String content, File file) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                          DEFAULT_INPUT_ENCODE));
+        writer.write(content);
+        writer.close();
+    }
+
+    /**
+     * Reads the file paths to {@link File} objects.
+     *
+     * @param paths     the file paths
+     * @param inputName the input name
+     * @return the {@link File}s
+     * @throws FileNotFoundException if a file does not exists
+     */
+    public static File[] readPathsToFiles(String paths[], String inputName) throws FileNotFoundException {
+        File[] files = new File[paths.length];
+        File file;
+        for (int i = 0; i < paths.length; i++) {
+            file = new File(paths[i]);
+            if (file.exists()) {
+                files[i] = file;
+            } else {
+                throw new FileNotFoundException(String.format(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
+                        .getAbsoluteFile(), inputName));
+            }
+        }
+
+        return files;
+    }
+
+    /**
+     * Creates a directory name by combining the upper case letters from the class name with the suffix, separated by
+     * the {@link #NAME_FORMATTER_SEPARATOR}.
+     *
+     * @param object the object
+     * @param suffix the suffix
+     * @return the formatted name
+     */
+    public static String formatDirectoryName(Object object, String suffix) {
+        String className = object.getClass().getName();
+        className = className.replaceAll(SIMPLE_CLASS_NAME_PATTERN, "");
+
+        return className + NAME_FORMATTER_SEPARATOR + (suffix == null ? "" : suffix);
+    }
+
+    /**
+     * Saves the {@link Theory} to the {@link File}
+     *
+     * @param theory the {@link Theory}
+     * @param file   the {@link File}
+     * @throws IOException if an error occurs with the file
+     */
+    public static void saveTheoryToFile(Theory theory, File file) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                          DEFAULT_INPUT_ENCODE));
+        for (HornClause clause : theory) {
+            writer.write(clause.toString() + "\n");
+        }
+        writer.close();
+    }
+
 }

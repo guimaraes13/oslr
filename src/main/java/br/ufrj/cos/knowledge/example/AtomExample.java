@@ -118,7 +118,7 @@ public class AtomExample extends Atom implements Example {
      * @param positive the value of the example, true for positive; false for negative
      */
     public AtomExample(Atom atom, boolean positive) {
-        this(atom.getName(), atom.getTerms(), true);
+        this(atom.getName(), atom.getTerms(), positive);
     }
 
     /**

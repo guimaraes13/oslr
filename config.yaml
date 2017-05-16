@@ -42,8 +42,7 @@ theoryMetrics:
 revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator
       revisionOperator: !br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule
-         theoryMetric:     !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric
-            parametersRetrainedBeforeEvaluate: false
+         theoryMetric:     !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric {}
          variableGeneratorClassName:   br.ufrj.cos.util.VariableGenerator
          relevantsDepth:               0
          maximumSideWayMovements:      -1

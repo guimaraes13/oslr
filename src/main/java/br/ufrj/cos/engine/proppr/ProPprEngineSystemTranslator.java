@@ -50,14 +50,12 @@ import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
-import edu.cmu.ml.proppr.util.APROptions;
-import edu.cmu.ml.proppr.util.SRWOptions;
-import edu.cmu.ml.proppr.util.SimpleSymbolTable;
-import edu.cmu.ml.proppr.util.SymbolTable;
+import edu.cmu.ml.proppr.util.*;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -90,6 +88,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public static final int NO_MAX_SOLUTIONS = -1;
 
     /**
+     * Name of the saved parameters file.
+     */
+    public static final String SAVED_PARAMETERS_FILE_NAME = "savedParameters.wts";
+
+    /**
      * If is to use ternay index, makes an more efficient cache for predicates with arity.
      */
     public boolean useTernayIndex = false;
@@ -120,8 +123,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     /**
      * The {@link Prover}
      */
-    @SuppressWarnings("unchecked")
-    public Prover<P> prover = (Prover<P>) new DprProver();
+    public Prover<P> prover;
     /**
      * The {@link SquashingFunction}
      */
@@ -194,6 +196,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             if (hornClause instanceof FeaturedClause) {
                 FeaturedClause featuredClause = (FeaturedClause) hornClause;
                 features = atomsToGoals(featuredClause.getFeatures(), variableMap);
+            } else {
+                features = new Goal[]{new Goal(hornClause.getHead().getName() + hornClause.getBody().size())};
             }
         }
 
@@ -306,7 +310,10 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public synchronized void initialize() {
+        if (this.prover == null) { this.prover = (Prover<P>) new DprProver(aprOptions); }
+        this.prover.apr = aprOptions;
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
                                                program, factsPlugin);
         this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
@@ -595,6 +602,13 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public synchronized void setTheory(Theory theory) {
         this.theory = theory;
         this.program = compileTheory(theory);
+        if (this.grounder != null) { this.grounder.setProgram(program); }
+        if (this.answerer != null) { this.answerer.setProgram(program); }
+    }
+
+    @Override
+    public void saveParameters(File workingDirectory) {
+        ParamsFile.save(savedParamVector, new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME), null);
     }
 
     /**

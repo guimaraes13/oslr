@@ -24,10 +24,13 @@ package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A template for metrics that simply accumulates a value for each proved ground example.
@@ -42,12 +45,19 @@ public abstract class AccumulatorMetric extends TheoryMetric {
     public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
         Map<Atom, Double> atomValues;
         double result = initialAccumulatorValue();
-        for (Example example : examples) {
+
+        if (inferredResult.isEmpty()) { return getDefaultValue(); }
+        Set<ProPprExample> provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e))
+                .collect(Collectors.toSet());
+        boolean proved = false;
+        for (Example example : provedExamples) {
             atomValues = inferredResult.get(example);
             if (atomValues == null) { continue; }
             result = accumulate(result, evaluateExamples(example.getGroundedQuery(), atomValues));
+            proved |= true;
         }
-        return result;
+
+        return proved ? result : getDefaultValue();
     }
 
     /**

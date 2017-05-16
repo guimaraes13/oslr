@@ -42,7 +42,12 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
 
     @Override
     protected double accumulate(double initial, double append) {
-        return initial + append;
+        return Math.max(initial + append, getDefaultValue());
+    }
+
+    @Override
+    public double getDefaultValue() {
+        return -Double.MAX_VALUE;
     }
 
     @Override

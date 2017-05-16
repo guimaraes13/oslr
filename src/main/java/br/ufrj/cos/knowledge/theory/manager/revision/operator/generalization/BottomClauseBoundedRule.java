@@ -183,15 +183,23 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             Theory theory = learningSystem.getTheory().copy();
 
             int initialSize = theory.size();
+            HornClause newRule;
             for (Example example : targets) {
-                if (!example.isPositive() || isCovered(example)) {
-                    if (example.isPositive()) {
-                        logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
+                try {
+                    if (!example.isPositive() || isCovered(example)) {
+                        if (example.isPositive()) {
+                            logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
+                        }
+                        continue;
                     }
-                    continue;
+                    logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+                    newRule = buildRuleForExample(example);
+                    if (theory.add(newRule)) {
+                        logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
+                    }
+                } catch (TheoryRevisionException e) {
+                    logger.debug(e.getMessage());
                 }
-                logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-                theory.add(buildRuleForExample(example));
             }
             return theory;
         } catch (KnowledgeException e) {
@@ -234,6 +242,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             AsyncTheoryEvaluator bestClause = getBestClausesFromCandidates(candidateClauses);
             if (bestClause == null) {
                 logger.debug(LogMessages.ERROR_EVALUATING_MINIMAL_CLAUSES);
+                return null;
             }
 
             logger.trace(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
@@ -267,6 +276,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         int sideWayMovements = 0;
         while (!itToStopBySideWayMovements(sideWayMovements) && !candidateLiterals.isEmpty()) {
             candidateLiterals.removeAll(currentClause.getHornClause().getBody());
+            //TODO: continue from here!
             currentClause = specifyRule(currentClause.getHornClause(), candidateLiterals);
             if (currentClause == null) {
                 break;
@@ -274,6 +284,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
                     improvementThreshold) {
                 bestClause = currentClause;
+                sideWayMovements = 0;
             } else {
                 if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
                         !generic) {
@@ -318,20 +329,24 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param candidates the candidate clauses
      * @return the best evaluated {@link HornClause}
      */
-    protected AsyncTheoryEvaluator getBestClausesFromCandidates(Iterable<? extends HornClause> candidates) {
+    protected AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends HornClause> candidates) {
+        if (candidates == null || candidates.isEmpty()) { return null; }
         AsyncTheoryEvaluator bestClause = null;
+        int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
         try {
+            logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION);
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
             Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool);
 
+            evaluationPool.shutdown();
             evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
                                             TimeUnit.SECONDS);
             evaluationPool.shutdownNow();
+            logger.trace(LogMessages.END_ASYNC_EVALUATION);
             bestClause = retrieveEvaluatedMetrics(futures, null);
         } catch (InterruptedException e) {
             logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
         }
-
         return bestClause;
     }
 
@@ -442,9 +457,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         AsyncTheoryEvaluator evaluated;
         double bestClauseValue = internalMetric.getDefaultValue();
         AsyncTheoryEvaluator bestClause = null;
+        int count = 0;
         for (Future<AsyncTheoryEvaluator> future : futures) {
             try {
                 evaluated = future.get();
+                if (!evaluated.isEvaluationFinished()) { continue; }
+                count++;
                 if (evaluationMap != null) {
                     evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
                 }
@@ -458,6 +476,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), evaluationTimeout);
             }
         }
+        logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
+                     ((double) count / futures.size()) * 100, futures.size());
         return bestClause;
     }
 
@@ -493,8 +513,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     protected AsyncTheoryEvaluator specifyRule(HornClause clause, Iterable<Literal> candidates) {
         Set<HornClause> hornClauses = new HashSet<>();
         Conjunction body;
+        Set<Term> bodyTerms;
         for (Literal candidate : candidates) {
             if (!HornClauseUtils.willBeRuleSafe(clause.getHead(), clause.getBody(), candidate)) {
+                continue;
+            }
+            bodyTerms = clause.getBody().stream().map(Atom::getTerms).flatMap(List::stream).collect(Collectors.toSet());
+            if (Collections.disjoint(bodyTerms, candidate.getTerms())) {
                 continue;
             }
             body = new Conjunction(clause.getBody());

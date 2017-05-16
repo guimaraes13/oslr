@@ -33,6 +33,7 @@ import org.apache.commons.cli.OptionBuilder;
  */
 @SuppressWarnings({"deprecation", "AccessStaticViaInstance", "JavaDoc"})
 public enum CommandLineOptions {
+    HELP(new Option("h", "help", false, "print this message.")),
     YAML(OptionBuilder.withArgName("yaml")
                  .withLongOpt("yaml")
                  .hasArg()
@@ -40,7 +41,6 @@ public enum CommandLineOptions {
                                           "the options of the system. If it is not provided, the default one will" +
                                           " be used. The command line options override the yaml file.")
                  .create("y")),
-    HELP(new Option("h", "help", false, "print this message.")),
     KNOWLEDGE_BASE(OptionBuilder.withArgName("base")
                            .withLongOpt("knowledgeBase")
                            .hasArgs(Option.UNLIMITED_VALUES)
@@ -55,7 +55,13 @@ public enum CommandLineOptions {
                      .withLongOpt("example")
                      .hasArgs(Option.UNLIMITED_VALUES)
                      .withDescription("the input example file(s).")
-                     .create("e"));
+                     .create("e")),
+    OUTPUT_DIRECTORY(OptionBuilder.withArgName("output")
+                             .withLongOpt("outputDirectory")
+                             .hasArgs(Option.UNLIMITED_VALUES)
+                             .withDescription("the directory to save the files in. If not specified, a new directory," +
+                                                      " in the current directory will be created.")
+                             .create("o"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

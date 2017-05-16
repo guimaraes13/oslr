@@ -30,6 +30,7 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.Initializable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -238,5 +239,12 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
      * @param theory the {@link Theory}
      */
     public abstract void setTheory(Theory theory);
+
+    /**
+     * Method to save the necessary parameters to files in the working directory.
+     *
+     * @param workingDirectory the working directory
+     */
+    public abstract void saveParameters(File workingDirectory);
 
 }

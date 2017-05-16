@@ -65,8 +65,8 @@ public class Theory extends Knowledge<HornClause> {
      */
     public Theory copy() throws KnowledgeException {
         try {
-            Collection<HornClause> copy = collection.getClass().getConstructor(collection.getClass()).newInstance
-                    (collection);
+            Collection<HornClause> copy = collection.getClass().newInstance();
+            copy.addAll(collection);
             return new Theory(copy, acceptPredicate);
         } catch (Exception e) {
             throw new KnowledgeException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);

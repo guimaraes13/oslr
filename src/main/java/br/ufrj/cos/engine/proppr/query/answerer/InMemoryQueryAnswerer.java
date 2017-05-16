@@ -78,7 +78,7 @@ public class InMemoryQueryAnswerer<P extends ProofGraph> extends QueryAnswerer<P
      * @return the {@link Map} of {@link Answer}s of the queries
      */
     public Map<Integer, Answer<P>> findSolutions(Iterable<Query> queries) {
-        Multithreading<Query, Answer<P>> multithreading = new Multithreading<>(logger, status, true);
+        Multithreading<Query, Answer<P>> multithreading = new Multithreading<>(status, true);
         MapCleanup<Answer<P>> answerCleanup = new MapCleanup<>();
         Transformer<Query, Answer<P>> transformer = new QueryTransformer<>(program, plugins, prover, normalize, apr,
                                                                            featureTable, numSolutions, status);
