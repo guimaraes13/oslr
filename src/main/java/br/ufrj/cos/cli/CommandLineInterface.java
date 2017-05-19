@@ -70,10 +70,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         try {
             CommandLineInterface main = new LearningFromFilesCLI();
             main = main.parseOptions(args);
-            logger.info(LogMessages.PROGRAM_BEGIN);
             if (main != null) {
                 main.cliArguments = args;
                 main.initialize();
+                logger.info(LogMessages.PROGRAM_BEGIN);
                 logger.info(main.toString());
                 main.run();
             }

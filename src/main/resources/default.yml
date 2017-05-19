@@ -45,6 +45,7 @@ revisionOperatorEvaluators:
          theoryMetric:     !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric
             parametersRetrainedBeforeEvaluate: false
          variableGeneratorClassName:   br.ufrj.cos.util.VariableGenerator
+         refine:                       false
          relevantsDepth:               0
          maximumSideWayMovements:      -1
          improvementThreshold:         0.0

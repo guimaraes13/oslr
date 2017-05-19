@@ -64,8 +64,16 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -89,12 +97,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
-
     /**
      * The default yaml configuration file.
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
-
     /**
      * The name of the saved theory file.
      */
@@ -107,6 +113,47 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The output arguments file name.
      */
     public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
+    /**
+     * If is to append the log file.
+     */
+    public static final String APPEND_LOG_FILE = "false";
+    /**
+     * If is to lock the log file.
+     */
+    public static final String LOCKING_LOG_FILE = "false";
+    /**
+     * The log file appender's name.
+     */
+    public static final String FILE_APPENDER_NAME = "FileStd";
+    /**
+     * If is to immediate flush the log file.
+     */
+    public static final String IMMEDIATE_FLUSH_LOG_FILE = "true";
+    /**
+     * If is to ignore exception in the log file.
+     */
+    public static final String IGNORE_EXCEPTIONS_LOG_FILE = "false";
+    /**
+     * If is to buffer the log file.
+     */
+    public static final String BUFFERED_IO_LOG_FILE = "false";
+    /**
+     * Size of the log file buffer.
+     */
+    public static final String BUFFER_SIZE_LOG_FILE = "0";
+    /**
+     * If is to advertise the log file.
+     */
+    public static final String ADVERTISE_LOG_FILE = "false";
+    /**
+     * The log file pattern layout
+     */
+    public static final String PATTERN_LAYOUT = "[ %d{yyy-MM-dd HH:mm:ss.SSS} ] [ %-5level ] [ %logger{1} " +
+            "]\t-\t%msg%n%throwable{full}";
+    /**
+     * The name of the file that logs the output.
+     */
+    public static final String STDOUT_LOG_FILE_NAME = "output.txt";
     /**
      * The knowledge base collection class name.
      */
@@ -275,9 +322,18 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
     public void initialize() throws InitializationException {
+        instantiateClasses();
+        saveConfigurations();
+    }
+
+    /**
+     * Instantiates the necessary classes objects.
+     *
+     * @throws InitializationException if some thing goes wrong
+     */
+    @SuppressWarnings("unchecked")
+    public void instantiateClasses() throws InitializationException {
         try {
             knowledgeBaseCollectionClass = (Class<? extends Collection>)
                     Class.forName(knowledgeBaseCollectionClassName);
@@ -294,6 +350,66 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         } catch (ClassNotFoundException e) {
             throw new InitializationException(ExceptionMessages.ERROR_GETTING_CLASS_BY_NAME.toString(), e);
         }
+    }
+
+    /**
+     * Logs the configurations from the configuration file.
+     *
+     * @throws InitializationException if an error occurs with the file
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public void saveConfigurations() throws InitializationException {
+        try {
+            String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
+
+            if (outputDirectoryPath != null) {
+                outputDirectory = new File(outputDirectoryPath);
+            } else {
+                String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
+                outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
+            }
+            outputDirectory.mkdirs();
+            addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
+            File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
+            String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
+                                                                    configurationFile.getCanonicalPath());
+            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
+            LanguageUtils.writeStringToFile(configFileContent, configurationFile);
+
+            logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
+                        Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
+            logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
+        } catch (IOException e) {
+            throw new InitializationException(e);
+        }
+    }
+
+    /**
+     * Adds a file appender to the output file name.
+     *
+     * @param outputFileName the file name.
+     */
+    @SuppressWarnings({"unchecked", "deprecation"})
+    protected static void addAppender(final String outputFileName) {
+        final LoggerContext context = LoggerContext.getContext(false);
+        final Configuration config = context.getConfiguration();
+        final Layout layout = PatternLayout.createLayout(PATTERN_LAYOUT, null, config, null,
+                                                         null, true, true,
+                                                         null, null);
+        final Appender appender = FileAppender.createAppender(outputFileName, APPEND_LOG_FILE, LOCKING_LOG_FILE,
+                                                              FILE_APPENDER_NAME, IMMEDIATE_FLUSH_LOG_FILE,
+                                                              IGNORE_EXCEPTIONS_LOG_FILE, BUFFERED_IO_LOG_FILE,
+                                                              BUFFER_SIZE_LOG_FILE, layout, null,
+                                                              ADVERTISE_LOG_FILE, null, config);
+        appender.start();
+        config.addAppender(appender);
+        final Level level = null;
+        final Filter filter = null;
+        config.getRootLogger().addAppender(appender, level, filter);
+//        for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
+//            loggerConfig.addAppender(appender, level, filter);
+//        }
+        config.getRootLogger().addAppender(appender, level, filter);
     }
 
     @Override
@@ -368,17 +484,14 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void run() {
         try {
-            saveConfigurations();
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
             buildEngineSystemTranslator();
             buildLearningSystem();
-            //TODO: test the revision
             reviseExamples();
 
-            //TODO: save knowledge base, theory and examples to files
-            //TODO: write the options of the saved files into the argument file
+            //TODO: create CLI class to test learned theories and parameters
             saveParameters();
         } catch (ReflectiveOperationException e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
@@ -397,32 +510,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     protected void saveParameters() throws IOException {
         LanguageUtils.saveTheoryToFile(learningSystem.getTheory(), new File(outputDirectory, THEORY_FILE_NAME));
         learningSystem.saveParameters(outputDirectory);
-    }
-
-    /**
-     * Logs the configurations from the configuration file.
-     *
-     * @throws IOException if an error occurs with the file
-     */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    protected void saveConfigurations() throws IOException {
-        String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
-        if (outputDirectoryPath != null) {
-            outputDirectory = new File(outputDirectoryPath);
-        } else {
-            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
-            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
-        }
-        outputDirectory.mkdirs();
-        File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
-        String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
-                                                                configurationFile.getCanonicalPath());
-        LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
-        LanguageUtils.writeStringToFile(configFileContent, configurationFile);
-
-        logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
-                    Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
-        logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
     }
 
     /**

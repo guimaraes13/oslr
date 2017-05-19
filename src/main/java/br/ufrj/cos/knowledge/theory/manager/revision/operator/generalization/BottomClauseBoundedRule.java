@@ -111,6 +111,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public int relevantsDepth = 0;
 
     /**
+     * Flag to specify if the rule must be refined or not.
+     */
+    public boolean refine = false;
+
+    /**
      * Represents the maximum side way movements, i.e. the number of {@link Literal} that will be added to the body
      * of the {@link HornClause} without improving the metric.
      * <p>
@@ -245,9 +250,10 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 return null;
             }
 
-            logger.trace(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
-            bestClause = refineRule(bottomClause, bestClause);
-
+            if (refine) {
+                logger.trace(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
+                bestClause = refineRule(bottomClause, bestClause);
+            }
             return bestClause.getHornClause();
         } catch (Exception e) {
             throw new TheoryRevisionException(LogMessages.ERROR_REVISING_THEORY.toString(), e);
@@ -276,7 +282,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         int sideWayMovements = 0;
         while (!itToStopBySideWayMovements(sideWayMovements) && !candidateLiterals.isEmpty()) {
             candidateLiterals.removeAll(currentClause.getHornClause().getBody());
-            //TODO: continue from here!
             currentClause = specifyRule(currentClause.getHornClause(), candidateLiterals);
             if (currentClause == null) {
                 break;
@@ -358,17 +363,22 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
     public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms) {
+        //TODO: may restrict this method to proved literal only, facts are within proved
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();
         Set<Atom> atoms = new HashSet<>();
         Set<Term> currentRelevants = new HashSet<>();
+        Set<Term> headTerms = new HashSet<>();
+        Set<Term> bodyTerms = new HashSet<>();
 
         for (Term term : terms) {
             termDistance.put(term, 0);
             queue.add(term);
             currentRelevants.add(term);
+            headTerms.add(term);
         }
 
+        Set<Atom> atomSet;
         Term currentTerm;
         Integer currentDistance;
         Integer previousDistance = 0;
@@ -377,7 +387,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             currentDistance = termDistance.get(currentTerm);
 
             if (!Objects.equals(currentDistance, previousDistance)) {
-                atoms.addAll(learningSystem.groundRelevants(currentRelevants));
+                atomSet = learningSystem.groundRelevants(currentRelevants);
+                atoms.addAll(atomSet);
+                if (!refine) {
+                    bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
+                }
                 currentRelevants.clear();
                 previousDistance = currentDistance;
             }
@@ -385,8 +399,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 currentRelevants.add(currentTerm);
             }
 
-            atoms.addAll(learningSystem.getKnowledgeBase().getAtomsWithTerm(currentTerm));
-
+            atomSet = learningSystem.getKnowledgeBase().getAtomsWithTerm(currentTerm);
+            atoms.addAll(atomSet);
+            if (!refine) {
+                bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
+                if (bodyTerms.containsAll(headTerms)) { break; }
+            }
             if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
                 for (Term neighbour : learningSystem.getKnowledgeBase().getTermNeighbours(currentTerm)) {
                     if (!termDistance.containsKey(neighbour)) {
