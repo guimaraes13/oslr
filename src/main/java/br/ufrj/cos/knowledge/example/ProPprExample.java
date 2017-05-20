@@ -104,7 +104,7 @@ public class ProPprExample implements Example {
                 getTermOnIndex(i, (Variable) term, variableMap);
             }
         }
-
+        clearConstantGoalFromVariableMap(variableMap);
         return variableMap;
     }
 
@@ -114,12 +114,12 @@ public class ProPprExample implements Example {
     }
 
     @Override
-    public Iterable<? extends AtomExample> getGroundedQuery() {
+    public Collection<? extends AtomExample> getGroundedQuery() {
         return atomExamples;
     }
 
     /**
-     * Puts the {@link Term}s at index i from the all the {@link #atomExamples} into the variableMap as keys with the
+     * Puts the {@link Term}s at index i from all the {@link #atomExamples} into the variableMap as keys with the
      * variable parameter as value
      *
      * @param i           the index of the {@link Term}
@@ -129,6 +129,20 @@ public class ProPprExample implements Example {
     protected void getTermOnIndex(int i, Variable variable, Map<Term, Variable> variableMap) {
         for (AtomExample atomExample : atomExamples) {
             variableMap.put(atomExample.getTerms().get(i), variable);
+        }
+    }
+
+    /**
+     * Cleans the constants from the goal of the variable map. It is necessary to allow the constant of the goal to
+     * be mapped to a different variable. This is specially useful when the predicate represents a symmetric relation.
+     *
+     * @param variableMap the variable to clean
+     */
+    protected void clearConstantGoalFromVariableMap(Map<Term, Variable> variableMap) {
+        for (Term term : goal.getTerms()) {
+            if (term.isConstant()) {
+                variableMap.remove(term);
+            }
         }
     }
 

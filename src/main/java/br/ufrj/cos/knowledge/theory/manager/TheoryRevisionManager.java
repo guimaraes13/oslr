@@ -96,7 +96,6 @@ public class TheoryRevisionManager implements Initializable {
     public void revise(Example... targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
         TheoryMetric metric = revisionOperator.getTheoryMetric();
-        //TODO: Looks like there is a bug in here! The current and revised theory always get the same evaluation
         double current = learningSystem.evaluateTheory(metric);
         double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
 

@@ -36,12 +36,12 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 public class LogLikelihoodMetric extends LikelihoodMetric {
 
     @Override
-    protected double initialAccumulatorValue() {
-        return 0;
+    protected Double initialAccumulatorValue() {
+        return 0.0;
     }
 
     @Override
-    protected double accumulate(double initial, double append) {
+    protected Double accumulate(Double initial, Double append) {
         return Math.max(initial + append, getDefaultValue());
     }
 
@@ -51,7 +51,7 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
     }
 
     @Override
-    protected double calculateAppend(AtomExample atomExample, double value) {
+    protected Double calculateAppend(AtomExample atomExample, double value) {
         return Math.log(super.calculateAppend(atomExample, value));
     }
 

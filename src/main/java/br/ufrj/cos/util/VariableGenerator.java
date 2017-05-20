@@ -44,6 +44,9 @@ public class VariableGenerator implements Iterator<Variable> {
 
     protected Collection<String> usedNames;
 
+    /**
+     * Constructs this class.
+     */
     public VariableGenerator() {
         usedNames = new HashSet<>();
     }

@@ -151,7 +151,7 @@ public class AtomExample extends Atom implements Example {
     }
 
     @Override
-    public Iterable<? extends AtomExample> getGroundedQuery() {
+    public Collection<? extends AtomExample> getGroundedQuery() {
         List<AtomExample> atoms = new ArrayList<>();
         if (isGrounded()) {
             atoms.add(this);

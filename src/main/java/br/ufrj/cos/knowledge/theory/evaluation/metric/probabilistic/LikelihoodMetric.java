@@ -33,7 +33,7 @@ import br.ufrj.cos.knowledge.example.AtomExample;
  *
  * @author Victor Guimarães
  */
-public class LikelihoodMetric extends AccumulatorMetric {
+public class LikelihoodMetric extends AccumulatorMetric<Double, Double> {
 
     /**
      * A minimal value to be multiplied into the result. This prevents the probability to goes to 0 if a example
@@ -42,17 +42,27 @@ public class LikelihoodMetric extends AccumulatorMetric {
     public static final double EPSILON = 1e-4;
 
     @Override
-    protected double initialAccumulatorValue() {
-        return 1;
+    protected double calculateResult(Double result) {
+        return result;
     }
 
     @Override
-    protected double accumulate(double initial, double append) {
+    protected Double initialAccumulatorValue() {
+        return 1.0;
+    }
+
+    @Override
+    protected Double accumulate(Double initial, Double append) {
         return initial * append;
     }
 
     @Override
-    protected double calculateAppend(AtomExample atomExample, double value) {
+    protected Double accumulateAppend(Double initial, Double append) {
+        return accumulate(initial, append);
+    }
+
+    @Override
+    protected Double calculateAppend(AtomExample atomExample, double value) {
         if (atomExample.isPositive()) {
             return Math.max(value, EPSILON);
         } else {

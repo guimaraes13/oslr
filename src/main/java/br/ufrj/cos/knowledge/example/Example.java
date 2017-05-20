@@ -82,7 +82,7 @@ public interface Example {
      *
      * @return the grounded queries
      */
-    public Iterable<? extends AtomExample> getGroundedQuery();
+    public Collection<? extends AtomExample> getGroundedQuery();
 
     @Override
     public int hashCode();

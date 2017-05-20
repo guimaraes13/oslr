@@ -35,18 +35,34 @@ import java.util.stream.Collectors;
 /**
  * A template for metrics that simply accumulates a value for each proved ground example.
  * <p>
+ * {@link J} is the type of the initial accumulated object;
+ * <br>
+ * {@link K} is the type of a possible appended object.
+ * <p>
  * Created on 08/05/17.
  *
  * @author Victor Guimarães
  */
-public abstract class AccumulatorMetric extends TheoryMetric {
+public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
 
     @Override
     public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
-        Map<Atom, Double> atomValues;
-        double result = initialAccumulatorValue();
+        J evaluation = calculateEvaluation(inferredResult, examples);
+        return evaluation != null ? calculateResult(evaluation) : getDefaultValue();
+    }
 
-        if (inferredResult.isEmpty()) { return getDefaultValue(); }
+    /**
+     * Calculates the internal evaluation of the inferred results over the examples.
+     *
+     * @param inferredResult the inferred results
+     * @param examples       the examples
+     * @return the result
+     */
+    protected J calculateEvaluation(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+        Map<Atom, Double> atomValues;
+        J result = initialAccumulatorValue();
+
+        if (inferredResult.isEmpty()) { return null; }
         Set<ProPprExample> provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e))
                 .collect(Collectors.toSet());
         boolean proved = false;
@@ -57,16 +73,24 @@ public abstract class AccumulatorMetric extends TheoryMetric {
             proved |= true;
         }
 
-        return proved ? result : getDefaultValue();
+        return proved ? result : null;
     }
 
     /**
+     * Converts the result from {@link J} to {@code double}.
+     *
+     * @param result {@link J} result
+     * @return the {@code double} result
+     */
+    protected abstract double calculateResult(J result);
+
+    /**
      * Initial value for the accumulator. This value must be the neutral element of the
-     * {@link #accumulate(double, double)} function.
+     * {@link #accumulate(Object, Object)} function.
      *
      * @return the initial value for the accumulator.
      */
-    protected abstract double initialAccumulatorValue();
+    protected abstract J initialAccumulatorValue();
 
     /**
      * Calculates the new value of the accumulator, based on the current accumulated value and the new append.
@@ -75,7 +99,7 @@ public abstract class AccumulatorMetric extends TheoryMetric {
      * @param append  the append
      * @return the new value of the accumulator
      */
-    protected abstract double accumulate(double initial, double append);
+    protected abstract J accumulate(J initial, J append);
 
     /**
      * Evaluates the grounds of the {@link Example}.
@@ -84,17 +108,26 @@ public abstract class AccumulatorMetric extends TheoryMetric {
      * @param atomValues    the values of the grounds
      * @return the product of the values of the grounds
      */
-    protected double evaluateExamples(Iterable<? extends AtomExample> groundedQuery, Map<Atom, Double> atomValues) {
-        double result = initialAccumulatorValue();
+    protected J evaluateExamples(Iterable<? extends AtomExample> groundedQuery, Map<Atom, Double> atomValues) {
+        J result = initialAccumulatorValue();
         Double value;
         for (AtomExample atomExample : groundedQuery) {
             value = atomValues.get(atomExample.getAtom());
             if (value != null) {
-                result = accumulate(result, calculateAppend(atomExample, value));
+                result = accumulateAppend(result, calculateAppend(atomExample, value));
             }
         }
         return result;
     }
+
+    /**
+     * Calculates the new value of the accumulator, based on the current accumulated value and the new append.
+     *
+     * @param initial the current accumulated value
+     * @param append  the append
+     * @return the new value of the accumulator
+     */
+    protected abstract J accumulateAppend(J initial, K append);
 
     /**
      * Calculates the append that should be accumulated to the accumulator, given the {@link AtomExample} and its value.
@@ -103,6 +136,6 @@ public abstract class AccumulatorMetric extends TheoryMetric {
      * @param value       the value
      * @return the append that should be accumulated
      */
-    protected abstract double calculateAppend(AtomExample atomExample, double value);
+    protected abstract K calculateAppend(AtomExample atomExample, double value);
 
 }
