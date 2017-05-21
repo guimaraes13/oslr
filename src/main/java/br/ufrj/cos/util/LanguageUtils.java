@@ -416,4 +416,18 @@ public class LanguageUtils {
         writer.close();
     }
 
+    /**
+     * Writes the {@link Theory} to a {@link String}
+     *
+     * @param theory the {@link Theory}
+     * @return the string
+     */
+    public static String theoryToString(Theory theory) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (HornClause clause : theory) {
+            stringBuilder.append(clause.toString()).append("\n");
+        }
+        return stringBuilder.toString().trim();
+    }
+
 }

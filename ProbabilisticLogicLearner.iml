@@ -38,5 +38,7 @@
     <orderEntry type="library" name="Maven: com.lmax:disruptor:3.3.6" level="project" />
     <orderEntry type="library" name="Maven: com.esotericsoftware.yamlbeans:yamlbeans:1.11" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.5" level="project" />
+    <orderEntry type="library" name="Maven: jfree:jfreechart:1.0.13" level="project" />
+    <orderEntry type="library" name="Maven: jfree:jcommon:1.0.16" level="project" />
   </component>
 </module>

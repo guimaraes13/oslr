@@ -110,7 +110,7 @@ public class LearningSystem {
      *
      * @return a {@link Map} with the evaluations per metric.
      */
-    public Map<Class<? extends TheoryMetric>, Double> evaluate() {
+    public Map<TheoryMetric, Double> evaluate() {
         return theoryEvaluator.evaluate();
     }
 

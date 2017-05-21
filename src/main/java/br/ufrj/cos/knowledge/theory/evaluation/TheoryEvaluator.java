@@ -94,13 +94,25 @@ public class TheoryEvaluator implements Initializable {
      *
      * @return a {@link Map} of evaluations per metric
      */
-    public Map<Class<? extends TheoryMetric>, Double> evaluate() {
-        Map<Class<? extends TheoryMetric>, Double> evaluations = new HashMap<>();
+    public Map<TheoryMetric, Double> evaluate() {
+        Map<TheoryMetric, Double> evaluations = new HashMap<>();
+        Examples examples = learningSystem.getExamples();
+        Map<Example, Map<Atom, Double>> inferExamples = inferExamples(examples, false);
         for (TheoryMetric metric : theoryMetrics) {
-            evaluations.put(metric.getClass(), evaluateTheory(metric, learningSystem.getExamples()));
+            evaluations.put(metric, metric.evaluate(inferExamples, examples));
         }
 
         return evaluations;
+    }
+
+    protected Map<Example, Map<Atom, Double>> inferExamples(Examples examples, boolean retrain) {
+        Map<Example, Map<Atom, Double>> evaluationResult;
+        if (retrain) {
+            evaluationResult = learningSystem.inferExampleTrainingParameters(examples);
+        } else {
+            evaluationResult = learningSystem.inferExamples(examples);
+        }
+        return evaluationResult;
     }
 
     /**
@@ -113,14 +125,7 @@ public class TheoryEvaluator implements Initializable {
      * @return the evaluation value
      */
     public double evaluateTheory(TheoryMetric metric, Examples examples) {
-        Map<Example, Map<Atom, Double>> evaluationResult;
-        if (metric.parametersRetrainedBeforeEvaluate) {
-            evaluationResult = learningSystem.inferExampleTrainingParameters(examples);
-        } else {
-            evaluationResult = learningSystem.inferExamples(examples);
-        }
-
-        return metric.evaluate(evaluationResult, examples);
+        return metric.evaluate(inferExamples(examples, metric.parametersRetrainedBeforeEvaluate), examples);
     }
 
     /**

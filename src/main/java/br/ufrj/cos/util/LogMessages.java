@@ -82,11 +82,14 @@ public enum LogMessages {
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
+    TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),
 
 //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
 
     CONFIGURATION_FILE("Configuration File:\t{}\n--------------- CONFIGURATION FILE " +
                                "---------------\n{}\n--------------- CONFIGURATION FILE ---------------"),
+    THEORY_FILE("Theory File:\t{}\n--------------- THEORY FILE " +
+                        "---------------\n{}\n--------------- THEORY FILE ---------------"),
 
     ANSWERING_QUERY("Answering query:\t{}"),
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
@@ -96,6 +99,7 @@ public enum LogMessages {
 
     //Two additional parameters to format
     EVALUATED_TIMEOUT_PROPORTION("{}% out of {} rules has finished the evaluation within the timeout."),
+    EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
     ANSWER_STATE_WITH_VALUE("State:\t{},\t{}");
 

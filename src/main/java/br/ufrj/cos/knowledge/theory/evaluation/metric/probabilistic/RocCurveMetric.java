@@ -60,23 +60,27 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @return the list of points representing the ROC curve
      */
     public List<Pair<Double, Double>> buildRocCurve(List<Pair<AtomExample, Double>> pairs) {
+        pairs.sort((o1, o2) -> -Double.compare(o1.getRight(), o2.getRight()));
         List<Pair<Double, Double>> points = new ArrayList<>();
-        points.add(new ImmutablePair<>(0.0, 0.0));
+//        points.add(new ImmutablePair<>(0.0, 0.0));
         double current = pairs.get(0).getRight() + 1.0;
         double auxiliary;
-        int positives = 0;
-        int negatives = 0;
+        int truePositive = 0;
+        int falsePositive = 0;
+        int positives = (int) pairs.stream().filter(pair -> pair.getLeft().isPositive()).count();
+        int negatives = pairs.size() - positives;
+        points.add(buildROCPoint(truePositive, falsePositive, positives, negatives));
         for (Pair<AtomExample, Double> pair : pairs) {
             auxiliary = pair.getRight();
             if (pair.getLeft().isPositive()) {
-                positives++;
+                truePositive++;
             } else {
-                negatives++;
+                falsePositive++;
             }
             if (auxiliary >= current) {
                 continue;
             }
-            points.add(buildROCPoint(positives, negatives, pairs.size()));
+            points.add(buildROCPoint(truePositive, falsePositive, positives, negatives));
             current = auxiliary;
         }
         return points;
@@ -97,7 +101,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
         for (int i = 1; i < points.size(); i++) {
             current = points.get(i);
             // accumulating the area of the trapezoid
-            sum += (current.getLeft() - previous.getLeft()) * ((current.getRight() + previous.getRight()) / 2);
+            sum += (current.getRight() - previous.getRight()) * ((current.getLeft() + previous.getLeft()) / 2);
             previous = current;
         }
         return sum;
@@ -108,14 +112,14 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      *
      * @param truePositive  the number of true positive examples
      * @param falsePositive the number of false positive examples
-     * @param total         the total number of examples
+     * @param positives     the total number of positives
+     * @param negatives     the total number of negatives
      * @return the point of the ROC curve
      */
-    protected Pair<Double, Double> buildROCPoint(int truePositive, int falsePositive, int total) {
-        double truePositiveRate = (double) truePositive / (truePositive + falsePositive);
-        double falsePositiveRate = (double) falsePositive / (total - (truePositive + falsePositive));
-
-        return new ImmutablePair<>(truePositiveRate, falsePositiveRate);
+    protected Pair<Double, Double> buildROCPoint(int truePositive, int falsePositive, int positives, int negatives) {
+        double truePositiveRate = positives > 0 ? ((double) truePositive) / (positives) : 1.0;
+        double falsePositiveRate = negatives > 0 ? ((double) falsePositive) / (negatives) : 1.0;
+        return new ImmutablePair<>(falsePositiveRate, truePositiveRate);
     }
 
     /**

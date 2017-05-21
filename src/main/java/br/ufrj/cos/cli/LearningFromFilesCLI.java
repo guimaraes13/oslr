@@ -43,6 +43,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.PrecisionMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.logic.RecallMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
@@ -77,10 +78,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -484,6 +482,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void run() {
         try {
+            long begin = TimeMeasure.getNanoTime();
             buildKnowledgeBase();
             buildTheory();
             buildExampleSet();
@@ -493,6 +492,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
 
             //TODO: create CLI class to test learned theories and parameters
             saveParameters();
+            printMetrics();
+            long end = TimeMeasure.getNanoTime();
+            logger.warn(LogMessages.TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
         } catch (ReflectiveOperationException e) {
             logger.error(LogMessages.ERROR_READING_INPUT_FILES, e);
         } catch (InitializationException e) {
@@ -503,12 +505,34 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
+     * Logs the metrics.
+     */
+    protected void printMetrics() {
+        Map<TheoryMetric, Double> evaluations = learningSystem.evaluate();
+        for (Map.Entry<TheoryMetric, Double> entry : evaluations.entrySet()) {
+            logger.warn(LogMessages.EVALUATION_UNDER_METRIC.toString(), entry.getKey(), entry.getValue());
+//            if (entry.getKey() instanceof RocCurveMetric) {
+//                RocCurveMetric metric = (RocCurveMetric) entry.getKey();
+//
+//                Examples examples = learningSystem.getExamples();
+//                List<Pair<AtomExample, Double>> pairs;
+//                pairs = metric.calculateEvaluation(learningSystem.inferExamples(examples), examples);
+//                Plot2D plot2D = Plot2D.createRocPlot(metric.buildRocCurve(pairs));
+//                plot2D.plot();
+//            }
+        }
+    }
+
+    /**
      * Saves the parameters to files.
      *
      * @throws IOException if an error occurs with the file
      */
     protected void saveParameters() throws IOException {
-        LanguageUtils.saveTheoryToFile(learningSystem.getTheory(), new File(outputDirectory, THEORY_FILE_NAME));
+        String theoryContent = LanguageUtils.theoryToString(learningSystem.getTheory());
+        File theoryFile = new File(outputDirectory, THEORY_FILE_NAME);
+        LanguageUtils.writeStringToFile(theoryContent, theoryFile);
+        logger.info(LogMessages.THEORY_FILE.toString(), theoryFile.getAbsolutePath(), theoryContent);
         learningSystem.saveParameters(outputDirectory);
     }
 
@@ -683,6 +707,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
 
         metrics.add(new LikelihoodMetric());
         metrics.add(new LogLikelihoodMetric());
+        metrics.add(new RocCurveMetric());
         return metrics;
     }
 

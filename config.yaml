@@ -38,6 +38,7 @@ theoryMetrics:
 
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric    {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric      {}
 
 revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator
