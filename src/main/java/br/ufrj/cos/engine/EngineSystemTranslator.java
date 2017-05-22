@@ -247,4 +247,11 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
      */
     public abstract void saveParameters(File workingDirectory);
 
+    /**
+     * Method to load the saved parameters from files in the working directory.
+     *
+     * @param workingDirectory the working directory
+     */
+    public abstract void loadParameters(File workingDirectory);
+
 }

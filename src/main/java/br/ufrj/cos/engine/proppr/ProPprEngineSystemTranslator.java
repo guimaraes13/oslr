@@ -51,6 +51,7 @@ import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.*;
+import edu.cmu.ml.proppr.util.Dictionary;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
@@ -607,8 +608,15 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
-    public void saveParameters(File workingDirectory) {
+    public synchronized void saveParameters(File workingDirectory) {
         ParamsFile.save(savedParamVector, new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME), null);
+    }
+
+    @Override
+    public synchronized void loadParameters(File workingDirectory) {
+        ParamsFile paramsFile = new ParamsFile(new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME));
+        currentParamVector = new SimpleParamVector<>(Dictionary.load(paramsFile, new ConcurrentHashMap<>()));
+        saveTrainedParameters();
     }
 
     /**

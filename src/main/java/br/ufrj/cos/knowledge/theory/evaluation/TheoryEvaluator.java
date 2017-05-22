@@ -97,14 +97,21 @@ public class TheoryEvaluator implements Initializable {
     public Map<TheoryMetric, Double> evaluate() {
         Map<TheoryMetric, Double> evaluations = new HashMap<>();
         Examples examples = learningSystem.getExamples();
-        Map<Example, Map<Atom, Double>> inferExamples = inferExamples(examples, false);
+        Map<Example, Map<Atom, Double>> inferredExamples = inferExamples(examples, false);
         for (TheoryMetric metric : theoryMetrics) {
-            evaluations.put(metric, metric.evaluate(inferExamples, examples));
+            evaluations.put(metric, metric.evaluate(inferredExamples, examples));
         }
 
         return evaluations;
     }
 
+    /**
+     * Infers the examples with or without retraining the parameters.
+     *
+     * @param examples the examples
+     * @param retrain  if it is to retrain the parameters
+     * @return the inferred examples
+     */
     protected Map<Example, Map<Atom, Double>> inferExamples(Examples examples, boolean retrain) {
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (retrain) {

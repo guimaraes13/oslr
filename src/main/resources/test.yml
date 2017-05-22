@@ -1,0 +1,15 @@
+!br.ufrj.cos.cli.TestCLI
+
+exampleFilePaths:
+inputDirectoryPath:
+drawRocCurve:  false
+
+theoryMetrics:
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.AccuracyMetric  {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.PrecisionMetric {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.RecallMetric    {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric   {}
+
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric    {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric      {}

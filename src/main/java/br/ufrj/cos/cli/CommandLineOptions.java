@@ -61,7 +61,13 @@ public enum CommandLineOptions {
                              .hasArgs(Option.UNLIMITED_VALUES)
                              .withDescription("the directory to save the files in. If not specified, a new directory," +
                                                       " in the current directory will be created.")
-                             .create("o"));
+                             .create("o")),
+    INPUT_DIRECTORY(OptionBuilder.withArgName("input")
+                            .withLongOpt("inputDirectory")
+                            .hasArgs(Option.UNLIMITED_VALUES)
+                            .withDescription("the directory to read the files from. If not specified, the program " +
+                                                     "will try to read it from a yaml configuration file.")
+                            .create("i"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

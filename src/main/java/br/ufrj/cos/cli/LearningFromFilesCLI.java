@@ -59,22 +59,11 @@ import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import com.esotericsoftware.yamlbeans.YamlException;
-import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Filter;
-import org.apache.logging.log4j.core.Layout;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.FileAppender;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -111,43 +100,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The output arguments file name.
      */
     public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
-    /**
-     * If is to append the log file.
-     */
-    public static final String APPEND_LOG_FILE = "false";
-    /**
-     * If is to lock the log file.
-     */
-    public static final String LOCKING_LOG_FILE = "false";
-    /**
-     * The log file appender's name.
-     */
-    public static final String FILE_APPENDER_NAME = "FileStd";
-    /**
-     * If is to immediate flush the log file.
-     */
-    public static final String IMMEDIATE_FLUSH_LOG_FILE = "true";
-    /**
-     * If is to ignore exception in the log file.
-     */
-    public static final String IGNORE_EXCEPTIONS_LOG_FILE = "false";
-    /**
-     * If is to buffer the log file.
-     */
-    public static final String BUFFERED_IO_LOG_FILE = "false";
-    /**
-     * Size of the log file buffer.
-     */
-    public static final String BUFFER_SIZE_LOG_FILE = "0";
-    /**
-     * If is to advertise the log file.
-     */
-    public static final String ADVERTISE_LOG_FILE = "false";
-    /**
-     * The log file pattern layout
-     */
-    public static final String PATTERN_LAYOUT = "[ %d{yyy-MM-dd HH:mm:ss.SSS} ] [ %-5level ] [ %logger{1} " +
-            "]\t-\t%msg%n%throwable{full}";
     /**
      * The name of the file that logs the output.
      */
@@ -279,6 +231,24 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     protected File outputDirectory;
 
     /**
+     * The main method
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
+        try {
+            CommandLineInterface main = new LearningFromFilesCLI();
+            main = main.parseOptions(args);
+            run(main, args);
+        } catch (Exception e) {
+            logger.error(LogMessages.ERROR_MAIN_PROGRAM, e);
+        } finally {
+            logger.fatal(LogMessages.PROGRAM_END);
+        }
+    }
+
+    /**
      * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
      *
      * @param file    the {@link File} to parse
@@ -320,9 +290,32 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
+    /**
+     * Builds the {@link Examples} from the input files.
+     *
+     * @param exampleFilePaths the examples paths
+     * @return the examples
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    protected static Examples buildExampleSet(String[] exampleFilePaths) throws InstantiationException,
+            IllegalAccessException, FileNotFoundException {
+        List<InputStream> inputStreams = new ArrayList<>();
+        List<AtomExample> atomExamples = new ArrayList<>();
+        List<ProPprExample> proPprExamples = new ArrayList<>();
+        logger.trace(LogMessages.READING_INPUT_FILES);
+        File[] files = LanguageUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
+        for (File file : files) {
+            readExamplesToLists(file, atomExamples, proPprExamples);
+        }
+        logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
+
+        return new Examples(proPprExamples, atomExamples);
+    }
+
     public void initialize() throws InitializationException {
         instantiateClasses();
-        saveConfigurations();
     }
 
     /**
@@ -382,39 +375,11 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
-    /**
-     * Adds a file appender to the output file name.
-     *
-     * @param outputFileName the file name.
-     */
-    @SuppressWarnings({"unchecked", "deprecation"})
-    protected static void addAppender(final String outputFileName) {
-        final LoggerContext context = LoggerContext.getContext(false);
-        final Configuration config = context.getConfiguration();
-        final Layout layout = PatternLayout.createLayout(PATTERN_LAYOUT, null, config, null,
-                                                         null, true, true,
-                                                         null, null);
-        final Appender appender = FileAppender.createAppender(outputFileName, APPEND_LOG_FILE, LOCKING_LOG_FILE,
-                                                              FILE_APPENDER_NAME, IMMEDIATE_FLUSH_LOG_FILE,
-                                                              IGNORE_EXCEPTIONS_LOG_FILE, BUFFERED_IO_LOG_FILE,
-                                                              BUFFER_SIZE_LOG_FILE, layout, null,
-                                                              ADVERTISE_LOG_FILE, null, config);
-        appender.start();
-        config.addAppender(appender);
-        final Level level = null;
-        final Filter filter = null;
-        config.getRootLogger().addAppender(appender, level, filter);
-//        for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
-//            loggerConfig.addAppender(appender, level, filter);
-//        }
-        config.getRootLogger().addAppender(appender, level, filter);
-    }
-
     @Override
     protected void initializeOptions() {
+        super.initializeOptions();
         if (options == null) { options = new Options(); }
 
-        options.addOption(CommandLineOptions.HELP.getOption());
         options.addOption(CommandLineOptions.KNOWLEDGE_BASE.getOption());
         options.addOption(CommandLineOptions.THEORY.getOption());
         options.addOption(CommandLineOptions.EXAMPLES.getOption());
@@ -425,12 +390,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
         try {
-            if (commandLine.hasOption(CommandLineOptions.HELP.getOptionName())) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp(this.getClass().getSimpleName(), options, true);
-                System.exit(0);
-            }
-            LearningFromFilesCLI cli = readYamlFile(commandLine);
+            super.parseOptions(commandLine);
+            LearningFromFilesCLI cli = readYamlFile(commandLine, LearningFromFilesCLI.class,
+                                                    DEFAULT_YAML_CONFIGURATION_FILE);
             cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE
                     .getOptionName());
             cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
@@ -442,55 +404,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
-    /**
-     * Reads the yaml configuration file and returns a version of this class from it.
-     *
-     * @param commandLine the {@link CommandLine}
-     * @return the read {@link LearningFromFilesCLI}
-     * @throws FileNotFoundException if the file does not exists
-     * @throws YamlException         if an error occurs when reading the yaml
-     */
-    protected LearningFromFilesCLI readYamlFile(CommandLine commandLine) throws FileNotFoundException,
-            YamlException {
-        File yamlFile;
-        if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
-            yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
-        } else {
-            yamlFile = new File(DEFAULT_YAML_CONFIGURATION_FILE);
-        }
-        YamlReader reader = new YamlReader(new FileReader(yamlFile));
-        LearningFromFilesCLI cli = reader.read(this.getClass());
-        cli.configurationFilePath = yamlFile.getAbsolutePath();
-        return cli;
-    }
-
-    /**
-     * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
-     *
-     * @param commandLine the parsed command line
-     * @param optionName  the {@link Option} to get the parsed {@link String}s.
-     * @return the {@link File}s
-     */
-    protected String[] getFilesFromOption(CommandLine commandLine, String optionName) {
-        if (commandLine.hasOption(optionName)) {
-            return commandLine.getOptionValues(optionName);
-        }
-
-        return new String[0];
-    }
-
     @Override
     public void run() {
         try {
+            saveConfigurations();
             long begin = TimeMeasure.getNanoTime();
-            buildKnowledgeBase();
-            buildTheory();
-            buildExampleSet();
-            buildEngineSystemTranslator();
-            buildLearningSystem();
+            build();
             reviseExamples();
-
-            //TODO: create CLI class to test learned theories and parameters
             saveParameters();
             printMetrics();
             long end = TimeMeasure.getNanoTime();
@@ -502,6 +422,21 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         } catch (IOException e) {
             logger.error(LogMessages.ERROR_READING_CONFIGURATION_FILE, e);
         }
+    }
+
+    /**
+     * Builds this class and all its properties.
+     *
+     * @throws IllegalAccessException  if an error occurs when instantiating a new object by reflection
+     * @throws IOException             if an error occurs with the file
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void build() throws ReflectiveOperationException, IOException, InitializationException {
+        buildKnowledgeBase();
+        buildTheory();
+        examples = buildExampleSet(exampleFilePaths);
+        buildEngineSystemTranslator();
+        buildLearningSystem();
     }
 
     /**
@@ -767,30 +702,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             logger.debug(LogMessages.CREATING_THEORY_WITH_PREDICATE.toString(), predicate);
         }
 
+        if (theoryBaseAncestralClass == null) {
+            theoryBaseAncestralClass = HornClause.class;
+        }
+
         theory = new Theory(theoryCollectionClass.newInstance(), predicate);
         theory.addAll(clauses, theoryBaseAncestralClass);
         logger.info(LogMessages.THEORY_SIZE.toString(), theory.size());
-    }
-
-    /**
-     * Builds the {@link Examples} from the input files.
-     *
-     * @throws InstantiationException if an error occurs when instantiating a new set
-     * @throws IllegalAccessException if an error occurs when instantiating a new set
-     * @throws FileNotFoundException  if a file does not exists
-     */
-    protected void buildExampleSet() throws InstantiationException, IllegalAccessException, FileNotFoundException {
-        List<InputStream> inputStreams = new ArrayList<>();
-        List<AtomExample> atomExamples = new ArrayList<>();
-        List<ProPprExample> proPprExamples = new ArrayList<>();
-        logger.trace(LogMessages.READING_INPUT_FILES);
-        for (File file : LanguageUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName()
-                                                       )) {
-            readExamplesToLists(file, atomExamples, proPprExamples);
-        }
-        logger.info(LogMessages.EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
-
-        examples = new Examples(proPprExamples, atomExamples);
     }
 
     /**

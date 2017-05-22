@@ -342,7 +342,19 @@ public class LanguageUtils {
      * @throws UnsupportedEncodingException if the encoding is not supported
      */
     public static String readFileToString(String filePath) throws FileNotFoundException, UnsupportedEncodingException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
+        return readFileToString(new File(filePath));
+    }
+
+    /**
+     * Reads a file to a {@link String}
+     *
+     * @param file the file
+     * @return the content of the file
+     * @throws FileNotFoundException        if the file does not exists
+     * @throws UnsupportedEncodingException if the encoding is not supported
+     */
+    public static String readFileToString(File file) throws FileNotFoundException, UnsupportedEncodingException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
                                                                          DEFAULT_INPUT_ENCODE));
         return reader.lines().collect(Collectors.joining("\n")).trim();
     }

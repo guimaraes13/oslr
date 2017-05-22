@@ -22,11 +22,26 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.commons.cli.*;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 
 /**
  * Represents classes that implements the main method and so have input options
@@ -49,7 +64,51 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * Argument long option prefix.
      */
     public static final String ARGUMENTS_LONG_OPTION_PREFIX = "--";
-
+    /**
+     * If is to append the log file.
+     */
+    public static final String APPEND_LOG_FILE = "false";
+    /**
+     * If is to lock the log file.
+     */
+    public static final String LOCKING_LOG_FILE = "false";
+    /**
+     * The log file appender's name.
+     */
+    public static final String FILE_APPENDER_NAME = "FileStd";
+    /**
+     * If is to immediate flush the log file.
+     */
+    public static final String IMMEDIATE_FLUSH_LOG_FILE = "true";
+    /**
+     * If is to ignore exception in the log file.
+     */
+    public static final String IGNORE_EXCEPTIONS_LOG_FILE = "false";
+    /**
+     * If is to buffer the log file.
+     */
+    public static final String BUFFERED_IO_LOG_FILE = "false";
+    /**
+     * Size of the log file buffer.
+     */
+    public static final String BUFFER_SIZE_LOG_FILE = "0";
+    /**
+     * If is to advertise the log file.
+     */
+    public static final String ADVERTISE_LOG_FILE = "false";
+    /**
+     * The log file pattern layout
+     */
+    public static final String PATTERN_LAYOUT = "[ %d{yyy-MM-dd HH:mm:ss.SSS} ] [ %-5level ] [ %logger{1} " +
+            "]\t-\t%msg%n%throwable{full}";
+    /**
+     * The default language for the formatted outputs.
+     */
+    public static final String DEFAULT_LANGUAGE = "en";
+    /**
+     * The default country for the formatted outputs.
+     */
+    public static final String DEFAULT_COUNTRY = "us";
     /**
      * The configuration file path.
      */
@@ -62,63 +121,87 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     protected String[] cliArguments;
 
     /**
-     * The main method
+     * Adds a file appender to the output file name.
      *
-     * @param args the command line arguments
+     * @param outputFileName the file name.
      */
-    public static void main(String[] args) {
-        try {
-            CommandLineInterface main = new LearningFromFilesCLI();
-            main = main.parseOptions(args);
-            if (main != null) {
-                main.cliArguments = args;
-                main.initialize();
-                logger.info(LogMessages.PROGRAM_BEGIN);
-                logger.info(main.toString());
-                main.run();
-            }
-        } catch (Exception e) {
-            logger.error(LogMessages.ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(LogMessages.PROGRAM_END);
+    @SuppressWarnings({"unchecked", "deprecation"})
+    protected static void addAppender(final String outputFileName) {
+        final LoggerContext context = LoggerContext.getContext(false);
+        final Configuration config = context.getConfiguration();
+        final Layout layout = PatternLayout.createLayout(PATTERN_LAYOUT, null, config, null,
+                                                         null, true, true,
+                                                         null, null);
+        final Appender appender = FileAppender.createAppender(outputFileName, APPEND_LOG_FILE, LOCKING_LOG_FILE,
+                                                              FILE_APPENDER_NAME, IMMEDIATE_FLUSH_LOG_FILE,
+                                                              IGNORE_EXCEPTIONS_LOG_FILE, BUFFERED_IO_LOG_FILE,
+                                                              BUFFER_SIZE_LOG_FILE, layout, null,
+                                                              ADVERTISE_LOG_FILE, null, config);
+        appender.start();
+        config.addAppender(appender);
+        final Level level = null;
+        final Filter filter = null;
+        config.getRootLogger().addAppender(appender, level, filter);
+        config.getRootLogger().addAppender(appender, level, filter);
+    }
+
+    /**
+     * Runs the main program
+     *
+     * @param main the main program
+     * @param args the arguments
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected static void run(CommandLineInterface main, String[] args) throws InitializationException {
+        if (main != null) {
+            main.cliArguments = args;
+            main.initialize();
+            logger.info(LogMessages.PROGRAM_BEGIN);
+            logger.info(main.toString());
+            main.run();
         }
     }
 
     /**
-     * Parses the command line arguments based on the available {@link Option}s
+     * Reads the yaml configuration file and returns a version of the class from it.
      *
-     * @param arguments the command line arguments
-     * @return a new configured {@link CommandLineInterface}
+     * @param commandLine              the {@link CommandLine}
+     * @param clazz                    the {@link CommandLineInterface} class
+     * @param defaultConfigurationFile the default configuration file path
+     * @return the read {@link LearningFromFilesCLI}
+     * @throws FileNotFoundException if the file does not exists
+     * @throws YamlException         if an error occurs when reading the yaml
      */
-    public CommandLineInterface parseOptions(String[] arguments) {
-        CommandLineParser parser = new DefaultParser();
-        if (options == null) {
-            initializeOptions();
+    protected static <C extends CommandLineInterface> C readYamlFile(CommandLine commandLine,
+                                                                     Class<C> clazz,
+                                                                     String defaultConfigurationFile)
+            throws FileNotFoundException, YamlException {
+        File yamlFile;
+        if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
+            yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
+        } else {
+            yamlFile = new File(defaultConfigurationFile);
         }
-        try {
-            logger.trace(LogMessages.PARSING_INPUT_ARGUMENTS);
-            CommandLine commandLine = parser.parse(options, arguments);
-            return parseOptions(commandLine);
-        } catch (ParseException | CommandLineInterrogationException e) {
-            logger.error(LogMessages.ERROR_PARSING_FAILED, e);
-        }
-        return null;
+        return readYamlFile(clazz, yamlFile);
     }
 
     /**
-     * Initializes the {@link Option}s that might be parsed from the input arguments
-     */
-    protected abstract void initializeOptions();
-
-    /**
-     * Method to set the proper fields based on the {@link Option}s parsed from the command line arguments
+     * Read the yaml configuration and returns a version of the class from it.
      *
-     * @param commandLine the parsed command line arguments
-     * @return a new configured {@link CommandLineInterface}
-     * @throws CommandLineInterrogationException semantic error on the command line arguments
+     * @param clazz    the class
+     * @param yamlFile the yaml configuration file
+     * @return the read {@link LearningFromFilesCLI}
+     * @throws FileNotFoundException if the file does not exists
+     * @throws YamlException         if an error occurs when reading the yaml
      */
-    protected abstract CommandLineInterface parseOptions(
-            CommandLine commandLine) throws CommandLineInterrogationException;
+    protected static <C extends CommandLineInterface> C readYamlFile(Class<C> clazz,
+                                                                     File yamlFile) throws FileNotFoundException,
+            YamlException {
+        YamlReader reader = new YamlReader(new FileReader(yamlFile));
+        C cli = reader.read(clazz);
+        cli.configurationFilePath = yamlFile.getAbsolutePath();
+        return cli;
+    }
 
     /**
      * Formats an array of command line arguments appending a configuration file at the end.
@@ -133,8 +216,8 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
 
         consumeArguments(arguments, option, stringBuilder);
 
-        stringBuilder.append(ARGUMENTS_LONG_OPTION_PREFIX);
-        stringBuilder.append(option.getLongOpt());
+        stringBuilder.append(ARGUMENTS_SHORT_OPTION_PREFIX);
+        stringBuilder.append(option.getOpt());
         stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
         for (String optionValue : optionValues) { stringBuilder.append(optionValue); }
         return stringBuilder.toString().trim();
@@ -164,6 +247,66 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
                 i++;
             }
         }
+    }
+
+    /**
+     * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
+     *
+     * @param commandLine the parsed command line
+     * @param optionName  the {@link Option} to get the parsed {@link String}s.
+     * @return the {@link File}s
+     */
+    protected static String[] getFilesFromOption(CommandLine commandLine, String optionName) {
+        if (commandLine.hasOption(optionName)) {
+            return commandLine.getOptionValues(optionName);
+        }
+
+        return new String[0];
+    }
+
+    /**
+     * Parses the command line arguments based on the available {@link Option}s
+     *
+     * @param arguments the command line arguments
+     * @return a new configured {@link CommandLineInterface}
+     */
+    public CommandLineInterface parseOptions(String[] arguments) {
+        CommandLineParser parser = new DefaultParser();
+        if (options == null) {
+            initializeOptions();
+        }
+        try {
+            logger.trace(LogMessages.PARSING_INPUT_ARGUMENTS);
+            CommandLine commandLine = parser.parse(options, arguments);
+            return parseOptions(commandLine);
+        } catch (ParseException | CommandLineInterrogationException e) {
+            logger.error(LogMessages.ERROR_PARSING_FAILED, e);
+        }
+        return null;
+    }
+
+    /**
+     * Initializes the {@link Option}s that might be parsed from the input arguments
+     */
+    protected void initializeOptions() {
+        options = new Options();
+        options.addOption(CommandLineOptions.HELP.getOption());
+    }
+
+    /**
+     * Method to set the proper fields based on the {@link Option}s parsed from the command line arguments
+     *
+     * @param commandLine the parsed command line arguments
+     * @return a new configured {@link CommandLineInterface}
+     * @throws CommandLineInterrogationException semantic error on the command line arguments
+     */
+    protected CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
+        if (commandLine.hasOption(CommandLineOptions.HELP.getOptionName())) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp(this.getClass().getSimpleName(), options, true);
+            System.exit(0);
+        }
+        return this;
     }
 
 }
