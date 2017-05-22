@@ -192,6 +192,16 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public boolean controlConcurrence = false;
     /**
+     * If is to load pre trained parameters.
+     * <p>
+     * If this model has been already trained, it is possible that it has saved some parameter files.
+     * <br>
+     * If this option is {@code true}, this files will be loaded during the current training.
+     * <br>
+     * If it is {@code false}, the files will not be loaded (and will possible be overwritten).
+     */
+    public boolean loadedPreTrainedParameters = false;
+    /**
      * The knowledge base collection class.
      */
     protected Class<? extends Collection> knowledgeBaseCollectionClass;
@@ -352,14 +362,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     public void saveConfigurations() throws InitializationException {
         try {
             String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
-
-            if (outputDirectoryPath != null) {
-                outputDirectory = new File(outputDirectoryPath);
-            } else {
-                String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
-                outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
-            }
-            outputDirectory.mkdirs();
+            buildOutputDirectory(configFileContent);
             addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
             File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
@@ -373,6 +376,21 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         } catch (IOException e) {
             throw new InitializationException(e);
         }
+    }
+
+    /**
+     * Builds the output directory.
+     *
+     * @param configFileContent the configuration file content
+     */
+    protected void buildOutputDirectory(String configFileContent) {
+        if (outputDirectoryPath != null) {
+            outputDirectory = new File(outputDirectoryPath);
+        } else {
+            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
+            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
+        }
+        outputDirectory.mkdirs();
     }
 
     @Override
@@ -659,6 +677,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         engineSystemTranslator.setKnowledgeBase(knowledgeBase);
         engineSystemTranslator.setTheory(theory);
         engineSystemTranslator.initialize();
+        if (loadedPreTrainedParameters) { engineSystemTranslator.loadParameters(outputDirectory); }
     }
 
     /**

@@ -12,7 +12,8 @@ theoryCollectionClassName:          java.util.ArrayList
 theoryPredicateClassName:
 theoryBaseAncestralClassName:
 
-controlConcurrence: false
+controlConcurrence:          false
+loadedPreTrainedParameters:  false
 
 engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    useTernayIndex:         false

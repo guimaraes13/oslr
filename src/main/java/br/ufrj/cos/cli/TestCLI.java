@@ -67,7 +67,10 @@ public class TestCLI extends CommandLineInterface {
      * The name of the file that logs the output.
      */
     public static final String STDOUT_LOG_FILE_NAME = "evaluation.txt";
-
+    /**
+     * If it is to load the trained parameters before the evaluation.
+     */
+    public static final boolean LOAD_PARAMETERS = true;
     /**
      * The test examples paths
      */
@@ -111,12 +114,13 @@ public class TestCLI extends CommandLineInterface {
         try {
             addAppender(new File(inputDirectoryPath, STDOUT_LOG_FILE_NAME).getAbsolutePath());
             learningFromFilesCLI = initializeLearningCLI();
+            learningFromFilesCLI.outputDirectory = new File(inputDirectoryPath);
             learningFromFilesCLI.initialize();
             learningFromFilesCLI.theoryFilePaths = new String[]{
                     new File(inputDirectoryPath, LearningFromFilesCLI.THEORY_FILE_NAME).getAbsolutePath()
             };
+            learningFromFilesCLI.loadedPreTrainedParameters = LOAD_PARAMETERS;
             learningFromFilesCLI.build();
-            learningFromFilesCLI.engineSystemTranslator.loadParameters(new File(inputDirectoryPath));
             examples = LearningFromFilesCLI.buildExampleSet(exampleFilePaths);
         } catch (Exception e) {
             throw new InitializationException(e);
