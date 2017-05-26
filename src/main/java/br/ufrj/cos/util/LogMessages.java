@@ -54,7 +54,7 @@ public enum LogMessages {
     ERROR_REVISING_THEORY("Error when revising the theory, reason:"),
     ERROR_EVALUATING_CANDIDATE_THEORY("Error when evaluating a candidate theory, reason:"),
 
-    BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation."),
+    BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation of {} candidates."),
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no improvements."),
 
@@ -81,7 +81,7 @@ public enum LogMessages {
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
-    EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {}seconds."),
+    EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
     TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),
 
 //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),

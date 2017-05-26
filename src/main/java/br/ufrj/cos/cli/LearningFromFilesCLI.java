@@ -383,6 +383,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @param configFileContent the configuration file content
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     protected void buildOutputDirectory(String configFileContent) {
         if (outputDirectoryPath != null) {
             outputDirectory = new File(outputDirectoryPath);
@@ -464,15 +465,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         Map<TheoryMetric, Double> evaluations = learningSystem.evaluate();
         for (Map.Entry<TheoryMetric, Double> entry : evaluations.entrySet()) {
             logger.warn(LogMessages.EVALUATION_UNDER_METRIC.toString(), entry.getKey(), entry.getValue());
-//            if (entry.getKey() instanceof RocCurveMetric) {
-//                RocCurveMetric metric = (RocCurveMetric) entry.getKey();
-//
-//                Examples examples = learningSystem.getExamples();
-//                List<Pair<AtomExample, Double>> pairs;
-//                pairs = metric.calculateEvaluation(learningSystem.inferExamples(examples), examples);
-//                Plot2D plot2D = Plot2D.createRocPlot(metric.buildRocCurve(pairs));
-//                plot2D.plot();
-//            }
         }
     }
 

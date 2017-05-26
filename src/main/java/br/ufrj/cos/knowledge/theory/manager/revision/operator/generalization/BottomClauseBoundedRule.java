@@ -339,7 +339,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         AsyncTheoryEvaluator bestClause = null;
         int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
         try {
-            logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION);
+            logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
             Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool);
 
@@ -363,7 +363,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
     public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms) {
-        //TODO: may restrict this method to proved literal only, facts are within proved
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();
         Set<Atom> atoms = new HashSet<>();

@@ -86,6 +86,7 @@ public class TestCLI extends CommandLineInterface {
     /**
      * If it is to draw the ROC curve, if it exists.
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean drawRocCurve = false;
 
     protected LearningFromFilesCLI learningFromFilesCLI;
