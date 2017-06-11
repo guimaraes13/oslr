@@ -27,10 +27,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -277,6 +274,8 @@ public class LanguageUtils {
     /**
      * Checks if the given atom unifies with the goal. An atom unifies with the goal if exists a
      * substitution of variables that makes the atom equals to the goal.
+     * <p>
+     * This method is not symmetric, i.e. {@code isAtomUnifiableToGoal(a, b) != isAtomUnifiableToGoal(b, a)}.
      *
      * @param atom the atom
      * @param goal the goal
@@ -287,30 +286,63 @@ public class LanguageUtils {
     }
 
     /**
-     * Unifies the given goal to the given atom and returns the substitution {@link Map} of the {@link Term}s. If the
+     * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
      * unification is not possibly, returns null.
+     * <p>
+     * This method is not symmetric, i.e. {@code isAtomUnifiableToGoal(a, b) != isAtomUnifiableToGoal(b, a)}.
      *
      * @param atom the atom
      * @param goal the goal
      * @return a substitution {@link Map} of the {@link Term}s if the unification is possible, {@code null} otherwise
      */
     public static Map<Term, Term> unifyAtomToGoal(Atom atom, Atom goal) {
-        if (!goal.getName().equals(atom.getName())) {
-            // different predicate name, is not unifiable
-            return null;
-        }
-        if (goal.getTerms().size() != atom.getTerms().size()) {
-            // different predicate size, is not unifiable
-            return null;
-        }
+        return checkPredicates(goal, atom) ? getUnifyMap(atom, goal) : null;
+    }
 
+    /**
+     * Checks if the predicates match in name and arity.
+     *
+     * @param goal the goal
+     * @param atom the atom
+     * @return {@code true} if they match, {@code false} otherwise
+     */
+    protected static boolean checkPredicates(Atom goal, Atom atom) {
+        return goal.getName().equals(atom.getName()) && goal.getTerms().size() == atom.getTerms().size();
+    }
+
+    /**
+     * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
+     * unification is not possibly, returns null.
+     * <p>
+     * This method is not symmetric, i.e. {@code isAtomUnifiableToGoal(a, b) != isAtomUnifiableToGoal(b, a)}.
+     *
+     * @param atom the atom
+     * @param goal the goal
+     * @return a substitution {@link Map} of the {@link Term}s if the unification is possible, {@code null} otherwise
+     */
+    public static Map<Term, Term> getUnifyMap(Atom atom, Atom goal) {
+        return getUnifyMap(atom, goal, null);
+    }
+
+    /**
+     * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
+     * unification is not possibly, returns null.
+     * <p>
+     * This method is not symmetric, i.e. {@code isAtomUnifiableToGoal(a, b) != isAtomUnifiableToGoal(b, a)}.
+     *
+     * @param atom       the atom
+     * @param goal       the goal
+     * @param fixedTerms {@link Term}s to be treated as constant (e.g. consolidated variables from the rule).
+     * @return a substitution {@link Map} of the {@link Term}s if the unification is possible, {@code null} otherwise
+     */
+    public static Map<Term, Term> getUnifyMap(Atom atom, Atom goal, Set<Term> fixedTerms) {
         Term goalTerm;
         Term atomTerm;
         Map<Term, Term> variableMap = new HashMap<>();
         for (int i = 0; i < goal.getTerms().size(); i++) {
             goalTerm = goal.getTerms().get(i);
             atomTerm = atom.getTerms().get(i);
-            if (goalTerm.isConstant()) {
+            if (goalTerm.isConstant() || (fixedTerms != null && fixedTerms.contains(goalTerm))) {
                 // the goal's term is a constant, the atom term must match exactly
                 if (!goalTerm.equals(atomTerm)) {
                     return null;
@@ -331,6 +363,56 @@ public class LanguageUtils {
         }
 
         return variableMap;
+    }
+
+    /**
+     * Checks if the constants and variables from the goal match the ones from the atom.
+     *
+     * @param goal       the goal
+     * @param atom       the atom
+     * @param fixedTerms {@link Term}s to be treated as constant (e.g. consolidated variables from the rule)
+     * @return the map to makes the goal equals to the atom, if the goad matches, or {@code null} otherwise
+     */
+    public static Map<Term, Term> doesTermMatch(Atom goal, Atom atom, Set<Term> fixedTerms) {
+        if (checkPredicates(goal, atom) && getUnifyMap(atom, goal, fixedTerms) != null) {
+            return getUnifyMap(goal, atom, fixedTerms);
+        }
+
+        return null;
+    }
+
+    /**
+     * Applies the substitution of term in the {@link Literal} and returns a new one.
+     *
+     * @param literal      the {@link Literal}
+     * @param substitution the substitution
+     * @return the new {@link Literal} with the substituted terms
+     */
+    public static Literal applySubstitution(Literal literal, Map<Term, Term> substitution) {
+        List<Term> terms = new ArrayList<>(literal.getTerms().size());
+        for (Term term : literal.getTerms()) {
+            terms.add(substitution.getOrDefault(term, term));
+        }
+
+        return new Literal(literal.getName(), terms, literal.isNegated());
+    }
+
+    /**
+     * Substitutes the atom's variables, in place, using the substitution map.
+     *
+     * @param atom            the source to unify
+     * @param substitutionMap the substitution map
+     */
+    public static void substituteVariablesInPlace(Atom atom, Map<Term, Term> substitutionMap) {
+        if (substitutionMap == null) {
+            return;
+        }
+        Term substitute;
+        for (int i = 0; i < atom.getTerms().size(); i++) {
+            if (!atom.getTerms().get(i).isConstant()) { continue; }
+            substitute = substitutionMap.get(atom.getTerms().get(i));
+            if (substitute != null) { atom.getTerms().set(i, substitute); }
+        }
     }
 
     /**

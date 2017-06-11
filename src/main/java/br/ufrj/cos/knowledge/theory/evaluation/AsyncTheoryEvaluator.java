@@ -25,11 +25,13 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.TimeMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -56,7 +58,9 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     protected final TheoryMetric theoryMetric;
 
     protected final Examples examples;
+
     protected HornClause hornClause;
+    protected Map<Term, Term> substitutionMap;
 
     protected int timeout = NO_TIMEOUT;
 
@@ -162,4 +166,21 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
         return evaluationFinished;
     }
 
+    /**
+     * Gets the substitution map.
+     *
+     * @return the substitution map
+     */
+    public Map<Term, Term> getSubstitutionMap() {
+        return substitutionMap;
+    }
+
+    /**
+     * Sets the substitution map.
+     *
+     * @param substitutionMap the substitution map
+     */
+    public void setSubstitutionMap(Map<Term, Term> substitutionMap) {
+        this.substitutionMap = substitutionMap;
+    }
 }
