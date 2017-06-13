@@ -747,8 +747,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public void setEngineSystemTranslator(EngineSystemTranslator engineSystemTranslator) throws KnowledgeException {
         if (isEngineSystemTranslatorSet()) {
-            throw new KnowledgeException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                       EngineSystemTranslator.class.getSimpleName()));
+            throw new KnowledgeException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   EngineSystemTranslator.class.getSimpleName()));
         }
         this.engineSystemTranslator = engineSystemTranslator;
     }

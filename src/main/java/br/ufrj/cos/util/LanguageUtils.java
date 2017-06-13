@@ -126,6 +126,16 @@ public class LanguageUtils {
     public static final String ARGUMENTS_SEPARATOR = " ";
 
     /**
+     * The parameter mark from the log's format
+     */
+    public static final String LOG_PARAMETER_MARK = "{}";
+
+    /**
+     * The parameter mark from the string's format
+     */
+    public static final String STRING_PARAMETER_MARK = "%s";
+
+    /**
      * Checks if the name can be a simple constant ou need the {@link #CONSTANT_SURROUNDING_CHARACTER}, i.e. there is
      * no special characters.
      *
@@ -471,12 +481,25 @@ public class LanguageUtils {
             if (file.exists()) {
                 files[i] = file;
             } else {
-                throw new FileNotFoundException(String.format(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
+                throw new FileNotFoundException(formatLogMessage(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
                         .getAbsoluteFile(), inputName));
             }
         }
 
         return files;
+    }
+
+    /**
+     * Formats a {@link String} replacing the parameter marks from the log format to the objects {@code toString}
+     * method.
+     *
+     * @param message the message with the {@link #LOG_PARAMETER_MARK}
+     * @param objects the objects
+     * @return the formatted {@link String}
+     */
+    public static String formatLogMessage(String message, Object... objects) {
+        String format = message.replace(LOG_PARAMETER_MARK, STRING_PARAMETER_MARK);
+        return String.format(format, objects);
     }
 
     /**

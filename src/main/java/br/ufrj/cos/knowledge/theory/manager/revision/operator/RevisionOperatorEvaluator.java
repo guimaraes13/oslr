@@ -30,6 +30,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 
 /**
  * Responsible for evaluating an specific {@link RevisionOperator}.
@@ -147,8 +148,9 @@ public class RevisionOperatorEvaluator implements Initializable {
      */
     public void setRevisionOperator(RevisionOperator revisionOperator) throws InitializationException {
         if (this.revisionOperator != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            RevisionOperator.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RevisionOperator.class.getSimpleName()));
         }
         this.revisionOperator = revisionOperator;
     }

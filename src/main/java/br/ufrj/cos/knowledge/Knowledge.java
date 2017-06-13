@@ -116,7 +116,7 @@ public class Knowledge<T> implements Collection<T> {
 
     @Override
     public boolean add(T t) {
-        return acceptPredicate.test(t) && collection.add(t);
+        return t != null && acceptPredicate.test(t) && collection.add(t);
     }
 
     @Override

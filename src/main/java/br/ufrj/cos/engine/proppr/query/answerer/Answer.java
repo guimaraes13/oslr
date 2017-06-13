@@ -22,6 +22,7 @@
 package br.ufrj.cos.engine.proppr.query.answerer;
 
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.Prover;
@@ -104,7 +105,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
             return findSolutions(program, plugins, prover.copy(), query, normalize, id);
         } catch (LogicProgramException e) {
             throw new LogicProgramException(
-                    String.format(ExceptionMessages.ERROR_ANSWERING_QUERY.toString(), query), e);
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_ANSWERING_QUERY.toString(), query), e);
         }
     }
 

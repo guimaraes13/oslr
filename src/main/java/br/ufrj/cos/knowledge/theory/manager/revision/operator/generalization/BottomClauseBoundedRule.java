@@ -179,8 +179,9 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         try {
             variableGeneratorClass = (Class<? extends VariableGenerator>) Class.forName(variableGeneratorClassName);
         } catch (ClassNotFoundException e) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS
-                                                                    .toString(), variableGeneratorClassName), e);
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
+                                                   variableGeneratorClassName), e);
         }
     }
 

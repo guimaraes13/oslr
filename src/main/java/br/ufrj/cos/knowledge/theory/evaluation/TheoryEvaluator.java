@@ -31,6 +31,7 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.*;
 
@@ -186,8 +187,9 @@ public class TheoryEvaluator implements Initializable {
      */
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            LearningSystem.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }
@@ -201,8 +203,9 @@ public class TheoryEvaluator implements Initializable {
     public void setTheoryMetrics(
             Iterable<? extends TheoryMetric> theoryMetrics) throws InitializationException {
         if (this.theoryMetrics != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            TheoryMetric.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   TheoryMetric.class.getSimpleName()));
         }
         this.theoryMetrics = theoryMetrics;
     }

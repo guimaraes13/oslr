@@ -28,10 +28,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.Initializable;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -117,8 +114,9 @@ public class TheoryRevisionManager implements Initializable {
      */
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            LearningSystem.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
 
@@ -132,8 +130,9 @@ public class TheoryRevisionManager implements Initializable {
      */
     public void setRevisionManager(RevisionManager revisionManager) throws InitializationException {
         if (this.revisionManager != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            RevisionManager.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RevisionManager.class.getSimpleName()));
         }
         this.revisionManager = revisionManager;
     }

@@ -28,6 +28,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -80,8 +81,9 @@ public abstract class IncomingExampleManager implements Initializable {
      */
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            LearningSystem.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }

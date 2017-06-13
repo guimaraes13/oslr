@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.Collection;
 
@@ -65,8 +66,9 @@ public abstract class RevisionOperatorSelector implements Initializable {
     public void setOperatorEvaluators(
             Collection<RevisionOperatorEvaluator> operatorEvaluators) throws InitializationException {
         if (this.operatorEvaluators != null) {
-            throw new InitializationException(String.format(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                            RevisionOperatorEvaluator.class.getSimpleName()));
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RevisionOperatorEvaluator.class.getSimpleName()));
         }
         this.operatorEvaluators = operatorEvaluators;
     }
