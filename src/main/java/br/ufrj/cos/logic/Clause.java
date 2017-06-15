@@ -28,6 +28,7 @@ package br.ufrj.cos.logic;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("ClassMayBeInterface")
 public abstract class Clause {
 
     /**

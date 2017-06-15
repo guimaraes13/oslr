@@ -31,6 +31,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
+import java.awt.*;
 import java.util.List;
 
 /**
@@ -38,6 +39,7 @@ import java.util.List;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public class Plot2D extends ApplicationFrame {
 
     /**
@@ -68,7 +70,7 @@ public class Plot2D extends ApplicationFrame {
                                                                 urls
                                                                );
         final ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(width, height));
+        chartPanel.setPreferredSize(new Dimension(width, height));
         setContentPane(chartPanel);
 
     }
@@ -79,7 +81,7 @@ public class Plot2D extends ApplicationFrame {
      * @param points the points of the curve
      * @return the plot
      */
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "MagicNumber"})
     public static Plot2D createRocPlot(List<Pair<Double, Double>> points) {
         String title = "ROC Curve";
         XYSeries series = new XYSeries("ROC Curve");

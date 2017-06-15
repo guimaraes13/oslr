@@ -100,7 +100,7 @@ public class TokenMgrError extends Error {
      * curLexState : lexical state in which this error occurred
      * errorLine   : line number when the error occurred
      * errorColumn : column number when the error occurred
-     * errorAfter  : prefix that was seen before this error occurred
+     * errorAfter  : PREFIX that was seen before this error occurred
      * curchar     : the offending character
      * Note: You can customize the lexical error message by modifying this method.
      */
@@ -173,6 +173,7 @@ public class TokenMgrError extends Error {
      * <p>
      * from this method for such cases in the release version of your parser.
      */
+    @Override
     public String getMessage() {
         return super.getMessage();
     }

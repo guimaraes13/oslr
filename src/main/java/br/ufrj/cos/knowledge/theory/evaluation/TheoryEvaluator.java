@@ -85,7 +85,7 @@ public class TheoryEvaluator implements Initializable {
             fields.add(TheoryMetric.class.getSimpleName());
         }
 
-        if (fields.size() > 0) {
+        if (!fields.isEmpty()) {
             throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
     }

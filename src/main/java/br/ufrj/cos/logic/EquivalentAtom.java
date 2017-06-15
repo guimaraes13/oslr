@@ -56,6 +56,7 @@ public class EquivalentAtom extends Atom {
     /**
      * Computes the {@link Atom}'s hash code.
      */
+    @SuppressWarnings("MagicNumber")
     protected void computeHashCode() {
         hashCode = 1;
         hashCode = 31 * hashCode + getName().hashCode();
@@ -75,7 +76,7 @@ public class EquivalentAtom extends Atom {
      * @param i     the item's index
      * @return the hash
      */
-    protected int getItemHash(List<Term> terms, int i) {
+    protected static int getItemHash(List<Term> terms, int i) {
         int hash;
         if (terms.get(i) == null) {
             hash = 0;

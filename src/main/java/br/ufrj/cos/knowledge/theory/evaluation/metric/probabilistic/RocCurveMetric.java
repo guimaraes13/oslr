@@ -39,6 +39,7 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("MethodWithTooManyParameters")
 public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Double>>, Pair<AtomExample, Double>> {
 
     @Override
@@ -59,7 +60,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param pairs the pairs of examples and their values
      * @return the list of points representing the ROC curve
      */
-    public List<Pair<Double, Double>> buildRocCurve(List<Pair<AtomExample, Double>> pairs) {
+    public static List<Pair<Double, Double>> buildRocCurve(List<Pair<AtomExample, Double>> pairs) {
         pairs.sort((o1, o2) -> -Double.compare(o1.getRight(), o2.getRight()));
         List<Pair<Double, Double>> points = new ArrayList<>();
 //        points.add(new ImmutablePair<>(0.0, 0.0));
@@ -94,7 +95,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param points the points of the curve
      * @return the area under the ROC curve
      */
-    protected double integrateRocCurve(List<Pair<Double, Double>> points) {
+    protected static double integrateRocCurve(List<Pair<Double, Double>> points) {
         double sum = 0;
         Pair<Double, Double> previous = points.get(0);
         Pair<Double, Double> current;
@@ -116,7 +117,8 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param negatives     the total number of negatives
      * @return the point of the ROC curve
      */
-    protected Pair<Double, Double> buildROCPoint(int truePositive, int falsePositive, int positives, int negatives) {
+    protected static Pair<Double, Double> buildROCPoint(int truePositive, int falsePositive, int positives,
+                                                        int negatives) {
         double truePositiveRate = positives > 0 ? ((double) truePositive) / (positives) : 1.0;
         double falsePositiveRate = negatives > 0 ? ((double) falsePositive) / (negatives) : 1.0;
         return new ImmutablePair<>(falsePositiveRate, truePositiveRate);
@@ -128,6 +130,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      *
      * @return the initial value for the accumulator.
      */
+    @Override
     protected List<Pair<AtomExample, Double>> initialAccumulatorValue() {
         return new ArrayList<>();
     }
@@ -139,6 +142,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param append  the append
      * @return the new value of the accumulator
      */
+    @Override
     protected List<Pair<AtomExample, Double>> accumulate(List<Pair<AtomExample, Double>> initial,
                                                          List<Pair<AtomExample, Double>> append) {
         initial.addAll(append);
@@ -152,6 +156,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param append  the append
      * @return the new value of the accumulator
      */
+    @Override
     protected List<Pair<AtomExample, Double>> accumulateAppend(List<Pair<AtomExample, Double>> initial,
                                                                Pair<AtomExample, Double> append) {
         initial.add(append);
@@ -165,6 +170,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param value       the value
      * @return the append that should be accumulated
      */
+    @Override
     protected Pair<AtomExample, Double> calculateAppend(AtomExample atomExample, double value) {
         return new ImmutablePair<>(atomExample, value);
     }

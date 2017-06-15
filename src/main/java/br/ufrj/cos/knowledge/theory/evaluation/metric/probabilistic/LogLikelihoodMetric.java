@@ -52,7 +52,7 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
 
     @Override
     protected Double calculateAppend(AtomExample atomExample, double value) {
-        return Math.log(super.calculateAppend(atomExample, value));
+        return StrictMath.log(super.calculateAppend(atomExample, value));
     }
 
     @Override

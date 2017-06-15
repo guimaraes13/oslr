@@ -99,6 +99,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
         this.status = status;
     }
 
+    @SuppressWarnings("ProhibitedExceptionDeclared")
     @Override
     public Answer<P> call() throws Exception {
         try {
@@ -121,6 +122,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
      * @return this class with the solutions in it.
      * @throws LogicProgramException if a error on the logic program occurs
      */
+    @SuppressWarnings("MethodWithTooManyParameters")
     public Answer<P> findSolutions(WamProgram program, WamPlugin[] plugins, Prover<P> prover, Query query,
                                    boolean normalize, int id) throws LogicProgramException {
         P pg = prover.makeProofGraph(new InferenceExample(query, null, null), aprOptions, featureTable,
@@ -157,7 +159,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
     protected Map<State, Double> prove(Prover<P> prover, P pg) {
         try {
             return prover.prove(pg, status);
-        } catch (LogicProgramException e) {
+        } catch (LogicProgramException ignored) {
             logger.trace(LogMessages.ERROR_PROVING_GOAL.toString(), Arrays.deepToString(query.getRhs()));
         }
         return null;

@@ -39,7 +39,7 @@ public class VariableGenerator implements Iterator<Variable> {
     /**
      * The prefix of the {@link Variable}s' names
      */
-    public final String prefix = "X";
+    public static final String PREFIX = "X";
     protected int counter = 1;
 
     protected Collection<String> usedNames;
@@ -71,8 +71,9 @@ public class VariableGenerator implements Iterator<Variable> {
      *
      * @return the {@link Variable}'s name
      */
+    @SuppressWarnings("ValueOfIncrementOrDecrementUsed")
     protected String getName() {
-        return prefix + counter++;
+        return PREFIX + counter++;
     }
 
     /**

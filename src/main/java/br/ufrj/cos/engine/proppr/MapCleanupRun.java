@@ -64,7 +64,7 @@ public class MapCleanupRun<Result> implements Runnable {
     public void run() {
         try {
             integerMap.put(id, input.get());
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException ignored) {
             logger.trace(LogMessages.ERROR_PROVING_GOAL.toString(), id);
         }
     }

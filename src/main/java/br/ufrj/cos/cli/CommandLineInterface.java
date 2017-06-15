@@ -57,11 +57,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static final Logger logger = LogManager.getLogger();
     /**
-     * Argument short option prefix.
+     * Argument short option PREFIX.
      */
     public static final String ARGUMENTS_SHORT_OPTION_PREFIX = "-";
     /**
-     * Argument long option prefix.
+     * Argument long option PREFIX.
      */
     public static final String ARGUMENTS_LONG_OPTION_PREFIX = "--";
     /**
@@ -109,6 +109,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * The default country for the formatted outputs.
      */
     public static final String DEFAULT_COUNTRY = "us";
+    /**
+     * The default empty string array.
+     */
+    public static final String[] EMPTY_STRING = new String[0];
     /**
      * The configuration file path.
      */
@@ -194,6 +198,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */
+    @SuppressWarnings("ImplicitDefaultCharsetUsage")
     protected static <C extends CommandLineInterface> C readYamlFile(Class<C> clazz,
                                                                      File yamlFile) throws FileNotFoundException,
             YamlException {
@@ -261,7 +266,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             return commandLine.getOptionValues(optionName);
         }
 
-        return new String[0];
+        return EMPTY_STRING;
     }
 
     /**

@@ -40,7 +40,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -132,10 +132,9 @@ public class TestCLI extends CommandLineInterface {
      * Initializes a {@link LearningFromFilesCLI} from its arguments.
      *
      * @return the {@link LearningFromFilesCLI}
-     * @throws FileNotFoundException        if the file does not exists
-     * @throws UnsupportedEncodingException if the encoding is not supported
+     * @throws IOException if the an error occurs when reading the file
      */
-    protected LearningFromFilesCLI initializeLearningCLI() throws FileNotFoundException, UnsupportedEncodingException {
+    protected LearningFromFilesCLI initializeLearningCLI() throws IOException {
         String arguments = LanguageUtils.readFileToString(new File(inputDirectoryPath,
                                                                    LearningFromFilesCLI.ARGUMENTS_FILE_NAME));
         learningFromFilesCLI = new LearningFromFilesCLI();
@@ -193,7 +192,7 @@ public class TestCLI extends CommandLineInterface {
             List<Pair<AtomExample, Double>> pairs;
             pairs = rocCurveMetric.calculateEvaluation(inferredExamples, examples);
             if (pairs != null) {
-                Plot2D plot2D = Plot2D.createRocPlot(rocCurveMetric.buildRocCurve(pairs));
+                Plot2D plot2D = Plot2D.createRocPlot(RocCurveMetric.buildRocCurve(pairs));
                 plot2D.plot();
             }
         }

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-public class LanguageUtils {
+public final class LanguageUtils {
 
     /**
      * The default encode of the input.
@@ -70,7 +70,7 @@ public class LanguageUtils {
     public static final String IMPLICATION_SIGN = ":-";
 
     /**
-     * The negation prefix.
+     * The negation PREFIX.
      */
     public static final String NEGATION_PREFIX = "not";
 
@@ -135,6 +135,9 @@ public class LanguageUtils {
      */
     public static final String STRING_PARAMETER_MARK = "%s";
 
+    private LanguageUtils() {
+    }
+
     /**
      * Checks if the name can be a simple constant ou need the {@link #CONSTANT_SURROUNDING_CHARACTER}, i.e. there is
      * no special characters.
@@ -170,9 +173,9 @@ public class LanguageUtils {
         stringBuilder.append(" ");
         Conjunction body = hornClause.getBody();
         if (body != null && !body.isEmpty()) {
-            stringBuilder.append(body.toString());
+            stringBuilder.append(body);
         } else {
-            stringBuilder.append(Atom.TRUE_ATOM.toString());
+            stringBuilder.append(Atom.TRUE_ATOM);
         }
         stringBuilder.append(CLAUSE_END_OF_LINE);
 
@@ -235,7 +238,7 @@ public class LanguageUtils {
      */
     public static String listToString(Iterable<?> objects) {
         StringBuilder stringBuilder = new StringBuilder();
-        objects.forEach(o -> stringBuilder.append(o.toString()).append(LIST_ARGUMENTS_SEPARATOR));
+        objects.forEach(o -> stringBuilder.append(o).append(LIST_ARGUMENTS_SEPARATOR));
         stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
         return stringBuilder.toString().trim();
     }
@@ -430,10 +433,9 @@ public class LanguageUtils {
      *
      * @param filePath the file's path
      * @return the content of the file
-     * @throws FileNotFoundException        if the file does not exists
-     * @throws UnsupportedEncodingException if the encoding is not supported
+     * @throws IOException if an error occurs during the reading
      */
-    public static String readFileToString(String filePath) throws FileNotFoundException, UnsupportedEncodingException {
+    public static String readFileToString(String filePath) throws IOException {
         return readFileToString(new File(filePath));
     }
 
@@ -445,10 +447,11 @@ public class LanguageUtils {
      * @throws FileNotFoundException        if the file does not exists
      * @throws UnsupportedEncodingException if the encoding is not supported
      */
-    public static String readFileToString(File file) throws FileNotFoundException, UnsupportedEncodingException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
-                                                                         DEFAULT_INPUT_ENCODE));
-        return reader.lines().collect(Collectors.joining("\n")).trim();
+    public static String readFileToString(File file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
+                                                                              DEFAULT_INPUT_ENCODE))) {
+            return reader.lines().collect(Collectors.joining("\n")).trim();
+        }
     }
 
     /**
@@ -459,10 +462,10 @@ public class LanguageUtils {
      * @throws IOException if an error occurs during the writing
      */
     public static void writeStringToFile(String content, File file) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                          DEFAULT_INPUT_ENCODE));
-        writer.write(content);
-        writer.close();
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                               DEFAULT_INPUT_ENCODE))) {
+            writer.write(content);
+        }
     }
 
     /**
@@ -473,7 +476,7 @@ public class LanguageUtils {
      * @return the {@link File}s
      * @throws FileNotFoundException if a file does not exists
      */
-    public static File[] readPathsToFiles(String paths[], String inputName) throws FileNotFoundException {
+    public static File[] readPathsToFiles(String[] paths, String inputName) throws FileNotFoundException {
         File[] files = new File[paths.length];
         File file;
         for (int i = 0; i < paths.length; i++) {
@@ -497,6 +500,7 @@ public class LanguageUtils {
      * @param objects the objects
      * @return the formatted {@link String}
      */
+    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     public static String formatLogMessage(String message, Object... objects) {
         String format = message.replace(LOG_PARAMETER_MARK, STRING_PARAMETER_MARK);
         return String.format(format, objects);
@@ -510,6 +514,7 @@ public class LanguageUtils {
      * @param suffix the suffix
      * @return the formatted name
      */
+    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     public static String formatDirectoryName(Object object, String suffix) {
         String className = object.getClass().getName();
         className = className.replaceAll(SIMPLE_CLASS_NAME_PATTERN, "");
@@ -525,12 +530,12 @@ public class LanguageUtils {
      * @throws IOException if an error occurs with the file
      */
     public static void saveTheoryToFile(Theory theory, File file) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                          DEFAULT_INPUT_ENCODE));
-        for (HornClause clause : theory) {
-            writer.write(clause.toString() + "\n");
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                               DEFAULT_INPUT_ENCODE))) {
+            for (HornClause clause : theory) {
+                writer.write(clause + "\n");
+            }
         }
-        writer.close();
     }
 
     /**
@@ -542,7 +547,7 @@ public class LanguageUtils {
     public static String theoryToString(Theory theory) {
         StringBuilder stringBuilder = new StringBuilder();
         for (HornClause clause : theory) {
-            stringBuilder.append(clause.toString()).append("\n");
+            stringBuilder.append(clause).append("\n");
         }
         return stringBuilder.toString().trim();
     }

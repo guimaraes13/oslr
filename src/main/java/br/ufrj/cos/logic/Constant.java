@@ -30,6 +30,7 @@ import br.ufrj.cos.util.LanguageUtils;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("EqualsAndHashcode")
 public class Constant extends Term {
 
     /**

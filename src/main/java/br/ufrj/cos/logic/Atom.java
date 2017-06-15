@@ -108,7 +108,7 @@ public class Atom extends Clause {
     public boolean isGrounded() {
         if (terms != null) {
             for (Term term : terms) {
-                if (!(term.isConstant())) {
+                if (!term.isConstant()) {
                     return false;
                 }
             }

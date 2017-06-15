@@ -35,7 +35,7 @@ public abstract class Term {
      *
      * @param name the {@link Term}'s name
      */
-    public Term(String name) {
+    protected Term(String name) {
         this.name = name;
     }
 

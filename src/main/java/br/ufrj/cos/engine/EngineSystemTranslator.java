@@ -48,11 +48,13 @@ import java.util.Set;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("AbstractClassExtendsConcreteClass")
 public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTranslator> implements Initializable {
 
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
 
+    @SuppressWarnings("AbstractMethodOverridesConcreteMethod")
     @Override
     protected abstract EngineSystemTranslator initialValue();
 

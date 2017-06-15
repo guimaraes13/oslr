@@ -324,6 +324,61 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         return new Examples(proPprExamples, atomExamples);
     }
 
+    /**
+     * Builds the default {@link RevisionOperatorEvaluator}s.
+     *
+     * @return the default {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    @SuppressWarnings("OverlyCoupledMethod")
+    protected static List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
+        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
+        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
+        TheoryMetric metric = new LogLikelihoodMetric();
+        metric.parametersRetrainedBeforeEvaluate = true;
+        bottomClause.setTheoryMetric(metric);
+        bottomClause.internalMetric = new F1ScoreMetric();
+        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
+        return operatorEvaluator;
+    }
+
+    /**
+     * Builds the default {@link TheoryMetric}s.
+     *
+     * @return the default {@link TheoryMetric}s
+     */
+    @SuppressWarnings("OverlyCoupledMethod")
+    protected static List<TheoryMetric> defaultTheoryMetrics() {
+        List<TheoryMetric> metrics = new ArrayList<>();
+        metrics.add(new AccuracyMetric());
+        metrics.add(new PrecisionMetric());
+        metrics.add(new RecallMetric());
+        metrics.add(new F1ScoreMetric());
+
+        metrics.add(new LikelihoodMetric());
+        metrics.add(new LogLikelihoodMetric());
+        metrics.add(new RocCurveMetric());
+        return metrics;
+    }
+
+    /**
+     * Reads the input {@link File}s to a {@link List} of {@link Clause}s.
+     *
+     * @param inputFiles the input {@link File}s
+     * @return the {@link List} of {@link Clause}s
+     */
+    protected static List<Clause> readInputKnowledge(File[] inputFiles) {
+        List<InputStream> inputStreams = new ArrayList<>();
+        List<Clause> clauses = new ArrayList<>();
+        logger.trace(LogMessages.READING_INPUT_FILES);
+        for (File file : inputFiles) {
+            readClausesToList(file, clauses);
+        }
+        logger.debug(LogMessages.READ_CLAUSE_SIZE.toString(), clauses.size());
+        return clauses;
+    }
+
+    @Override
     public void initialize() throws InitializationException {
         instantiateClasses();
     }
@@ -504,8 +559,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
         learningSystem.concurrent = controlConcurrence;
         List<TheoryMetric> theoryMetrics = initializeMetrics();
-        List<RevisionOperatorEvaluator> operatorEvaluator = initializeOperators();
-        initializeOperatorSelector(operatorEvaluator);
+        initializeOperatorSelector();
         initializeRevisionManager();
         initializeIncomingExampleManager();
         learningSystem.incomingExampleManager = incomingExampleManager;
@@ -574,15 +628,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * Initializes the {@link RevisionOperatorSelector}.
      *
-     * @param operatorEvaluator the {@link RevisionOperatorEvaluator}s
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeOperatorSelector(
-            Collection<RevisionOperatorEvaluator> operatorEvaluator) throws InitializationException {
+    protected void initializeOperatorSelector() throws InitializationException {
         if (revisionOperatorSelector == null) {
             revisionOperatorSelector = new SelectFirstRevisionOperator();
         }
-        revisionOperatorSelector.setOperatorEvaluators(operatorEvaluator);
+        if (!revisionOperatorSelector.isOperatorEvaluatorsSetted()) {
+            revisionOperatorSelector.setOperatorEvaluators(initializeOperators());
+        }
         revisionOperatorSelector.initialize();
     }
 
@@ -607,23 +661,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Builds the default {@link RevisionOperatorEvaluator}s.
-     *
-     * @return the default {@link RevisionOperatorEvaluator}s
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
-        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
-        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
-        TheoryMetric metric = new LogLikelihoodMetric();
-        metric.parametersRetrainedBeforeEvaluate = true;
-        bottomClause.setTheoryMetric(metric);
-        bottomClause.internalMetric = new F1ScoreMetric();
-        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
-        return operatorEvaluator;
-    }
-
-    /**
      * Initializes the {@link TheoryMetric}s.
      *
      * @return the {@link TheoryMetric}s
@@ -635,24 +672,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         for (TheoryMetric metric : metrics) {
             metric.initialize();
         }
-        return metrics;
-    }
-
-    /**
-     * Builds the default {@link TheoryMetric}s.
-     *
-     * @return the default {@link TheoryMetric}s
-     */
-    protected List<TheoryMetric> defaultTheoryMetrics() {
-        List<TheoryMetric> metrics = new ArrayList<>();
-        metrics.add(new AccuracyMetric());
-        metrics.add(new PrecisionMetric());
-        metrics.add(new RecallMetric());
-        metrics.add(new F1ScoreMetric());
-
-        metrics.add(new LikelihoodMetric());
-        metrics.add(new LogLikelihoodMetric());
-        metrics.add(new RocCurveMetric());
         return metrics;
     }
 
@@ -720,23 +739,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         theory = new Theory(theoryCollectionClass.newInstance(), predicate);
         theory.addAll(clauses, theoryBaseAncestralClass);
         logger.info(LogMessages.THEORY_SIZE.toString(), theory.size());
-    }
-
-    /**
-     * Reads the input {@link File}s to a {@link List} of {@link Clause}s.
-     *
-     * @param inputFiles the input {@link File}s
-     * @return the {@link List} of {@link Clause}s
-     */
-    protected List<Clause> readInputKnowledge(File[] inputFiles) {
-        List<InputStream> inputStreams = new ArrayList<>();
-        List<Clause> clauses = new ArrayList<>();
-        logger.trace(LogMessages.READING_INPUT_FILES);
-        for (File file : inputFiles) {
-            readClausesToList(file, clauses);
-        }
-        logger.debug(LogMessages.READ_CLAUSE_SIZE.toString(), clauses.size());
-        return clauses;
     }
 
     /**

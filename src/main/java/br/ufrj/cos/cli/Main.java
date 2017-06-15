@@ -22,6 +22,7 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.util.TimeMeasure;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.QueryAnswerer;
 import edu.cmu.ml.proppr.Trainer;
@@ -34,6 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.StringReader;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,6 +51,8 @@ public class Main {
     public static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
+        test();
+        System.exit(0);
         logger.info("Begin Program!");
         Locale.setDefault(new Locale("en", "us"));
 
@@ -78,6 +83,27 @@ public class Main {
 //        trainer(1e-2, 0.1, trainingArguments);
         inference(1e-2, 0.1, inferenceArguments);
         logger.info("End Program!");
+    }
+
+    public static void test() {
+        String anchor = "- &var1 X1\n- *var1";
+
+        YamlReader reader = null;
+        try {
+            reader = new YamlReader(new StringReader(anchor));
+
+            List<String> variables = (List<String>) reader.read();
+            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
+            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
+
+            if (variables.get(0) == variables.get(1)) {
+                System.out.println("[ OK  ] - The variables represent the same object!");
+            } else {
+                System.out.println("[ERROR] - The variables represent different objects!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void inference(double epsilon, double alpha, String[] args) {

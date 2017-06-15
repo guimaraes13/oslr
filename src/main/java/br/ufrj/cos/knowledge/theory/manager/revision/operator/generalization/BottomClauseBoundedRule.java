@@ -169,6 +169,23 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public TheoryMetric internalMetric;
 
+    /**
+     * Submits one evaluator {@link HornClause} to the pool and returns its {@link Future} value.
+     *
+     * @param evaluator      the evaluator {@link HornClause}
+     * @param evaluationPool the pool
+     * @return the {@link Future} value
+     */
+    protected static Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
+                                                                  ExecutorService evaluationPool) {
+        try {
+            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
+        } catch (Exception e) {
+            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void initialize() throws InitializationException {
@@ -189,29 +206,38 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public Theory performOperation(Example... targets) throws TheoryRevisionException {
         try {
             Theory theory = learningSystem.getTheory().copy();
-
             int initialSize = theory.size();
-            HornClause newRule;
             for (Example example : targets) {
-                try {
-                    if (!example.isPositive() || isCovered(example)) {
-                        if (example.isPositive()) {
-                            logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
-                        }
-                        continue;
-                    }
-                    logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-                    newRule = buildRuleForExample(example);
-                    if (theory.add(newRule)) {
-                        logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
-                    }
-                } catch (TheoryRevisionException e) {
-                    logger.debug(e.getMessage());
-                }
+                performOperationForExample(example, theory);
             }
             return theory;
         } catch (KnowledgeException e) {
             throw new TheoryRevisionException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
+        }
+    }
+
+    /**
+     * Performs the operation for a single example
+     *
+     * @param example the example
+     * @param theory  the theory
+     */
+    protected void performOperationForExample(Example example, Theory theory) {
+        HornClause newRule;
+        try {
+            if (!example.isPositive() || isCovered(example)) {
+                if (example.isPositive()) {
+                    logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
+                }
+                return;
+            }
+            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+            newRule = buildRuleForExample(example);
+            if (theory.add(newRule)) {
+                logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
+            }
+        } catch (TheoryRevisionException e) {
+            logger.debug(e.getMessage());
         }
     }
 
@@ -279,6 +305,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param initialSubstitution the initial substitution map
      * @return a {@link AsyncTheoryEvaluator} containing the best {@link HornClause} found
      */
+    @SuppressWarnings("OverlyLongMethod")
     protected AsyncTheoryEvaluator refineRule(AsyncTheoryEvaluator initialClause, Set<Literal> candidateLiterals,
                                               Map<Term, Term> initialSubstitution) {
         Set<Literal> candidates = candidateLiterals;
@@ -286,13 +313,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         AsyncTheoryEvaluator bestClause = initialClause;
         AsyncTheoryEvaluator currentClause = initialClause;
         int sideWayMovements = 0;
-        while (!itToStopBySideWayMovements(sideWayMovements) && !candidates.isEmpty()) {
+        while (!isToStopBySideWayMovements(sideWayMovements) && !candidates.isEmpty()) {
             candidates = HornClauseUtils.unifyCandidates(candidates, substitutionMap);
             candidates.removeAll(currentClause.getHornClause().getBody());
             currentClause = specifyRule(currentClause.getHornClause(), candidates);
-            if (currentClause == null) {
-                break;
-            }
+            if (currentClause == null) { break; }
             substitutionMap = currentClause.getSubstitutionMap();
             if (substitutionMap == null) { substitutionMap = new HashMap<>(); }
             if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
@@ -316,7 +341,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param sideWayMovements the number of iterations without improvements
      * @return {@code true} if it is to stop, {@code false} if it is to continue
      */
-    protected boolean itToStopBySideWayMovements(int sideWayMovements) {
+    protected boolean isToStopBySideWayMovements(int sideWayMovements) {
         return maximumSideWayMovements > NO_MAXIMUM_SIDE_WAY_MOVEMENTS && sideWayMovements > maximumSideWayMovements;
     }
 
@@ -372,6 +397,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param terms the seed {@link Term}s
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
     public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms) {
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();
@@ -438,6 +464,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @throws IllegalAccessException if an error occurs when instantiating a new list of {@link Term}s
      * @throws InstantiationException if an error occurs when instantiating a new list of {@link Term}s
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     protected HornClause toVariableHornClauseForm(Example target, Collection<? extends Atom> body,
                                                   Map<Term, Variable> variableMap) throws IllegalAccessException,
             InstantiationException {
@@ -502,30 +529,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-            } catch (CancellationException e) {
+            } catch (CancellationException ignored) {
                 logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), evaluationTimeout);
             }
         }
         logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
-                     ((double) count / futures.size()) * 100, futures.size());
+                     (double) count / futures.size() * 100, futures.size());
         return bestClause;
-    }
-
-    /**
-     * Submits one evaluator {@link HornClause} to the pool and returns its {@link Future} value.
-     *
-     * @param evaluator      the evaluator {@link HornClause}
-     * @param evaluationPool the pool
-     * @return the {@link Future} value
-     */
-    protected Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
-                                                           ExecutorService evaluationPool) {
-        try {
-            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
-        } catch (Exception e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-        }
-        return null;
     }
 
     /**

@@ -79,7 +79,7 @@ public class TheoryRevisionManager implements Initializable {
             fields.add(RevisionManager.class.getSimpleName());
         }
 
-        if (fields.size() > 0) {
+        if (!fields.isEmpty()) {
             throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
     }

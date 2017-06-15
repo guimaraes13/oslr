@@ -39,7 +39,7 @@ public class LikelihoodMetric extends AccumulatorMetric<Double, Double> {
      * A minimal value to be multiplied into the result. This prevents the probability to goes to 0 if a example
      * positive examples is not proved or a negative one gets probability of 1.
      */
-    public static final double EPSILON = 1e-4;
+    public static final double EPSILON = 1.0e-4;
 
     @Override
     protected double calculateResult(Double result) {

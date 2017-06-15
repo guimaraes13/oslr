@@ -31,7 +31,7 @@ import org.apache.commons.cli.OptionBuilder;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"deprecation", "AccessStaticViaInstance", "JavaDoc"})
+@SuppressWarnings({"deprecation", "AccessStaticViaInstance", "JavaDoc", "HardCodedStringLiteral"})
 public enum CommandLineOptions {
     HELP(new Option("h", "help", false, "print this message.")),
     YAML(OptionBuilder.withArgName("yaml")

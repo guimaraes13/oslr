@@ -31,7 +31,10 @@ import java.util.Set;
  *
  * @author Victor Guimarães
  */
-public class MapUtils {
+public final class MapUtils {
+
+    private MapUtils() {
+    }
 
     /**
      * Asserts that the {@link Map} contains a {@link Set} for the key, if it does not, create

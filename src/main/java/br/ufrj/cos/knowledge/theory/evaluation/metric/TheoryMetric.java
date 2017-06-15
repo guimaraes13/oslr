@@ -59,6 +59,7 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     /**
      * The default value of the metric, it should be proper overridden by subclasses.
      */
+    @SuppressWarnings("NonConstantFieldWithUpperCaseName")
     protected double DEFAULT_VALUE = 0;
 
     /**

@@ -36,7 +36,10 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-public class HornClauseUtils {
+public final class HornClauseUtils {
+
+    private HornClauseUtils() {
+    }
 
     /**
      * Checks if a {@link HornClause} is safe. A {@link HornClause} is safe when all the variable of the clause
@@ -195,6 +198,7 @@ public class HornClauseUtils {
      * @param queue      the {@link Queue} if {@link Set}s of candidates
      * @param candidates the {@link Iterable} of candidates
      */
+    @SuppressWarnings("OverlyLongMethod")
     public static void appendAllCandidatesToQueue(Atom head, Queue<Pair<Set<Literal>, Map<Term, Term>>> queue,
                                                   Iterable<Literal> candidates) {
 
@@ -361,6 +365,7 @@ public class HornClauseUtils {
      * @param candidates the {@link Iterable} of candidates
      * @return the set of candidate clauses
      */
+    @SuppressWarnings("OverlyLongMethod")
     public static Set<Pair<HornClause, Map<Term, Term>>> buildAllCandidatesFromClause(Atom head,
                                                                                       Set<Literal> body,
                                                                                       Iterable<Literal> candidates) {

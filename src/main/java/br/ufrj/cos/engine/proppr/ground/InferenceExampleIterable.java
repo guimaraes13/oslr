@@ -42,6 +42,11 @@ import java.util.List;
 public class InferenceExampleIterable extends IterableConverter<Example, InferenceExample> {
 
     /**
+     * The default empty query array.
+     */
+    public static final Query[] EMPTY_QUERY = new Query[0];
+
+    /**
      * Constructs from an {@link Iterable}.
      *
      * @param iterable the {@link Iterable}
@@ -87,7 +92,7 @@ public class InferenceExampleIterable extends IterableConverter<Example, Inferen
         example.getGroundedQuery().forEach(atom -> (atom.isPositive() ? posSet : negSet).add
                 (ProPprEngineSystemTranslator.atomToQuery(atom)));
 
-        return new InferenceExample(query, posSet.toArray(new Query[0]), negSet.toArray(new Query[0]));
+        return new InferenceExample(query, posSet.toArray(EMPTY_QUERY), negSet.toArray(EMPTY_QUERY));
     }
 
 }

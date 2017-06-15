@@ -28,7 +28,7 @@ package br.ufrj.cos.util;
  *
  * @author Victor Guimarães
  */
-public class TimeMeasure {
+public final class TimeMeasure {
 
     /**
      * The format of the timestamp.
@@ -55,6 +55,9 @@ public class TimeMeasure {
      * A constant to multiply a number in seconds scale and get a number in milliseconds scale.
      */
     public static final int SECONDS_TO_MILLISECONDS_MULTIPLIER = 1000;
+
+    private TimeMeasure() {
+    }
 
     /**
      * Gets the time of the System in nano time.

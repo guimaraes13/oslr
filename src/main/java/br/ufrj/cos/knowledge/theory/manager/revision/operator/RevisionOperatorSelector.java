@@ -65,12 +65,21 @@ public abstract class RevisionOperatorSelector implements Initializable {
      */
     public void setOperatorEvaluators(
             Collection<RevisionOperatorEvaluator> operatorEvaluators) throws InitializationException {
-        if (this.operatorEvaluators != null) {
+        if (isOperatorEvaluatorsSetted()) {
             throw new InitializationException(
                     LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
                                                    RevisionOperatorEvaluator.class.getSimpleName()));
         }
         this.operatorEvaluators = operatorEvaluators;
+    }
+
+    /**
+     * Checks if the {@link #operatorEvaluators} is setted.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isOperatorEvaluatorsSetted() {
+        return this.operatorEvaluators != null;
     }
 
 }

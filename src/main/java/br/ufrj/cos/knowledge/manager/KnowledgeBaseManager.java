@@ -34,6 +34,7 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings({"AbstractClassNeverImplemented", "ClassMayBeInterface"})
 public abstract class KnowledgeBaseManager {
 
     /**

@@ -78,7 +78,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
      * @param featureTable           the {@link SymbolTable}
      * @param masterProgram          the {@link WamProgram}
      * @param masterPlugins          the {@link WamPlugin}s
-     * @param statistics             the {@link edu.cmu.ml.proppr.Grounder.GroundingStatistics}
+     * @param statistics             the {@link Grounder.GroundingStatistics}
      * @param includeUnlabeledGraphs if it is to include unlabeled graph
      * @param status                 the {@link StatusLogger}
      */
@@ -98,6 +98,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
         this.status = status;
     }
 
+    @SuppressWarnings("ProhibitedExceptionDeclared")
     @Override
     public Ground<P> call() throws Exception {
         proofGraph = prover.makeProofGraph(inferenceExample, aprOptions, featureTable, masterProgram, masterPlugins);

@@ -39,7 +39,7 @@ public class Examples extends Knowledge<ProPprExample> {
     /**
      * The class to be used on the {@link Set}s within the {@link Map}s
      */
-    @SuppressWarnings("CanBeFinal")
+    @SuppressWarnings({"CanBeFinal", "NonConstantFieldWithUpperCaseName"})
     public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
 
     protected Map<String, Set<ProPprExample>> proPprExampleSetPredicateMap;
@@ -56,7 +56,7 @@ public class Examples extends Knowledge<ProPprExample> {
             IllegalAccessException, InstantiationException {
         super(proPprExamples);
         this.proPprExampleSetPredicateMap = buildPredicateMap();
-        appendAtomExamplesIntoProPprExample(atomExamples);
+        appendAtomExamplesIntoProPpr(atomExamples);
     }
 
     /**
@@ -87,7 +87,7 @@ public class Examples extends Knowledge<ProPprExample> {
      *
      * @param atomExamples the {@link AtomExample}s
      */
-    protected void appendAtomExamplesIntoProPprExample(Iterable<? extends AtomExample> atomExamples) {
+    protected void appendAtomExamplesIntoProPpr(Iterable<? extends AtomExample> atomExamples) {
         for (AtomExample atomExample : atomExamples) {
             for (ProPprExample proPprExample : proPprExampleSetPredicateMap.get(atomExample.getName())) {
                 if (LanguageUtils.isAtomUnifiableToGoal(atomExample, proPprExample.getGoal())) {

@@ -61,7 +61,7 @@ public class GroundTransformer<P extends ProofGraph> extends Transformer<Inferen
      * @param featureTable           the {@link SymbolTable}
      * @param masterProgram          the {@link WamProgram}
      * @param masterPlugins          the {@link WamPlugin}s
-     * @param statistics             the {@link edu.cmu.ml.proppr.Grounder.GroundingStatistics}
+     * @param statistics             the {@link Grounder.GroundingStatistics}
      * @param includeUnlabeledGraphs if it is to include unlabeled graph
      * @param status                 the {@link StatusLogger}
      */

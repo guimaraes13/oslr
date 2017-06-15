@@ -28,6 +28,7 @@ package br.ufrj.cos.logic;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("EqualsAndHashcode")
 public class Variable extends Term {
 
     /**

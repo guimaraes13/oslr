@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc", "HardCodedStringLiteral"})
 public enum ExceptionMessages {
     //No additional parameters to format
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),

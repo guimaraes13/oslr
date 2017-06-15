@@ -101,6 +101,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      * <p>
      * {@inheritDoc}
      */
+    @SuppressWarnings("IntegerMultiplicationImplicitCastToLong")
     @Override
     public AsyncTheoryEvaluator call() {
         try {

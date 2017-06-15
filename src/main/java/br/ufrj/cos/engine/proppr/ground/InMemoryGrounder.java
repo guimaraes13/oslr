@@ -48,6 +48,7 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
 
     /**
@@ -59,6 +60,37 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * The empty
      */
     public static final int EMPTY = 0;
+    /**
+     * The percent normalizer to change a number from [0, 1] to [0, 100]%.
+     */
+    public static final double PERCENT_NORMALIZER = 100.0;
+
+    /**
+     * Grounded log message.
+     */
+    public static final String GROUNDED = "Grounded: {}";
+    /**
+     * Skipped with no solutions log message.
+     */
+    public static final String SKIPPED_WITH_NO_SOLUTIONS = "Skipped: {} = {} with no labeled solutions; {} with empty" +
+            " graphs";
+    /**
+     * Covered status log message.
+     */
+    public static final String COVERED_STATUS = "totalPos: {} totalNeg: {} coveredPos: {} coveredNeg: {}";
+    /**
+     * Positive examples proveable log message.
+     */
+    public static final String POSITIVE_EXAMPLES_PROVEABLE = "For positive examples {}/{} proveable [{}%]";
+    /**
+     * Negative examples proveable log message.
+     */
+    public static final String NEGATIVE_EXAMPLES_PROVEABLE = "For negative examples {}/{} proveable [{}%]";
+    /**
+     * Positive examples with fewest positive examples covered log message.
+     */
+    public static final String EXAMPLE_WITH_FEWEST_POS_EXAMPLES_COVERED = "Example with fewest [{}%] pos examples " +
+            "covered: {}";
 
     /**
      * Constructor with the needed parameters for single thread execution.
@@ -129,7 +161,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
      * @param source      the source {@link SymbolTable}
      * @param destination the destination {@link SymbolTable}
      */
-    protected void saveFeaturesToSymbolTable(SymbolTable<Feature> source, SymbolTable<String> destination) {
+    protected static void saveFeaturesToSymbolTable(SymbolTable<Feature> source, SymbolTable<String> destination) {
         for (int i = 1; i < source.size() + 1; i++) {
             destination.insert(source.getSymbol(i).name);
         }
@@ -143,26 +175,25 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     protected void reportStatistics(GroundingStatistics statistics) {
         if (!logger.isTraceEnabled()) { return; }
         int skipped = statistics.noPosNeg + statistics.emptyGraph;
-        logger.trace("Grounded: " + (statistics.count - skipped));
-        logger.trace("Skipped: " + skipped + " = " + statistics.noPosNeg + " with no labeled solutions; " + statistics
-                .emptyGraph + " with empty graphs");
-        logger.trace("totalPos: " + statistics.totalPos
-                            + " totalNeg: " + statistics.totalNeg
-                            + " coveredPos: " + statistics.coveredPos
-                            + " coveredNeg: " + statistics.coveredNeg);
+        logger.trace(GROUNDED, statistics.count - skipped);
+        logger.trace(SKIPPED_WITH_NO_SOLUTIONS, skipped, statistics
+                .noPosNeg, statistics
+                             .emptyGraph);
+        logger.trace(COVERED_STATUS, statistics.totalPos, statistics
+                .totalNeg, statistics.coveredPos, statistics.coveredNeg);
         if (statistics.totalPos > 0) {
-            logger.trace("For positive examples " + statistics.coveredPos
-                                + "/" + statistics.totalPos
-                                + " proveable [" + ((100.0 * statistics.coveredPos) / statistics.totalPos) + "%]");
+            logger.trace(POSITIVE_EXAMPLES_PROVEABLE, statistics.coveredPos, statistics.totalPos,
+                         PERCENT_NORMALIZER * statistics.coveredPos / statistics
+                                 .totalPos);
         }
         if (statistics.totalNeg > 0) {
-            logger.trace("For negative examples " + statistics.coveredNeg
-                                + "/" + statistics.totalNeg
-                                + " proveable [" + ((100.0 * statistics.coveredNeg) / statistics.totalNeg) + "%]");
+            logger.trace(NEGATIVE_EXAMPLES_PROVEABLE, statistics.coveredNeg, statistics.totalNeg,
+                         PERCENT_NORMALIZER * statistics.coveredNeg / statistics
+                                 .totalNeg);
         }
         if (statistics.worstX != null) {
-            logger.trace("Example with fewest [" + 100.0 * statistics.smallestFractionCovered + "%] pos examples " +
-                                "covered: " + statistics.worstX.getQuery());
+            logger.trace(EXAMPLE_WITH_FEWEST_POS_EXAMPLES_COVERED, PERCENT_NORMALIZER * statistics
+                    .smallestFractionCovered, statistics.worstX.getQuery());
         }
     }
 

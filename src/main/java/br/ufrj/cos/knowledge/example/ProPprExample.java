@@ -61,7 +61,7 @@ public class ProPprExample implements Example {
      * @param atomExamples the {@link AtomExample}s
      * @return {@code true} if at least one {@link AtomExample} is positive, {@code false} otherwise
      */
-    protected boolean hasPositiveExamples(List<AtomExample> atomExamples) {
+    protected static boolean hasPositiveExamples(List<AtomExample> atomExamples) {
         for (AtomExample atomExample : atomExamples) {
             if (atomExample.isPositive()) {
                 return true;
@@ -152,7 +152,7 @@ public class ProPprExample implements Example {
      * @param atom      the given {@link Atom}
      * @param constants the {@link Collection}
      */
-    protected void appendConstantFromAtom(Atom atom, Collection<Term> constants) {
+    protected static void appendConstantFromAtom(Atom atom, Collection<Term> constants) {
         for (Term term : atom.getTerms()) {
             if (term.isConstant()) {
                 constants.add(term);

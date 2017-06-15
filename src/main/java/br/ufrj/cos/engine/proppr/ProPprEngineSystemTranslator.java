@@ -92,6 +92,14 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * Name of the saved parameters file.
      */
     public static final String SAVED_PARAMETERS_FILE_NAME = "savedParameters.wts";
+    /**
+     * The default empty goal array.
+     */
+    public static final Goal[] EMPTY_GOAL = new Goal[0];
+    /**
+     * The default empty query array.
+     */
+    public static final Query[] EMPTY_QUERY = new Query[0];
 
     /**
      * If is to use ternay index, makes an more efficient cache for predicates with arity.
@@ -184,8 +192,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     public static Rule clauseToRule(Clause clause) {
         Goal lhs = null;                //head
-        Goal[] rhs = new Goal[0];       //body
-        Goal[] features = new Goal[0];  //features
+        Goal[] rhs = EMPTY_GOAL;       //body
+        Goal[] features = EMPTY_GOAL;  //features
 
         if (clause instanceof Atom) {
             lhs = atomToGoal((Atom) clause, new HashMap<>());
@@ -202,7 +210,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             }
         }
 
-        return new Rule(lhs, rhs, features, new Goal[0]);
+        return new Rule(lhs, rhs, features, EMPTY_GOAL);
     }
 
     /**
@@ -235,7 +243,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             }
         }
 
-        return goals.toArray(new Goal[0]);
+        return goals.toArray(EMPTY_GOAL);
     }
 
     /**
@@ -254,7 +262,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             goals.add(atomToGoal(atom, variableMap));
         }
 
-        return goals.toArray(new Goal[0]);
+        return goals.toArray(EMPTY_GOAL);
     }
 
     /**
@@ -413,7 +421,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         terms.set(termIndex, relevantTerm);
         Query query = new Query(atomToGoal(goalAtom.getName(), terms, new HashMap<>()));
 
-        return new InferenceExample(query, new Query[0], new Query[0]);
+        return new InferenceExample(query, EMPTY_QUERY, EMPTY_QUERY);
     }
 
     /**

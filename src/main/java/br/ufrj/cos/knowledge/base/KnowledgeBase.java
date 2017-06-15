@@ -58,7 +58,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
     /**
      * The class to be used on the {@link Set}s within the {@link Map}s
      */
-    @SuppressWarnings("CanBeFinal")
+    @SuppressWarnings({"CanBeFinal", "NonConstantFieldWithUpperCaseName"})
     public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
 
     /**

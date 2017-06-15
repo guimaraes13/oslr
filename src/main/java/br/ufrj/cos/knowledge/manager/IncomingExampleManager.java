@@ -45,7 +45,7 @@ public abstract class IncomingExampleManager implements Initializable {
     /**
      * Default constructor to be in compliance to {@link Initializable} interface.
      */
-    public IncomingExampleManager() {
+    protected IncomingExampleManager() {
     }
 
     /**
@@ -53,7 +53,7 @@ public abstract class IncomingExampleManager implements Initializable {
      *
      * @param learningSystem the {@link LearningSystem}
      */
-    public IncomingExampleManager(LearningSystem learningSystem) {
+    protected IncomingExampleManager(LearningSystem learningSystem) {
         this.learningSystem = learningSystem;
     }
 

@@ -23,14 +23,16 @@ package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.VariableGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Represents an atom example.
@@ -67,6 +69,7 @@ public class AtomExample extends Atom implements Example {
      * @param terms    the {@link Atom}'s {@link Term}s
      * @param positive the value of the example, true for positive; false for negative
      */
+    @SuppressWarnings("ThisEscapedInObjectConstruction")
     public AtomExample(String name, List<Term> terms, boolean positive) {
         super(name, terms);
         this.positive = positive;
@@ -126,23 +129,19 @@ public class AtomExample extends Atom implements Example {
      *
      * @return the {@link Atom}
      */
+    @Override
     public Atom getAtom() {
         return atom;
     }
 
     @Override
     public Collection<Term> getPositiveTerms() {
-        return (isPositive() ? getTerms() : null);
+        return isPositive() ? getTerms() : null;
     }
 
     @Override
     public boolean isPositive() {
         return positive;
-    }
-
-    @Override
-    public Map<Term, Variable> getVariableMap() {
-        return new HashMap<>();
     }
 
     @Override

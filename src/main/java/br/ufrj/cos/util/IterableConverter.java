@@ -45,7 +45,7 @@ public abstract class IterableConverter<In, Out> implements Iterable<Out>, Itera
      *
      * @param iterable {@link Iterable}
      */
-    public IterableConverter(Iterable<? extends In> iterable) {
+    protected IterableConverter(Iterable<? extends In> iterable) {
         this.iterator = iterable.iterator();
     }
 
@@ -54,7 +54,7 @@ public abstract class IterableConverter<In, Out> implements Iterable<Out>, Itera
      *
      * @param iterator {@link Iterator}
      */
-    public IterableConverter(Iterator<? extends In> iterator) {
+    protected IterableConverter(Iterator<? extends In> iterator) {
         this.iterator = iterator;
     }
 
@@ -64,7 +64,7 @@ public abstract class IterableConverter<In, Out> implements Iterable<Out>, Itera
      * @param iterator the arbitrary array
      */
     @SafeVarargs
-    public IterableConverter(In... iterator) {
+    protected IterableConverter(In... iterator) {
         this.iterator = Arrays.asList(iterator).iterator();
     }
 

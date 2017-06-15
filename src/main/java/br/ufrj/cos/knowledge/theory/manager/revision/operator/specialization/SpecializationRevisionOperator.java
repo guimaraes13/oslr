@@ -31,6 +31,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("AbstractClassNeverImplemented")
 public abstract class SpecializationRevisionOperator extends RevisionOperator {
 
 }
