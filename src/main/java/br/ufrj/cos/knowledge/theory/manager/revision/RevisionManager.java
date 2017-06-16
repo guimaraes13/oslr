@@ -48,7 +48,8 @@ public class RevisionManager implements Initializable {
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
     @SuppressWarnings("RedundantThrows")
-    public RevisionOperatorEvaluator getBestRevisionOperator(Example... targets) throws TheoryRevisionException {
+    public RevisionOperatorEvaluator getBestRevisionOperator(Iterable<? extends Example> targets)
+            throws TheoryRevisionException {
         return operatorSelector.selectOperator(targets);
     }
 

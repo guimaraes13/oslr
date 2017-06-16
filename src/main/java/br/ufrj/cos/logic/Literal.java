@@ -34,6 +34,15 @@ import java.util.List;
  */
 public class Literal extends Atom {
 
+    /**
+     * {@link Literal} that represents the true logic value
+     */
+    public static final Literal TRUE_LITERAL = new Literal(Atom.TRUE_ATOM);
+    /**
+     * {@link Literal} that represents the false logic value
+     */
+    public static final Literal FALSE_LITERAL = new Literal(Atom.FALSE_ATOM);
+
     protected final boolean negated;
 
     /**

@@ -540,6 +540,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Call the method to revise the examples
      */
     protected void reviseExamples() {
+        //TODO: delegate this function to the ExampleStream
         for (Example example : examples) {
             try {
                 learningSystem.incomingExampleManager.incomingExamples(example);

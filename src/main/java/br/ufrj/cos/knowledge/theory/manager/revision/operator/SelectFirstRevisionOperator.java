@@ -47,7 +47,7 @@ public class SelectFirstRevisionOperator extends RevisionOperatorSelector {
     }
 
     @Override
-    public RevisionOperatorEvaluator selectOperator(Example... targets) {
+    public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets) {
         return evaluators.get(0);
     }
 

@@ -90,7 +90,7 @@ public class TheoryRevisionManager implements Initializable {
      * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void revise(Example... targets) throws TheoryRevisionException {
+    public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
         TheoryMetric metric = revisionOperator.getTheoryMetric();
         double current = learningSystem.evaluateTheory(metric);

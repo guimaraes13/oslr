@@ -81,7 +81,8 @@ public class RevisionOperatorEvaluator implements Initializable {
      * @return the evaluated value
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public double evaluateOperator(Examples examples, Example... targets) throws TheoryRevisionException {
+    public double evaluateOperator(Examples examples,
+                                   Iterable<? extends Example> targets) throws TheoryRevisionException {
         if (!isEvaluated) {
             updatedTheory = revisionOperator.performOperation(targets);
             evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(revisionOperator.getTheoryMetric(),
@@ -104,7 +105,7 @@ public class RevisionOperatorEvaluator implements Initializable {
      * @return the revised {@link Theory}
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public Theory getRevisedTheory(Example... targets) throws TheoryRevisionException {
+    public Theory getRevisedTheory(Iterable<? extends Example> targets) throws TheoryRevisionException {
         if (isEvaluated) {
             isEvaluated = false;
             return updatedTheory;

@@ -52,7 +52,7 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Example... examples) throws TheoryRevisionException {
+    public void incomingExamples(Iterable<? extends Example> examples) throws TheoryRevisionException {
         learningSystem.reviseTheory(examples);
     }
 

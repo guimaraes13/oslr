@@ -30,6 +30,9 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
  * suggesting the {@link LearningSystem} to getBestRevisionOperator the theory, whenever it believes it is necessary.
@@ -66,12 +69,24 @@ public abstract class IncomingExampleManager implements Initializable {
     }
 
     /**
+     * Decides what to do with the arrived {@link Example}.
+     *
+     * @param example the arrived {@link Example}s
+     * @throws TheoryRevisionException in an error occurs during the revision
+     */
+    public void incomingExamples(Example example) throws TheoryRevisionException {
+        List<Example> exampleList = new ArrayList<>(1);
+        exampleList.add(example);
+        incomingExamples(exampleList);
+    }
+
+    /**
      * Decides what to do with the arrived {@link Example}s.
      *
      * @param examples the arrived {@link Example}s
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract void incomingExamples(Example... examples) throws TheoryRevisionException;
+    public abstract void incomingExamples(Iterable<? extends Example> examples) throws TheoryRevisionException;
 
     /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.

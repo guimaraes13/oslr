@@ -203,7 +203,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     @Override
-    public Theory performOperation(Example... targets) throws TheoryRevisionException {
+    public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
         try {
             Theory theory = learningSystem.getTheory().copy();
             int initialSize = theory.size();

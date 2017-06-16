@@ -74,11 +74,6 @@ import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
 public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSystemTranslator {
 
     /**
-     * The character to separate the predicate name from the ist arity.
-     */
-    public static final String PREDICATE_ARITY_SEPARATOR = "/";
-
-    /**
      * The facts plugins name.
      */
     public static final String FACTS_PLUGIN_NAME = "facts";
@@ -220,7 +215,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the label
      */
     public static String getLabelForRule(Rule rule) {
-        return rule.getLhs().getFunctor() + PREDICATE_ARITY_SEPARATOR + rule.getLhs().getArity();
+        return rule.getLhs().getFunctor() + LanguageUtils.PREDICATE_ARITY_SEPARATOR + rule.getLhs().getArity();
     }
 
     /**
@@ -386,7 +381,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return {@code true} if the goal of the clause has been already covered by another clause
      */
     protected static boolean isToSkipClause(Atom goal, Map<String, Set<Atom>> coveredGoals) {
-        String label = getLabelForAtom(goal);
+        String label = LanguageUtils.getPredicateFromAtom(goal);
         Set<Atom> atoms = coveredGoals.get(label);
         if (atoms == null) {
             atoms = new HashSet<>();
@@ -437,16 +432,6 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
             atoms.addAll(groundToAtoms(ground));
         }
         return atoms;
-    }
-
-    /**
-     * Gets the label for the {@link Atom}.
-     *
-     * @param atom the {@link Atom}
-     * @return the label
-     */
-    protected static String getLabelForAtom(Atom atom) {
-        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getTerms().size();
     }
 
     /**

@@ -79,7 +79,7 @@ public abstract class RevisionOperator implements Initializable {
      * @return the {@link Theory}
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract Theory performOperation(Example... targets) throws TheoryRevisionException;
+    public abstract Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException;
 
     /**
      * Gets the {@link TheoryMetric}.

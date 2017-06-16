@@ -134,6 +134,10 @@ public final class LanguageUtils {
      * The parameter mark from the string's format
      */
     public static final String STRING_PARAMETER_MARK = "%s";
+    /**
+     * The character to separate the predicate name from the ist arity.
+     */
+    public static final String PREDICATE_ARITY_SEPARATOR = "/";
 
     private LanguageUtils() {
     }
@@ -550,6 +554,16 @@ public final class LanguageUtils {
             stringBuilder.append(clause).append("\n");
         }
         return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Gets the predicate from the {@link Atom} in the form p/n where p is the name of the predicate and n is the arity.
+     *
+     * @param atom the {@link Atom}
+     * @return the predicate
+     */
+    public static String getPredicateFromAtom(Atom atom) {
+        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getTerms().size();
     }
 
 }

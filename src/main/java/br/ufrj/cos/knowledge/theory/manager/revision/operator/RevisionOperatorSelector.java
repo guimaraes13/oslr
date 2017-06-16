@@ -55,7 +55,7 @@ public abstract class RevisionOperatorSelector implements Initializable {
      * @param targets the target iterator
      * @return the best suited {@link RevisionOperatorEvaluator}
      */
-    public abstract RevisionOperatorEvaluator selectOperator(Example... targets);
+    public abstract RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets);
 
     /**
      * Sets the {@link RevisionOperatorEvaluator} set if it is not yet set. If it is already set, throws an error.

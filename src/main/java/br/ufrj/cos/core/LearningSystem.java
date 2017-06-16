@@ -101,7 +101,7 @@ public class LearningSystem {
      * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public synchronized void reviseTheory(Example... targets) throws TheoryRevisionException {
+    public synchronized void reviseTheory(Iterable<? extends Example> targets) throws TheoryRevisionException {
         theoryRevisionManager.revise(targets);
     }
 
