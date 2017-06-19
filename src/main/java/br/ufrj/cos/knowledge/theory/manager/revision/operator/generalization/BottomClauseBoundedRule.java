@@ -22,7 +22,6 @@
 package br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization;
 
 import br.ufrj.cos.knowledge.KnowledgeException;
-import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -61,37 +60,32 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public static final Logger logger = LogManager.getLogger();
 
     /**
-     * Represents a constant for no maximum depth on the transitivity of the relevant concept
-     */
-    public static final int NO_MAXIMUM_DEPTH = -1;
-
-    /**
-     * Represents a constant for no maximum side way movements
+     * Represents a constant for no maximum side way movements.
      */
     public static final int NO_MAXIMUM_SIDE_WAY_MOVEMENTS = -1;
 
     /**
-     * The default value for {@link #evaluationTimeout}
+     * The default value for {@link #evaluationTimeout}.
      */
     public static final int DEFAULT_EVALUATION_TIMEOUT = 300;
 
     /**
-     * The default value for {@link #numberOfThreads}
+     * The default value for {@link #numberOfThreads}.
      */
     public static final int DEFAULT_NUMBER_OF_THREADS = 1;
 
     /**
-     * The default value for {@link #improvementThreshold}
+     * The default value for {@link #improvementThreshold}.
      */
     public static final double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
 
     /**
-     * The class name of the variable generator
+     * The class name of the variable generator.
      */
     public String variableGeneratorClassName = "br.ufrj.cos.util.VariableGenerator";
 
     /**
-     * The class to use as the variable generator
+     * The class to use as the variable generator.
      */
     public Class<? extends VariableGenerator> variableGeneratorClass = VariableGenerator.class;
 
@@ -106,8 +100,10 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * If it is 1, it means that only the {@link Atom}s which actually share a {@link Term} if the
      * example will be considered, and the {@link Atom}s which share a {@link Term}s if those ones.
      * <p>
-     * And so on. If it is {@link #NO_MAXIMUM_DEPTH}, it means that there is no limit on the
-     * transitivity.
+     * And so on. If it is NO_MAXIMUM_DEPTH, it means that there is no limit
+     * on the transitivity.
+     *
+     * @see br.ufrj.cos.core.LearningSystem
      */
     public int relevantsDepth = 0;
 
@@ -352,7 +348,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @throws InstantiationException if an error occurs when instantiating a new object by reflection
      */
     protected HornClause buildBottomClause(Example target) throws InstantiationException, IllegalAccessException {
-        Set<Atom> relevants = relevantsBreadthFirstSearch(target.getPositiveTerms());
+        Set<Atom> relevants = learningSystem.relevantsBreadthFirstSearch(target.getPositiveTerms(), relevantsDepth,
+                                                                         !refine);
         Map<Term, Variable> variableMap = target.getVariableMap();
 
         return toVariableHornClauseForm(target, relevants, variableMap);
@@ -386,69 +383,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
         }
         return bestClause;
-    }
-
-    /**
-     * Gets the relevant {@link Atom}s, given the relevant seed {@link Term}s, by performing a breadth-first search
-     * on the {@link KnowledgeBase}'s base cached graph
-     *
-     * @param terms the seed {@link Term}s
-     * @return the relevant {@link Atom}s to the seed {@link Term}s
-     */
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
-    public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms) {
-        Map<Term, Integer> termDistance = new HashMap<>();
-        Queue<Term> queue = new ArrayDeque<>();
-        Set<Atom> atoms = new HashSet<>();
-        Set<Term> currentRelevants = new HashSet<>();
-        Set<Term> headTerms = new HashSet<>();
-        Set<Term> bodyTerms = new HashSet<>();
-
-        for (Term term : terms) {
-            termDistance.put(term, 0);
-            queue.add(term);
-            currentRelevants.add(term);
-            headTerms.add(term);
-        }
-
-        Set<Atom> atomSet;
-        Term currentTerm;
-        Integer currentDistance;
-        Integer previousDistance = 0;
-        while (!queue.isEmpty()) {
-            currentTerm = queue.poll();
-            currentDistance = termDistance.get(currentTerm);
-
-            if (!Objects.equals(currentDistance, previousDistance)) {
-                atomSet = learningSystem.groundRelevants(currentRelevants);
-                atoms.addAll(atomSet);
-                if (!refine) {
-                    bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
-                }
-                currentRelevants.clear();
-                previousDistance = currentDistance;
-            }
-            if (!termDistance.containsKey(currentTerm)) {
-                currentRelevants.add(currentTerm);
-            }
-
-            atomSet = learningSystem.getKnowledgeBase().getAtomsWithTerm(currentTerm);
-            atoms.addAll(atomSet);
-            if (!refine) {
-                bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
-                if (bodyTerms.containsAll(headTerms)) { break; }
-            }
-            if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
-                for (Term neighbour : learningSystem.getKnowledgeBase().getTermNeighbours(currentTerm)) {
-                    if (!termDistance.containsKey(neighbour)) {
-                        termDistance.put(neighbour, currentDistance + 1);
-                        queue.add(neighbour);
-                    }
-                }
-            }
-        }
-
-        return atoms;
     }
 
     /**

@@ -53,7 +53,13 @@ public class KnowledgeBase extends Knowledge<Atom> {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+    /**
+     * A map of the term and the atom where it appears.
+     */
     protected final Map<Term, Set<Atom>> termAtomMap;
+    /**
+     * A map of the term and its neighbours. Two terms are neighbours if the appears in the same atom.
+     */
     protected final Map<Term, Set<Term>> termNeighbours;
     /**
      * The class to be used on the {@link Set}s within the {@link Map}s

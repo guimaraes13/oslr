@@ -37,9 +37,8 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for the execution and control of the entire system.
@@ -49,6 +48,11 @@ import java.util.Set;
  * @author Victor Guimarães
  */
 public class LearningSystem {
+
+    /**
+     * Represents a constant for no maximum depth on the transitivity of the relevant concept.
+     */
+    public static final int NO_MAXIMUM_DEPTH = -1;
 
     //Theory Manager
     protected final KnowledgeBase knowledgeBase;
@@ -135,13 +139,13 @@ public class LearningSystem {
     }
 
     /**
-     * Delegates the grounding of the relevants to the {@link EngineSystemTranslator}.
+     * Delegates the grounding of the examples to the {@link EngineSystemTranslator}.
      *
-     * @param terms the {@link Term}s
+     * @param examples the {@link Example}s
      * @return the grounds
      */
-    public Set<Atom> groundRelevants(Collection<Term> terms) {
-        return getEngineSystemTranslator().groundRelevants(terms);
+    public Set<Atom> groundExamples(Example... examples) {
+        return getEngineSystemTranslator().groundExamples(examples);
     }
 
     /**
@@ -155,16 +159,6 @@ public class LearningSystem {
         } else {
             return engineSystemTranslator;
         }
-    }
-
-    /**
-     * Delegates the grounding of the examples to the {@link EngineSystemTranslator}.
-     *
-     * @param examples the {@link Example}s
-     * @return the grounds
-     */
-    public Set<Atom> groundExamples(Example... examples) {
-        return getEngineSystemTranslator().groundExamples(examples);
     }
 
     /**
@@ -295,6 +289,94 @@ public class LearningSystem {
     }
 
     /**
+     * Gets the relevant {@link Atom}s, given the relevant seed {@link Term}s, by performing a breadth-first search
+     * on the {@link KnowledgeBase}'s cached graph
+     *
+     * @param terms          the seed {@link Term}s
+     * @param relevantsDepth the depth of the relevant breadth first search
+     * @param safeStop       if is to stop the search and the found atoms is sufficient to make the terms safe
+     * @return the relevant {@link Atom}s to the seed {@link Term}s
+     */
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+    public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth, boolean safeStop) {
+        Map<Term, Integer> termDistance = new HashMap<>();
+        Queue<Term> queue = new ArrayDeque<>();
+        Set<Atom> atoms = new HashSet<>();
+        Set<Term> currentRelevants = new HashSet<>();
+        Set<Term> headTerms = new HashSet<>();
+        Set<Term> bodyTerms = new HashSet<>();
+
+        for (Term term : terms) {
+            termDistance.put(term, 0);
+            queue.add(term);
+            currentRelevants.add(term);
+            headTerms.add(term);
+        }
+
+        Set<Atom> atomSet;
+        Term currentTerm;
+        Integer currentDistance;
+        Integer previousDistance = 0;
+        while (!queue.isEmpty()) {
+            currentTerm = queue.poll();
+            currentDistance = termDistance.get(currentTerm);
+
+            if (!Objects.equals(currentDistance, previousDistance)) {
+                atomSet = groundRelevants(currentRelevants);
+                atoms.addAll(atomSet);
+                if (safeStop) {
+                    // if is to safe the rule, i.e. the minimal safe rule will be returned, so there is no point in
+                    // adding more atom beyond that. The bodyTerm keeps the already found term so it can checks when
+                    // this method can stop early
+                    atomSet.stream().flatMap(a -> a.getTerms().stream()).forEach(bodyTerms::add);
+                }
+                currentRelevants = new HashSet<>();
+                previousDistance = currentDistance;
+            }
+            if (!termDistance.containsKey(currentTerm)) {
+                currentRelevants.add(currentTerm);
+            }
+
+            atomSet = getKnowledgeBase().getAtomsWithTerm(currentTerm);
+            atoms.addAll(atomSet);
+            if (safeStop) {
+                // if is not to safeStop and all the head term are already added to the atom set, we can stop the search
+                bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
+                if (bodyTerms.containsAll(headTerms)) { break; }
+            }
+            if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
+                for (Term neighbour : getKnowledgeBase().getTermNeighbours(currentTerm)) {
+                    if (!termDistance.containsKey(neighbour)) {
+                        termDistance.put(neighbour, currentDistance + 1);
+                        queue.add(neighbour);
+                    }
+                }
+            }
+        }
+
+        return atoms;
+    }
+
+    /**
+     * Delegates the grounding of the relevants to the {@link EngineSystemTranslator}.
+     *
+     * @param terms the {@link Term}s
+     * @return the grounds
+     */
+    public Set<Atom> groundRelevants(Collection<Term> terms) {
+        return getEngineSystemTranslator().groundRelevants(terms);
+    }
+
+    /**
+     * Gets the {@link KnowledgeBase}.
+     *
+     * @return the {@link KnowledgeBase}
+     */
+    public KnowledgeBase getKnowledgeBase() {
+        return knowledgeBase;
+    }
+
+    /**
      * Gets the {@link Theory}.
      *
      * @return the {@link Theory}
@@ -311,15 +393,6 @@ public class LearningSystem {
     public void setTheory(Theory theory) {
         this.theory = theory;
         this.engineSystemTranslator.setTheory(theory);
-    }
-
-    /**
-     * Gets the {@link KnowledgeBase}.
-     *
-     * @return the {@link KnowledgeBase}
-     */
-    public KnowledgeBase getKnowledgeBase() {
-        return knowledgeBase;
     }
 
     /**
