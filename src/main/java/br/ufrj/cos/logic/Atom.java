@@ -50,6 +50,7 @@ public class Atom extends Clause {
     /**
      * {@link Atom} that represents the false logic value
      */
+    @SuppressWarnings("unused")
     public static final Atom FALSE_ATOM = new Atom(FALSE_VALUE);
 
     protected final String name;
@@ -145,6 +146,15 @@ public class Atom extends Clause {
     @Override
     public String toString() {
         return formatAtomToString(this);
+    }
+
+    /**
+     * Gets the arity of the atom
+     *
+     * @return the arity
+     */
+    public int getArity() {
+        return terms != null ? terms.size() : 0;
     }
 
 }

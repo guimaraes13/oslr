@@ -33,8 +33,6 @@ import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.SymbolTable;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
 import edu.cmu.ml.proppr.util.multithreading.Transformer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 
@@ -46,11 +44,6 @@ import java.util.Map;
  * @author Victor Guimarães
  */
 public class InMemoryQueryAnswerer<P extends ProofGraph> extends QueryAnswerer<P> {
-
-    /**
-     * The logger
-     */
-    public static final Logger logger = LogManager.getLogger();
 
     /**
      * Constructor with the needed parameters for multi thread execution.

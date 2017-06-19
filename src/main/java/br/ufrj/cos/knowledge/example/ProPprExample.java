@@ -98,7 +98,7 @@ public class ProPprExample implements Example {
         Map<Term, Variable> variableMap = new HashMap<>();
 
         Term term;
-        for (int i = 0; i < goal.getTerms().size(); i++) {
+        for (int i = 0; i < goal.getArity(); i++) {
             term = goal.getTerms().get(i);
             if (term instanceof Variable) {
                 getTermOnIndex(i, (Variable) term, variableMap);

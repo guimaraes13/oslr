@@ -28,6 +28,7 @@ import edu.cmu.ml.proppr.QueryAnswerer;
 import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.prove.InnerProductWeighter;
+import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.util.*;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
@@ -51,14 +52,11 @@ public class Main {
     public static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
-        test();
-        System.exit(0);
         logger.info("Begin Program!");
         Locale.setDefault(new Locale("en", "us"));
 
 //        Smokers Experiment
-        String prefix = "/Users/Victor/Documents/Universidade Federal do Rio de " +
-                "Janeiro/Research/Models/ProPPR_Smokers/";
+        String prefix = "/Users/Victor/IdeaProjects/PLLData/TestSmokers";
         String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
 
         String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "smokers.wam").getAbsolutePath
@@ -73,37 +71,20 @@ public class Main {
         String[] trainingArguments = new String[]{"--train", grounded, "--params", new File(prefix, "smokers.wts")
                 .getAbsolutePath(),};
 
-        String[] inferenceArguments = new String[]{"--programFiles", new File(prefix, "smokers.wam").getAbsolutePath
-                () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
-                ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_test2.data").getAbsolutePath(),
-                "--solutions", new File(prefix, "pre2.training.solutions.txt").getAbsolutePath(), "--prover", "dpr"};
+        String[] inferenceArguments = new String[]{
+                "--programFiles",
+                new File(prefix, "smokers_four.wam").getAbsolutePath() + ":"
+                        + new File(prefix, "smokers2.graph").getAbsolutePath()
+                        + ":" + new File(prefix, "smokers2" + ".cfacts").getAbsolutePath(),
+                "--queries", new File(prefix, "smokers_test2.data").getAbsolutePath(),
+                "--solutions", new File(prefix, "pre2.training.solutions.txt").getAbsolutePath(),
+                "--prover", "dpr"};
 
 //        grounder(1e-2, 0.1, new String[]{"--help"});
 //        grounder(1e-2, 0.1, groundingArguments);
 //        trainer(1e-2, 0.1, trainingArguments);
         inference(1e-2, 0.1, inferenceArguments);
         logger.info("End Program!");
-    }
-
-    public static void test() {
-        String anchor = "- &var1 X1\n- *var1";
-
-        YamlReader reader = null;
-        try {
-            reader = new YamlReader(new StringReader(anchor));
-
-            List<String> variables = (List<String>) reader.read();
-            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
-            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
-
-            if (variables.get(0) == variables.get(1)) {
-                System.out.println("[ OK  ] - The variables represent the same object!");
-            } else {
-                System.out.println("[ERROR] - The variables represent different objects!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void inference(double epsilon, double alpha, String[] args) {
@@ -125,6 +106,9 @@ public class Main {
             System.out.println(c.toString());
             QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c
                     .topk);
+//            ((FactsPlugin)c.plugins[1]).addFact("true");
+            ((FactsPlugin) c.plugins[1]).addFact("true", "true");
+            ((FactsPlugin) c.plugins[1]).addFact("false", "true");
             if (log.isInfoEnabled()) {
                 log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
             }
@@ -156,6 +140,27 @@ public class Main {
             System.exit(-1);
         }
 
+    }
+
+    public static void test() {
+        String anchor = "- &var1 X1\n- *var1";
+
+        YamlReader reader = null;
+        try {
+            reader = new YamlReader(new StringReader(anchor));
+
+            List<String> variables = (List<String>) reader.read();
+            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
+            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
+
+            if (variables.get(0) == variables.get(1)) {
+                System.out.println("[ OK  ] - The variables represent the same object!");
+            } else {
+                System.out.println("[ERROR] - The variables represent different objects!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {

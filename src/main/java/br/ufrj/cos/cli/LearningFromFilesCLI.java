@@ -77,7 +77,7 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
+@SuppressWarnings({"CanBeFinal", "unused"})
 public class LearningFromFilesCLI extends CommandLineInterface {
 
     /**

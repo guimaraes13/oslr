@@ -59,6 +59,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
     /**
      * The empty
      */
+    @SuppressWarnings("unused")
     public static final int EMPTY = 0;
     /**
      * The percent normalizer to change a number from [0, 1] to [0, 100]%.

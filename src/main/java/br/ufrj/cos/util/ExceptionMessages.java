@@ -41,7 +41,7 @@ public enum ExceptionMessages {
     ERROR_ANSWERING_QUERY("Error when answering the query {}."),
     ERROR_RESET_FIELD_NOT_ALLOWED("Reset {} is not allowed."),
     ERROR_GETTING_VARIABLE_GENERATOR_CLASS("Error when getting the variable generator class by its name:\t{}"),
-    ERROR_CREATING_DIRECTORY("Error creating directory(is):\t{}"),
+//    ERROR_CREATING_DIRECTORY("Error creating directory(is):\t{}"),
 
     //Two additional parameters to format
     FILE_NOT_EXISTS("File {} for {} does not exists.");

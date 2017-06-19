@@ -45,7 +45,7 @@ public enum LogMessages {
     ERROR_READING_CONFIGURATION_FILE("Error when reading the configuration file, reason:"),
     ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
     ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:"),
-    ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
+    //    ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
     ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:"),
 
     ERROR_MAIN_PROGRAM("Main program error, reason:"),
@@ -74,7 +74,7 @@ public enum LogMessages {
     EXAMPLES_SIZE("Number of read iterator lines:\t{}"),
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),
-    GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
+    //    GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
 
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
     BUILDING_CLAUSE_FROM_EXAMPLE("Building clause from the example:\t{}"),
@@ -84,7 +84,7 @@ public enum LogMessages {
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
     TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),
 
-//    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
+    //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
 
     CONFIGURATION_FILE("Configuration File:\t{}\n--------------- CONFIGURATION FILE " +
                                "---------------\n{}\n--------------- CONFIGURATION FILE ---------------"),

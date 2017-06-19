@@ -57,6 +57,7 @@ public class LearningSystem {
     /**
      * The {@link KnowledgeBaseManager}.
      */
+    @SuppressWarnings("unused")
     public KnowledgeBaseManager knowledgeBaseManager;
     /**
      * The {@link IncomingExampleManager}.

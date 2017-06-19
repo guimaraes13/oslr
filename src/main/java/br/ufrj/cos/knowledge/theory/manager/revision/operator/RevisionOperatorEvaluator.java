@@ -96,8 +96,7 @@ public class RevisionOperatorEvaluator implements Initializable {
     /**
      * Gets the revised theory. This method is useful because most of the {@link RevisionOperatorEvaluator} needs to
      * previously apply the change before evaluateTheory it. This methods allows it to store the revised
-     * {@link Theory} to
-     * improve performance.
+     * {@link Theory} to improve performance.
      * <p>
      * If the {@link Theory} was not created (or stored) it is computed on the call of this method.
      *

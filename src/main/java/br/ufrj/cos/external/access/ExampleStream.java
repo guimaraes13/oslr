@@ -28,7 +28,7 @@ package br.ufrj.cos.external.access;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("ClassIndependentOfModule")
+@SuppressWarnings({"ClassIndependentOfModule", "unused"})
 public class ExampleStream {
 
 }

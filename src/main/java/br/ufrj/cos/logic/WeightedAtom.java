@@ -26,6 +26,8 @@ import br.ufrj.cos.util.LanguageUtils;
 import java.util.List;
 
 /**
+ * Represents a WeightedAtom.
+ * <p>
  * Created on 14/04/17.
  *
  * @author Victor Guimarães

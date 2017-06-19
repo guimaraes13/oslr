@@ -37,11 +37,12 @@ public class Literal extends Atom {
     /**
      * {@link Literal} that represents the true logic value
      */
-    public static final Literal TRUE_LITERAL = new Literal(Atom.TRUE_ATOM);
+    @SuppressWarnings("unused")
+    public static final Literal TRUE_LITERAL = LanguageUtils.buildTrueLiteral();
     /**
      * {@link Literal} that represents the false logic value
      */
-    public static final Literal FALSE_LITERAL = new Literal(Atom.FALSE_ATOM);
+    public static final Literal FALSE_LITERAL = LanguageUtils.buildFalseLiteral();
 
     protected final boolean negated;
 

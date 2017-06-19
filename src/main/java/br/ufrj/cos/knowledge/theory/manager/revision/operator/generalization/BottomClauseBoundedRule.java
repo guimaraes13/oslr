@@ -84,7 +84,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * The default value for {@link #improvementThreshold}
      */
     public static final double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
-    private static final boolean REQUIRED_SAFE = true;
 
     /**
      * The class name of the variable generator
@@ -206,7 +205,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
         try {
             Theory theory = learningSystem.getTheory().copy();
-            int initialSize = theory.size();
             for (Example example : targets) {
                 performOperationForExample(example, theory);
             }
@@ -572,14 +570,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Evaluates the given {@link Theory} in another {@link Thread} with a limit of time defined by the
-     * {@link #evaluationTimeout}. If the evaluation success, the correspondent evaluation value is returned. If it
-     * fails, is returned the default value of the metric, instead.
+     * Evaluates the {@link Thread} with a limit of time defined by the {@link #evaluationTimeout}. If the evaluation
+     * success, the correspondent evaluation value is returned. If it fails, is returned the default value of the
+     * metric, instead.
      *
-     * @param theory the {@link Theory}
      * @return the evaluation value
      */
-    public double evaluateTheory(Theory theory) {
+    public double evaluateTheory() {
         AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
                                                                   learningSystem.getTheoryEvaluator(), internalMetric,
                                                                   evaluationTimeout);

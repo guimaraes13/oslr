@@ -52,6 +52,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
     public static final Logger logger = LogManager.getLogger();
 
     protected final InferenceExample inferenceExample;
+    @SuppressWarnings("unused")
     protected final int id;
 
     protected final Prover<P> prover;

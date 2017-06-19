@@ -24,14 +24,9 @@ package br.ufrj.cos.knowledge.example;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
-import br.ufrj.cos.util.VariableGenerator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -43,13 +38,7 @@ import java.util.List;
  */
 public class AtomExample extends Atom implements Example {
 
-    /**
-     * The logger
-     */
-    public static final Logger logger = LogManager.getLogger();
-
     protected final boolean positive;
-    protected final Atom goalQuery;
     protected final Atom atom;
 
     /**
@@ -73,25 +62,7 @@ public class AtomExample extends Atom implements Example {
     public AtomExample(String name, List<Term> terms, boolean positive) {
         super(name, terms);
         this.positive = positive;
-        this.goalQuery = buildAtomGenericGoal();
         this.atom = new Atom(this);
-    }
-
-    /**
-     * Builds a generic goal from this {@link Atom}.
-     *
-     * @return generic goal
-     */
-    protected Atom buildAtomGenericGoal() {
-        Atom goal = null;
-        if (isGrounded()) {
-            try {
-                goal = LanguageUtils.toVariableAtom(this, new HashMap<>(), new VariableGenerator());
-            } catch (IllegalAccessException | InstantiationException e) {
-                logger.error(LogMessages.ERROR_BUILDING_ATOM.toString(), e);
-            }
-        }
-        return goal;
     }
 
     /**
@@ -146,12 +117,12 @@ public class AtomExample extends Atom implements Example {
 
     @Override
     public Atom getGoalQuery() {
-        return goalQuery;
+        return this;
     }
 
     @Override
     public Collection<? extends AtomExample> getGroundedQuery() {
-        List<AtomExample> atoms = new ArrayList<>();
+        List<AtomExample> atoms = new ArrayList<>(1);
         if (isGrounded()) {
             atoms.add(this);
         }

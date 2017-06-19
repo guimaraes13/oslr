@@ -3,3 +3,4 @@
 /src/main/resources/log4j2.xml
 *.log
 *.old*
+/src/main/java/br/ufrj/cos/cli/Main.java

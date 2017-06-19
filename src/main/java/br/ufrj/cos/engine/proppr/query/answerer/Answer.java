@@ -65,6 +65,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
 
     protected final APROptions aprOptions;
     protected final SymbolTable<Feature> featureTable;
+    @SuppressWarnings("unused")
     protected final int numSolutions;
     protected final StatusLogger status;
 
@@ -124,7 +125,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
      */
     @SuppressWarnings("MethodWithTooManyParameters")
     public Answer<P> findSolutions(WamProgram program, WamPlugin[] plugins, Prover<P> prover, Query query,
-                                   boolean normalize, int id) throws LogicProgramException {
+                                   boolean normalize, @SuppressWarnings("unused") int id) throws LogicProgramException {
         P pg = prover.makeProofGraph(new InferenceExample(query, null, null), aprOptions, featureTable,
                                      program, plugins);
         logger.trace(LogMessages.ANSWERING_QUERY.toString(), query);

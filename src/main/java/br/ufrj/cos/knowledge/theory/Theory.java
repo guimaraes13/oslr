@@ -48,6 +48,15 @@ public class Theory extends Knowledge<HornClause> {
     }
 
     /**
+     * Constructs the {@link Theory} from a {@link HornClause}s.
+     *
+     * @param clause the {@link HornClause}s.
+     */
+    public Theory(HornClause clause) {
+        super(clause);
+    }
+
+    /**
      * Constructs the {@link Theory} from a {@link Collection} of {@link HornClause}s with a filter {@link Predicate}.
      *
      * @param clauses         the {@link Collection} of {@link HornClause}s.
@@ -55,6 +64,16 @@ public class Theory extends Knowledge<HornClause> {
      */
     public Theory(Collection<HornClause> clauses, Predicate<? super HornClause> acceptPredicate) {
         super(clauses, acceptPredicate);
+    }
+
+    /**
+     * Constructs the {@link Theory} from a {@link HornClause} and a filter {@link Predicate}.
+     *
+     * @param clause          the {@link Collection} of {@link HornClause}s.
+     * @param acceptPredicate filter {@link Predicate}.
+     */
+    public Theory(HornClause clause, Predicate<? super HornClause> acceptPredicate) {
+        super(clause, acceptPredicate);
     }
 
     /**

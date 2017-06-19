@@ -53,6 +53,7 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("unused")
 public class TestCLI extends CommandLineInterface {
 
     /**

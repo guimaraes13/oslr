@@ -359,7 +359,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         Map<String, Set<Atom>> coveredGoals = new HashMap<>();
         for (HornClause clause : theory) {
             if (isToSkipClause(clause.getHead(), coveredGoals)) { continue; }
-            for (int i = 0; i < clause.getHead().getTerms().size(); i++) {
+            for (int i = 0; i < clause.getHead().getArity(); i++) {
                 clauseTerm = clause.getHead().getTerms().get(i);
                 if (!clauseTerm.isConstant()) {
                     for (Term relevant : terms) {
@@ -634,8 +634,19 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
                 factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
             }
         }
-
+        addTrueFalseFacts(factsPlugin);
         return factsPlugin;
+    }
+
+    /**
+     * Adds the defaults facts to simulates the boolean true and false values in the {@link FactsPlugin}.
+     *
+     * @param factsPlugin the {@link FactsPlugin}
+     */
+    protected static void addTrueFalseFacts(FactsPlugin factsPlugin) {
+        factsPlugin.addFact(LanguageUtils.TRUE_PREDICATE, LanguageUtils.TRUE_ARGUMENT);
+        // the false argument should be true so the false(false) can not be proved.
+        factsPlugin.addFact(LanguageUtils.FALSE_PREDICATE, LanguageUtils.TRUE_ARGUMENT);
     }
 
     /**

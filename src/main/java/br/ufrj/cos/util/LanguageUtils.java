@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.util;
 
+import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -138,6 +139,22 @@ public final class LanguageUtils {
      * The character to separate the predicate name from the ist arity.
      */
     public static final String PREDICATE_ARITY_SEPARATOR = "/";
+    /**
+     * The true predicate to simulate the true boolean value.
+     */
+    public static final String TRUE_ARGUMENT = "true";
+    /**
+     * The true argument to simulate the true boolean value.
+     */
+    public static final String TRUE_PREDICATE = TRUE_ARGUMENT;
+    /**
+     * The false predicate to simulate the false boolean value.
+     */
+    public static final String FALSE_PREDICATE = "false";
+    /**
+     * The false argument to simulate the false boolean value.
+     */
+    private static final String FALSE_ARGUMENT = "false";
 
     private LanguageUtils() {
     }
@@ -289,6 +306,23 @@ public final class LanguageUtils {
     }
 
     /**
+     * Creates an {@link Atom} to be the root of a new tree.
+     *
+     * @param name  the {@link Atom}'s name
+     * @param arity the {@link Atom}'s arity
+     * @return the {@link Atom}
+     */
+    public static Atom toVariableAtom(String name, int arity) {
+        List<Term> terms = new ArrayList<>(arity);
+        VariableGenerator variableGenerator = new VariableGenerator();
+        for (int i = 0; i < arity; i++) {
+            terms.add(variableGenerator.next());
+        }
+
+        return new Atom(name, terms);
+    }
+
+    /**
      * Checks if the given atom unifies with the goal. An atom unifies with the goal if exists a
      * substitution of variables that makes the atom equals to the goal.
      * <p>
@@ -324,7 +358,7 @@ public final class LanguageUtils {
      * @return {@code true} if they match, {@code false} otherwise
      */
     protected static boolean checkPredicates(Atom goal, Atom atom) {
-        return goal.getName().equals(atom.getName()) && goal.getTerms().size() == atom.getTerms().size();
+        return goal.getName().equals(atom.getName()) && goal.getArity() == atom.getArity();
     }
 
     /**
@@ -356,7 +390,7 @@ public final class LanguageUtils {
         Term goalTerm;
         Term atomTerm;
         Map<Term, Term> variableMap = new HashMap<>();
-        for (int i = 0; i < goal.getTerms().size(); i++) {
+        for (int i = 0; i < goal.getArity(); i++) {
             goalTerm = goal.getTerms().get(i);
             atomTerm = atom.getTerms().get(i);
             if (goalTerm.isConstant() || (fixedTerms != null && fixedTerms.contains(goalTerm))) {
@@ -406,7 +440,7 @@ public final class LanguageUtils {
      * @return the new {@link Literal} with the substituted terms
      */
     public static Literal applySubstitution(Literal literal, Map<Term, Term> substitution) {
-        List<Term> terms = new ArrayList<>(literal.getTerms().size());
+        List<Term> terms = new ArrayList<>(literal.getArity());
         for (Term term : literal.getTerms()) {
             terms.add(substitution.getOrDefault(term, term));
         }
@@ -425,7 +459,7 @@ public final class LanguageUtils {
             return;
         }
         Term substitute;
-        for (int i = 0; i < atom.getTerms().size(); i++) {
+        for (int i = 0; i < atom.getArity(); i++) {
             if (!atom.getTerms().get(i).isConstant()) { continue; }
             substitute = substitutionMap.get(atom.getTerms().get(i));
             if (substitute != null) { atom.getTerms().set(i, substitute); }
@@ -563,7 +597,37 @@ public final class LanguageUtils {
      * @return the predicate
      */
     public static String getPredicateFromAtom(Atom atom) {
-        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getTerms().size();
+        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getArity();
+    }
+
+    /**
+     * Builds the logic true predicate.
+     * <p>
+     * Use this method to get the true predicate, do not try to creates it be yourself since it may be incompatible
+     * to some {@link EngineSystemTranslator}.
+     *
+     * @return the logic true predicate
+     * @see #buildFalseLiteral() for the false literal
+     */
+    public static Literal buildTrueLiteral() {
+        List<Term> terms = new ArrayList<>(1);
+        terms.add(new Constant(TRUE_ARGUMENT));
+        return new Literal(TRUE_PREDICATE, terms);
+    }
+
+    /**
+     * Builds the logic true predicate.
+     * <p>
+     * Use this method to get the true predicate, do not try to creates it be yourself since it may be incompatible
+     * to some {@link EngineSystemTranslator}.
+     *
+     * @return the logic true predicate
+     * @see #buildTrueLiteral() for the true literal
+     */
+    public static Literal buildFalseLiteral() {
+        List<Term> terms = new ArrayList<>(1);
+        terms.add(new Constant(FALSE_ARGUMENT));
+        return new Literal(FALSE_PREDICATE, terms);
     }
 
 }

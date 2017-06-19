@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -51,6 +52,17 @@ public class Knowledge<T> implements Collection<T> {
     }
 
     /**
+     * Constructs from a {@link Collection} of {@link T}
+     *
+     * @param t the T
+     */
+    public Knowledge(T t) {
+        this.collection = new HashSet<>(1);
+        this.acceptPredicate = o -> true;
+        this.add(t);
+    }
+
+    /**
      * Constructs from a {@link Collection} of {@link T} with a {@link Predicate} filter.
      *
      * @param collection      the {@link Collection}
@@ -63,6 +75,22 @@ public class Knowledge<T> implements Collection<T> {
         } else {
             this.acceptPredicate = o -> true;
         }
+    }
+
+    /**
+     * Constructs from a {@link T} with a {@link Predicate} filter.
+     *
+     * @param t               the {@link T}
+     * @param acceptPredicate the {@link Predicate} filter
+     */
+    public Knowledge(T t, Predicate<? super T> acceptPredicate) {
+        this.collection = new HashSet<>(1);
+        if (acceptPredicate != null) {
+            this.acceptPredicate = acceptPredicate;
+        } else {
+            this.acceptPredicate = o -> true;
+        }
+        this.add(t);
     }
 
     /**
@@ -81,6 +109,15 @@ public class Knowledge<T> implements Collection<T> {
         }
 
         return changed;
+    }
+
+    /**
+     * Gets the predicate
+     *
+     * @return the predicate
+     */
+    public Predicate<? super T> getAcceptPredicate() {
+        return acceptPredicate;
     }
 
     @Override
@@ -188,4 +225,5 @@ public class Knowledge<T> implements Collection<T> {
     public void forEach(Consumer<? super T> action) {
         collection.forEach(action);
     }
+
 }
