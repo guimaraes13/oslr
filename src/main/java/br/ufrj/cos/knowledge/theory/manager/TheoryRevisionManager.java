@@ -108,7 +108,7 @@ public class TheoryRevisionManager implements Initializable {
     public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
 
-        applyRevision(revisionOperator, targets, NO_IMPROVEMENT_THRESHOLD);
+        applyRevision(revisionOperator, targets, learningSystem.evaluateTheory(theoryMetric), NO_IMPROVEMENT_THRESHOLD);
     }
 
     /**
@@ -117,15 +117,15 @@ public class TheoryRevisionManager implements Initializable {
      *
      * @param revisionOperator     the revision operator
      * @param targets              the targets for the revision
+     * @param currentEvaluation    the current evaluation value of the theory
      * @param improvementThreshold the improvement threshold
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
     protected void applyRevision(RevisionOperatorEvaluator revisionOperator, Iterable<? extends Example> targets,
-                                 double improvementThreshold) throws TheoryRevisionException {
-        double current = learningSystem.evaluateTheory(theoryMetric);
+                                 double currentEvaluation, double improvementThreshold) throws TheoryRevisionException {
         double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
 
-        int improve = theoryMetric.compare(revised, current);
+        int improve = theoryMetric.compare(revised, currentEvaluation);
         LogMessages logMessage;
         if (improve >= improvementThreshold) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
