@@ -27,7 +27,6 @@ import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
@@ -541,13 +540,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void reviseExamples() {
         //TODO: delegate this function to the ExampleStream
-        for (Example example : examples) {
-            try {
-                learningSystem.incomingExampleManager.incomingExamples(example);
-            } catch (TheoryRevisionException e) {
-                logger.error(LogMessages.ERROR_REVISING_THEORY, e);
-            }
+//        for (Example example : examples) {
+        try {
+            learningSystem.incomingExampleManager.incomingExamples(examples);
+        } catch (TheoryRevisionException e) {
+            logger.error(LogMessages.ERROR_REVISING_THEORY, e);
         }
+//        }
     }
 
     /**

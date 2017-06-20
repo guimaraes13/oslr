@@ -39,6 +39,11 @@ public class RecallMetric extends ConfusionMatrixBasedMetric {
     }
 
     @Override
+    public double getRange() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "Recall";
     }

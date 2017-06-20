@@ -176,6 +176,11 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
     }
 
     @Override
+    public double getRange() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "ROC Curve";
     }

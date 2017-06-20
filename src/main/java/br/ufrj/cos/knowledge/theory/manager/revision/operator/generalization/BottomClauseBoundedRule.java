@@ -219,7 +219,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     protected void performOperationForExample(Example example, Theory theory) {
         HornClause newRule;
         try {
-            if (!example.isPositive() || isCovered(example)) {
+            if (!example.isPositive() || isCovered(example, theory)) {
                 if (example.isPositive()) {
                     logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
                 }
@@ -236,13 +236,15 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Checks if the {@link Example} has been already covered by the theory.
+     * Checks if the {@link Example} has been already covered by given theory.
      *
      * @param example the {@link Example}
+     * @param theory  the theory
      * @return {@code true} if it has, {@code false} otherwise
      */
-    protected boolean isCovered(Example example) {
-        Collection<? extends Atom> grounds = learningSystem.groundExamples(example);
+    protected boolean isCovered(Example example, Theory theory) {
+        Map<Example, Map<Atom, Double>> inferred = learningSystem.inferExamples(theory, example.getGroundedQuery());
+        Set<Atom> grounds = inferred.values().stream().flatMap(e -> e.keySet().stream()).collect(Collectors.toSet());
         for (AtomExample ground : example.getGroundedQuery()) {
             if (ground.isPositive() && !grounds.contains(ground.getAtom())) {
                 return false;

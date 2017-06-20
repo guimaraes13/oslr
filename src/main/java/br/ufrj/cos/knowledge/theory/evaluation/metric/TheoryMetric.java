@@ -83,6 +83,14 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     }
 
     /**
+     * Gets the range of the metric. The range of a metric is the absolute difference between the smallest and
+     * biggest value the metric can assume.
+     *
+     * @return the range of the metric.
+     */
+    public abstract double getRange();
+
+    /**
      * Calculates a quantitative difference between candidate and current.
      * <p>
      * If the candidate is better than the current, it should returns a positive number represents how much better it

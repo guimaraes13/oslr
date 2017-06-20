@@ -48,6 +48,10 @@ public class TheoryRevisionManager implements Initializable {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+    /**
+     * Represent no improvement threshold, i.e. any improvement is valid.
+     */
+    public static final double NO_IMPROVEMENT_THRESHOLD = 0.0;
 
     protected LearningSystem learningSystem;
     protected RevisionManager revisionManager;
@@ -93,10 +97,28 @@ public class TheoryRevisionManager implements Initializable {
     public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
         TheoryMetric metric = revisionOperator.getTheoryMetric();
+
+        applyRevisionIfImproves(targets, revisionOperator, metric, NO_IMPROVEMENT_THRESHOLD);
+    }
+
+    /**
+     * Compares the revision with the current theory, if the revision outperform the current theory by a given
+     * threshold, applies the revision on the theory.
+     *
+     * @param targets              the targets for the revision
+     * @param revisionOperator     the revision operator
+     * @param metric               the metric to evaluate
+     * @param improvementThreshold the improvement threshold
+     * @throws TheoryRevisionException in case an error occurs on the revision
+     */
+    protected void applyRevisionIfImproves(Iterable<? extends Example> targets,
+                                           RevisionOperatorEvaluator revisionOperator,
+                                           TheoryMetric metric,
+                                           double improvementThreshold) throws TheoryRevisionException {
         double current = learningSystem.evaluateTheory(metric);
         double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
 
-        if (metric.compare(revised, current) >= 0) {
+        if (metric.compare(revised, current) >= improvementThreshold) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
             learningSystem.trainParameters(learningSystem.getExamples());
             learningSystem.saveTrainedParameters();

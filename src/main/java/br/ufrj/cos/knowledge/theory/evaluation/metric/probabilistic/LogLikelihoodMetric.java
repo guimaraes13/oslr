@@ -56,6 +56,11 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
     }
 
     @Override
+    public double getRange() {
+        return Double.POSITIVE_INFINITY;
+    }
+
+    @Override
     public String toString() {
         return "Log Likelihood";
     }
