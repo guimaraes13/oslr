@@ -56,7 +56,6 @@ public enum LogMessages {
 
     BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation of {} candidates."),
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
-    THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no improvements."),
 
     //One additional parameters to format
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
@@ -101,7 +100,10 @@ public enum LogMessages {
     EVALUATED_TIMEOUT_PROPORTION("{}% out of {} rules has finished the evaluation within the timeout."),
     EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
-    ANSWER_STATE_WITH_VALUE("State:\t{},\t{}");
+    ANSWER_STATE_WITH_VALUE("State:\t{},\t{}"),
+    SAMPLING_FROM_TARGETS("Sampled {} examples out of {} targets."),
+    THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no improvements. Improvement of {}, threshold of {}."),
+    THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}.");
 
     protected final String message;
 

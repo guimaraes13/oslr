@@ -118,13 +118,17 @@ public class TheoryRevisionManager implements Initializable {
         double current = learningSystem.evaluateTheory(metric);
         double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
 
-        if (metric.compare(revised, current) >= improvementThreshold) {
+        int improve = metric.compare(revised, current);
+        LogMessages logMessage;
+        if (improve >= improvementThreshold) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
             learningSystem.trainParameters(learningSystem.getExamples());
             learningSystem.saveTrainedParameters();
+            logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
         } else {
-            logger.debug(LogMessages.THEORY_MODIFICATION_SKIPPED);
+            logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
         }
+        logger.debug(logMessage.toString(), improve, improvementThreshold);
         revisionOperator.clearCachedTheory();
     }
 
