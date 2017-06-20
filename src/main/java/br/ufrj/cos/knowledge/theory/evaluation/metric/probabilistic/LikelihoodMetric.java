@@ -76,6 +76,11 @@ public class LikelihoodMetric extends AccumulatorMetric<Double, Double> {
     }
 
     @Override
+    public double getMaximumValue() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "Likelihood";
     }

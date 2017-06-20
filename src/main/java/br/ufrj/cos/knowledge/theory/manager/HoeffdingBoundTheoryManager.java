@@ -23,11 +23,13 @@ package br.ufrj.cos.knowledge.theory.manager;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -66,14 +68,27 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     protected double delta = DEFAULT_DELTA;
 
     @Override
+    public void initialize() throws InitializationException {
+        super.initialize();
+        if (Double.isInfinite(theoryMetric.getRange()) || Double.isNaN(theoryMetric.getRange())) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_UNBOUNDED_RANGE_METRIC.toString(),
+                                                   theoryMetric.getClass().getSimpleName(),
+                                                   this.getClass().getSimpleName()));
+        }
+    }
+
+    @Override
     public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
-        RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
-        TheoryMetric metric = revisionOperator.getTheoryMetric();
         Collection<? extends Example> sample = getIndependentSample(targets);
-        double epsilon = calculateHoeffdingBound(metric.getRange(), sample.size());
+        double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
 
         //QUESTION: train on the sample or on all the targets?
-        applyRevisionIfImproves(sample, revisionOperator, metric, epsilon);
+        RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
+
+        //TODO: check if the difference between the best possible value of the metric and the current is bigger than
+        // epsilon
+        applyRevision(revisionOperator, sample, epsilon);
     }
 
     /**

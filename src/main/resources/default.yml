@@ -60,4 +60,5 @@ revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.operat
 revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample {}
 theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
-theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager {}
+theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager
+   theoryMetric: !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}

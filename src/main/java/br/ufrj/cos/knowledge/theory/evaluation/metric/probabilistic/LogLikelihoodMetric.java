@@ -61,6 +61,11 @@ public class LogLikelihoodMetric extends LikelihoodMetric {
     }
 
     @Override
+    public double getMaximumValue() {
+        return 0.0;
+    }
+
+    @Override
     public String toString() {
         return "Log Likelihood";
     }

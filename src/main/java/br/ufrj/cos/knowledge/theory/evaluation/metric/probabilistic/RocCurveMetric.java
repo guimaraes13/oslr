@@ -181,6 +181,11 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
     }
 
     @Override
+    public double getMaximumValue() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "ROC Curve";
     }

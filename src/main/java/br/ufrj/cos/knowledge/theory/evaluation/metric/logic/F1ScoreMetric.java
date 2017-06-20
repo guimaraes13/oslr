@@ -44,6 +44,11 @@ public class F1ScoreMetric extends ConfusionMatrixBasedMetric {
     }
 
     @Override
+    public double getMaximumValue() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "F1 Score";
     }

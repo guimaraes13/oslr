@@ -44,6 +44,11 @@ public class PrecisionMetric extends ConfusionMatrixBasedMetric {
     }
 
     @Override
+    public double getMaximumValue() {
+        return 1.0;
+    }
+
+    @Override
     public String toString() {
         return "Precision";
     }

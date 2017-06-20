@@ -130,6 +130,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     public void incomingExamples(Iterable<? extends Example> examples) throws TheoryRevisionException {
         Map<String, Set<Node<Theory>>> modifiedLeaves = placeIncomingExamples(examples);
         callRevision(modifiedLeaves);
+        //TODO: add example to the learning system's set of examples
     }
 
     /**

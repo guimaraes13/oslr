@@ -91,6 +91,13 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     public abstract double getRange();
 
     /**
+     * Gets the maximum value of the metric. The maximum value of the metric is the best value the metric can take.
+     *
+     * @return the maximum value of the metric.
+     */
+    public abstract double getMaximumValue();
+
+    /**
      * Calculates a quantitative difference between candidate and current.
      * <p>
      * If the candidate is better than the current, it should returns a positive number represents how much better it

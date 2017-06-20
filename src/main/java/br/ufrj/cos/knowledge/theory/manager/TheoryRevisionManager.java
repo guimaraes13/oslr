@@ -25,6 +25,7 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
@@ -53,8 +54,14 @@ public class TheoryRevisionManager implements Initializable {
      */
     public static final double NO_IMPROVEMENT_THRESHOLD = 0.0;
 
+    /**
+     * The default theory metric.
+     */
+    public static final TheoryMetric DEFAULT_THEORY_METRIC = new RocCurveMetric();
+
     protected LearningSystem learningSystem;
     protected RevisionManager revisionManager;
+    protected TheoryMetric theoryMetric;
 
     /**
      * Default constructor to be in compliance to {@link Initializable} interface.
@@ -86,6 +93,10 @@ public class TheoryRevisionManager implements Initializable {
         if (!fields.isEmpty()) {
             throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
+
+        if (theoryMetric == null) {
+            theoryMetric = DEFAULT_THEORY_METRIC;
+        }
     }
 
     /**
@@ -96,29 +107,25 @@ public class TheoryRevisionManager implements Initializable {
      */
     public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
-        TheoryMetric metric = revisionOperator.getTheoryMetric();
 
-        applyRevisionIfImproves(targets, revisionOperator, metric, NO_IMPROVEMENT_THRESHOLD);
+        applyRevision(revisionOperator, targets, NO_IMPROVEMENT_THRESHOLD);
     }
 
     /**
      * Compares the revision with the current theory, if the revision outperform the current theory by a given
      * threshold, applies the revision on the theory.
      *
-     * @param targets              the targets for the revision
      * @param revisionOperator     the revision operator
-     * @param metric               the metric to evaluate
+     * @param targets              the targets for the revision
      * @param improvementThreshold the improvement threshold
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    protected void applyRevisionIfImproves(Iterable<? extends Example> targets,
-                                           RevisionOperatorEvaluator revisionOperator,
-                                           TheoryMetric metric,
-                                           double improvementThreshold) throws TheoryRevisionException {
-        double current = learningSystem.evaluateTheory(metric);
+    protected void applyRevision(RevisionOperatorEvaluator revisionOperator, Iterable<? extends Example> targets,
+                                 double improvementThreshold) throws TheoryRevisionException {
+        double current = learningSystem.evaluateTheory(theoryMetric);
         double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
 
-        int improve = metric.compare(revised, current);
+        int improve = theoryMetric.compare(revised, current);
         LogMessages logMessage;
         if (improve >= improvementThreshold) {
             learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
@@ -130,6 +137,21 @@ public class TheoryRevisionManager implements Initializable {
         }
         logger.debug(logMessage.toString(), improve, improvementThreshold);
         revisionOperator.clearCachedTheory();
+    }
+
+    /**
+     * Sets the {@link RevisionManager} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param revisionManager the {@link RevisionManager}
+     * @throws InitializationException if the {@link RevisionManager} is already set
+     */
+    public void setRevisionManager(RevisionManager revisionManager) throws InitializationException {
+        if (this.revisionManager != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RevisionManager.class.getSimpleName()));
+        }
+        this.revisionManager = revisionManager;
     }
 
     /**
@@ -149,18 +171,26 @@ public class TheoryRevisionManager implements Initializable {
     }
 
     /**
-     * Sets the {@link RevisionManager} if it is not yet set. If it is already set, throws an error.
+     * Gets the theory metric.
      *
-     * @param revisionManager the {@link RevisionManager}
-     * @throws InitializationException if the {@link RevisionManager} is already set
+     * @return the theory metric
      */
-    public void setRevisionManager(RevisionManager revisionManager) throws InitializationException {
-        if (this.revisionManager != null) {
-            throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   RevisionManager.class.getSimpleName()));
-        }
-        this.revisionManager = revisionManager;
+    public TheoryMetric getTheoryMetric() {
+        return theoryMetric;
     }
 
+    /**
+     * Sets the theory metric.
+     *
+     * @param theoryMetric the theory metric
+     * @throws InitializationException if the {@link TheoryMetric} is already set
+     */
+    public void setTheoryMetric(TheoryMetric theoryMetric) throws InitializationException {
+        if (this.theoryMetric != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   TheoryMetric.class.getSimpleName()));
+        }
+        this.theoryMetric = theoryMetric;
+    }
 }
