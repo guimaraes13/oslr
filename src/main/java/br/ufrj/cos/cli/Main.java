@@ -52,6 +52,8 @@ public class Main {
     public static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
+        test();
+        System.exit(0);
         logger.info("Begin Program!");
         Locale.setDefault(new Locale("en", "us"));
 
@@ -85,6 +87,27 @@ public class Main {
 //        trainer(1e-2, 0.1, trainingArguments);
         inference(1e-2, 0.1, inferenceArguments);
         logger.info("End Program!");
+    }
+
+    public static void test() {
+        String anchor = "- &var1 X1\n- *var1";
+
+        YamlReader reader = null;
+        try {
+            reader = new YamlReader(new StringReader(anchor));
+
+            List<String> variables = (List<String>) reader.read();
+            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
+            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
+
+            if (variables.get(0) == variables.get(1)) {
+                System.out.println("[ OK  ] - The variables represent the same object!");
+            } else {
+                System.out.println("[ERROR] - The variables represent different objects!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void inference(double epsilon, double alpha, String[] args) {
@@ -140,27 +163,6 @@ public class Main {
             System.exit(-1);
         }
 
-    }
-
-    public static void test() {
-        String anchor = "- &var1 X1\n- *var1";
-
-        YamlReader reader = null;
-        try {
-            reader = new YamlReader(new StringReader(anchor));
-
-            List<String> variables = (List<String>) reader.read();
-            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
-            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
-
-            if (variables.get(0) == variables.get(1)) {
-                System.out.println("[ OK  ] - The variables represent the same object!");
-            } else {
-                System.out.println("[ERROR] - The variables represent different objects!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {

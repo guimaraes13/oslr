@@ -72,6 +72,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         Collection<? extends Example> sample = getIndependentSample(targets);
         double epsilon = calculateHoeffdingBound(metric.getRange(), sample.size());
 
+        //QUESTION: train on the sample or on all the targets?
         applyRevisionIfImproves(sample, revisionOperator, metric, epsilon);
     }
 
@@ -96,7 +97,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
                 previousRelevants.addAll(currentRelevants);
             }
             counter++;
-            //QUESTION: Another would be to add the current to the previous ones even if the sets are not disjoint
+            //QUESTION: Another way would be to add the current to the previous ones even if the sets are not disjoint
         }
         logger.debug(LogMessages.SAMPLING_FROM_TARGETS.toString(), examples.size(), counter);
         return examples;

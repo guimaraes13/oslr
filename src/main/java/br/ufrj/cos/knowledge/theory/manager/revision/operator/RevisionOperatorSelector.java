@@ -43,7 +43,7 @@ public abstract class RevisionOperatorSelector implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
-        if (operatorEvaluators == null) {
+        if (operatorEvaluators == null || operatorEvaluators.isEmpty()) {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, RevisionOperatorEvaluator.class.getSimpleName()));
         }

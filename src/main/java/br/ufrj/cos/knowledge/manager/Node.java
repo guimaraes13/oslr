@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.util;
+package br.ufrj.cos.knowledge.manager;
 
 import java.util.Collection;
 import java.util.HashSet;

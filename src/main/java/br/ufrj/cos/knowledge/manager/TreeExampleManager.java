@@ -28,12 +28,10 @@ import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
-import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.logic.Literal;
+import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.Node;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -51,14 +49,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class TreeExampleManager extends IncomingExampleManager {
 
-    /**
-     * The leaf that represent the revision point.
-     */
-    public Node<Theory> signedLeaf;
-
-    protected Map<String, Node<Theory>> treeMap;
-    protected Map<String, Map<Node<Theory>, Set<Example>>> leafExamplesMap;
-
+    protected TreeTheory treeTheory;
     protected Predicate<? super HornClause> acceptPredicate;
 
     /**
@@ -127,10 +118,12 @@ public class TreeExampleManager extends IncomingExampleManager {
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
+        if (treeTheory == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, TreeTheory.class.getSimpleName()));
+        }
         acceptPredicate = learningSystem.getTheory().getAcceptPredicate();
-        //IMPROVE: initialize the treeMap from the current theory
-        treeMap = new HashMap<>();
-        leafExamplesMap = new HashMap<>();
+        treeTheory.initialize();
     }
 
     @Override
@@ -154,9 +147,8 @@ public class TreeExampleManager extends IncomingExampleManager {
         for (Example example : examples) {
             predicate = LanguageUtils.getPredicateFromAtom(example.getGoalQuery());
             Set<Node<Theory>> modifiedLeaves = modifiedLeavesMap.computeIfAbsent(predicate, e -> new HashSet<>());
-            Map<Node<Theory>, Set<Example>> leafExamples =
-                    leafExamplesMap.computeIfAbsent(predicate, e -> new HashMap<>());
-            root = getTreeForExample(example, predicate);
+            Map<Node<Theory>, Set<Example>> leafExamples = treeTheory.getLeafExampleMapFromTree(predicate);
+            root = treeTheory.getTreeForExample(example, predicate, acceptPredicate);
 
             coveredExamples = transverseTheoryTree(root, example, modifiedLeaves, leafExamples);
             split = splitCoveredExamples(example, coveredExamples);
@@ -225,42 +217,35 @@ public class TreeExampleManager extends IncomingExampleManager {
         Set<Example> targets;
         for (Map.Entry<String, Set<Node<Theory>>> entry : modifiedLeaves.entrySet()) {
             for (Node<Theory> leaf : entry.getValue()) {
-                signedLeaf = leaf;
-                targets = leafExamplesMap.get(entry.getKey()).get(leaf);
+                treeTheory.signedLeaf = leaf;
+                targets = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
                 if (targets != null && !targets.isEmpty()) { learningSystem.reviseTheory(targets); }
             }
         }
     }
 
     /**
-     * Retrieves the root of the tree responsible for dealing with the given example. If the tree does not exists
-     * yet, it is created.
+     * Gets the tree theory.
      *
-     * @param example   the example
-     * @param predicate the predicate of the example
-     * @return the tree
+     * @return tree theory
      */
-    protected Node<Theory> getTreeForExample(Example example, String predicate) {
-        Node<Theory> root = treeMap.get(predicate);
-        if (root == null) {
-            Atom head = LanguageUtils.toVariableAtom(example.getGoalQuery().getName(), example.getGoalQuery()
-                    .getArity());
-            root = Node.newTree(buildDefaultTheory(head), buildDefaultTheory(head));
-            treeMap.put(predicate, root);
-        }
-
-        return root;
+    public TreeTheory getTreeTheory() {
+        return treeTheory;
     }
 
     /**
-     * Builds a default {@link Theory} for a given example
+     * Sets the tree theory.
      *
-     * @param example the example
-     * @return the {@link Theory}
+     * @param treeTheory tree theory
+     * @throws InitializationException if the {@link TreeTheory} is already set
      */
-    protected Theory buildDefaultTheory(Atom example) {
-        Conjunction body = new Conjunction(Literal.FALSE_LITERAL);
-        return new Theory(new HornClause(example, body), acceptPredicate);
+    public void setTreeTheory(TreeTheory treeTheory) throws InitializationException {
+        if (this.treeTheory != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   TreeTheory.class.getSimpleName()));
+        }
+        this.treeTheory = treeTheory;
     }
 
 }
