@@ -59,7 +59,10 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      * The default value of delta.
      */
     public static final double DEFAULT_DELTA = 0.01;
-
+    /**
+     * The depth of the relevant breadth first search.
+     */
+    public int relevantDepth = 0;
     protected double delta = DEFAULT_DELTA;
 
     @Override
@@ -87,7 +90,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         int counter = 0;
         for (Example example : targets) {
             terms = example.getGoalQuery().getTerms().stream().filter(Term::isConstant).collect(Collectors.toSet());
-            currentRelevants = learningSystem.groundRelevants(terms);
+            currentRelevants = learningSystem.relevantsBreadthFirstSearch(terms, relevantDepth, false);
             if (Collections.disjoint(previousRelevants, currentRelevants)) {
                 examples.add(example);
                 previousRelevants.addAll(currentRelevants);
