@@ -79,17 +79,24 @@ public class Node<E> {
     }
 
     /**
+     * Checks if the node is the root of the tree.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isRoot() {
+        return parent == null;
+    }
+
+    /**
      * Adds the children element to the parent node.
      *
-     * @param parent       the parent
-     * @param defaultChild the default child
      * @param child        the child's element
-     * @param <E>          the element type
+     * @param defaultChild the default child
      * @return the node representation of the child if succeeds, {@code null} otherwise
      */
-    public static <E> Node<E> addChildToNode(Node<E> parent, E defaultChild, E child) {
-        Node<E> childNode = new Node<>(parent, defaultChild, child);
-        if (parent.children != null && parent.children.add(childNode)) {
+    public Node<E> addChildToNode(E child, E defaultChild) {
+        Node<E> childNode = new Node<>(this, defaultChild, child);
+        if (this.children != null && this.children.add(childNode)) {
             return childNode;
         } else {
             return null;
@@ -97,14 +104,12 @@ public class Node<E> {
     }
 
     /**
-     * Removes the child node from the tree.
+     * Removes this node from the tree.
      *
-     * @param child the child node
-     * @param <E>   the element type
      * @return {@code true} if the remove changes the tree, {@code false} otherwise
      */
-    public static <E> boolean removeChildFromNode(Node<E> child) {
-        return child.parent != null && child.parent.children != null && child.parent.children.remove(child);
+    public boolean removeNodeFromTree() {
+        return parent != null && parent.children != null && parent.children.remove(this);
     }
 
     /**
@@ -155,7 +160,7 @@ public class Node<E> {
     @Override
     public int hashCode() {
         int result = 31;
-        if (parent == null) {
+        if (isRoot()) {
             return result;
         }
         result = 31 * parent.hashCode();

@@ -123,7 +123,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Iterable<? extends Example> examples) throws TheoryRevisionException {
+    public void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException {
         Map<String, Set<Node<HornClause>>> modifiedLeaves = placeIncomingExamples(examples);
         callRevision(modifiedLeaves);
         //TODO: add example to the learning system's set of examples

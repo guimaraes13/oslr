@@ -30,6 +30,7 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.Collection;
 import java.util.Collections;
 
 /**
@@ -83,7 +84,7 @@ public abstract class IncomingExampleManager implements Initializable {
      * @param examples the arrived {@link Example}s
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract void incomingExamples(Iterable<? extends Example> examples) throws TheoryRevisionException;
+    public abstract void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException;
 
     /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.

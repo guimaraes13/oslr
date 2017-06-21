@@ -34,6 +34,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -105,7 +106,7 @@ public class TheoryRevisionManager implements Initializable {
      * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public void revise(Collection<? extends Example> targets) throws TheoryRevisionException {
         RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
 
         applyRevision(revisionOperator, targets, learningSystem.evaluateTheory(theoryMetric), NO_IMPROVEMENT_THRESHOLD);
@@ -126,14 +127,13 @@ public class TheoryRevisionManager implements Initializable {
         double revised = operatorEvaluator.evaluateOperator(learningSystem.getExamples(), targets);
 
         int improve = theoryMetric.compare(revised, currentEvaluation);
-        Theory currentTheory = learningSystem.getTheory();
         LogMessages logMessage;
         if (improve >= improvementThreshold) {
             Theory revisedTheory = operatorEvaluator.getRevisedTheory(targets);
             learningSystem.setTheory(revisedTheory);
             learningSystem.trainParameters(learningSystem.getExamples());
             learningSystem.saveTrainedParameters();
-            operatorEvaluator.theoryRevisionAccepted(revisedTheory, currentTheory);
+            operatorEvaluator.theoryRevisionAccepted(revisedTheory);
             logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
         } else {
             logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;

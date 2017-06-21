@@ -79,17 +79,37 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     @Override
-    public void revise(Iterable<? extends Example> targets) throws TheoryRevisionException {
-        Collection<? extends Example> sample = getIndependentSample(targets);
-        double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
+    public void revise(Collection<? extends Example> targets) throws TheoryRevisionException {
+        double bestEpsilon = calculateHoeffdingBound(theoryMetric.getRange(), targets.size());
         double currentEvaluation = learningSystem.evaluateTheory(theoryMetric);
+        double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(currentEvaluation);
 
-        if (theoryMetric.bestPossibleImprovement(currentEvaluation) >= epsilon) {
-            // even the best possible improvement is not enough to pass the threshold
-            //QUESTION: train on the sample or on all the targets?
-            RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
-            applyRevision(revisionOperator, sample, currentEvaluation, epsilon);
+        if (bestPossibleImprovement >= bestEpsilon) {
+            Collection<? extends Example> sample = getIndependentSample(targets);
+            double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
+            if (bestPossibleImprovement >= epsilon) {
+                // even the best possible improvement is not enough to pass the threshold
+                //QUESTION: train on the sample or on all the targets?
+                RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
+                applyRevision(revisionOperator, sample, currentEvaluation, epsilon);
+            }
         }
+    }
+
+    /**
+     * Calculates the Hoeffding's bound value of epsilon. The value is given by the formula:
+     * <p>
+     * \epsilon = \sqrt{\frac{R^2 * ln(1/\delta)}{2n}}
+     * <p>
+     * Where R is the range of the random variable and n is the sample size.
+     *
+     * @param range      the range of the random variable
+     * @param sampleSize the sample size
+     * @return the Hoeffding's bound value of epsilon
+     */
+    protected double calculateHoeffdingBound(double range, int sampleSize) {
+        // equivalent form to \sqrt{frac{R^2 * ln(1/δ)}{2n}}
+        return StrictMath.sqrt((range * range * -StrictMath.log(delta)) / (2 * sampleSize));
     }
 
     /**
@@ -117,22 +137,6 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         }
         logger.debug(LogMessages.SAMPLING_FROM_TARGETS.toString(), examples.size(), counter);
         return examples;
-    }
-
-    /**
-     * Calculates the Hoeffding's bound value of epsilon. The value is given by the formula:
-     * <p>
-     * \epsilon = \sqrt{\frac{R^2 * ln(1/\delta)}{2n}}
-     * <p>
-     * Where R is the range of the random variable and n is the sample size.
-     *
-     * @param range      the range of the random variable
-     * @param sampleSize the sample size
-     * @return the Hoeffding's bound value of epsilon
-     */
-    protected double calculateHoeffdingBound(double range, int sampleSize) {
-        // equivalent form to \sqrt{frac{R^2 * ln(1/δ)}{2n}}
-        return StrictMath.sqrt((range * range * -StrictMath.log(delta)) / (2 * sampleSize));
     }
 
     /**

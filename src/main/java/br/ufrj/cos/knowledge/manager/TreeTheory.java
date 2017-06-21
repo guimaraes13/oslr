@@ -63,11 +63,32 @@ public class TreeTheory implements Initializable {
      * @return {@code true} if it does, {@code false} otherwise
      */
     public static boolean isDefaultTheory(Node<HornClause> node) {
-        if (node.getParent() != null) {
+        if (!node.isRoot()) {
             return false;
         }
 
         return node.getElement().getBody().equals(DEFAULT_THEORY_BODY);
+    }
+
+    /**
+     * Adds the child to the parent node.
+     *
+     * @param parent the parent node
+     * @param child  the child
+     * @return the child node
+     */
+    public static Node<HornClause> addNodeToTree(Node<HornClause> parent, HornClause child) {
+        return parent.addChildToNode(child, buildDefaultTheory(parent.getElement().getHead()));
+    }
+
+    /**
+     * Removes the node from the tree.
+     *
+     * @param node the node
+     * @return {@code true} if the remove changes the tree, {@code false} otherwise
+     */
+    public static boolean removeNodeFromTree(Node node) {
+        return node.removeNodeFromTree();
     }
 
     @Override
@@ -129,14 +150,14 @@ public class TreeTheory implements Initializable {
     }
 
     /**
-     * Builds a default {@link Theory} for a given example
+     * Builds a default {@link Theory} for a given head
      *
-     * @param example the example
+     * @param head the head
      * @return the {@link Theory}
      */
-    protected static HornClause buildDefaultTheory(Atom example) {
+    protected static HornClause buildDefaultTheory(Atom head) {
         Conjunction body = new Conjunction(Literal.FALSE_LITERAL);
-        return new HornClause(example, body);
+        return new HornClause(head, body);
     }
 
 }

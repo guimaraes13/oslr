@@ -211,7 +211,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     @Override
-    public void theoryRevisionAccepted(Theory revised, Theory old) {
+    public void theoryRevisionAccepted(Theory revised) {
 
     }
 

@@ -106,7 +106,7 @@ public class LearningSystem {
      * @param targets the target {@link Example}s
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public synchronized void reviseTheory(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public synchronized void reviseTheory(Collection<? extends Example> targets) throws TheoryRevisionException {
         theoryRevisionManager.revise(targets);
     }
 
@@ -222,6 +222,16 @@ public class LearningSystem {
         return getEngineSystemTranslator().inferExamples(theory, examples);
     }
 
+    /**
+     * Method to infer the probability of the examples based on the {@link HornClause}, {@link KnowledgeBase} and the
+     * parameters from the logic engine. The parameters changes due the call of this method should not be stored.
+     * <p>
+     * This method is useful to evaluate a clause revision without save the parameters.
+     *
+     * @param clause   the {@link HornClause}
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
     public Map<Example, Map<Atom, Double>> inferExamples(HornClause clause,
                                                          Iterable<? extends Example> examples) {
         return engineSystemTranslator.inferExamples(clause, examples);
