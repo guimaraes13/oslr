@@ -34,7 +34,6 @@ import br.ufrj.cos.util.LanguageUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Responsible for manage the theory as a tree.
@@ -46,12 +45,30 @@ import java.util.function.Predicate;
 public class TreeTheory implements Initializable {
 
     /**
+     * Represents the default theory body.
+     */
+    protected static final Conjunction DEFAULT_THEORY_BODY = new Conjunction(Literal.FALSE_LITERAL);
+    /**
      * The leaf that represent the revision point.
      */
-    public Node<Theory> signedLeaf;
+    public Node<HornClause> revisionLeaf;
 
-    protected Map<String, Node<Theory>> treeMap;
-    protected Map<String, Map<Node<Theory>, Set<Example>>> leafExamplesMap;
+    protected Map<String, Node<HornClause>> treeMap;
+    protected Map<String, Map<Node<HornClause>, Set<Example>>> leafExamplesMap;
+
+    /**
+     * Checks if the node represents a default theory.
+     *
+     * @param node the node
+     * @return {@code true} if it does, {@code false} otherwise
+     */
+    public static boolean isDefaultTheory(Node<HornClause> node) {
+        if (node.getParent() != null) {
+            return false;
+        }
+
+        return node.getElement().getBody().equals(DEFAULT_THEORY_BODY);
+    }
 
     @Override
     public void initialize() throws InitializationException {
@@ -66,7 +83,7 @@ public class TreeTheory implements Initializable {
      * @param predicate the predicate
      * @return the tree
      */
-    public Node<Theory> getTreeByPredicate(String predicate) {
+    public Node<HornClause> getTreeByPredicate(String predicate) {
         return treeMap.get(predicate);
     }
 
@@ -76,7 +93,7 @@ public class TreeTheory implements Initializable {
      * @param predicate the predicate
      * @return the leaf examples map
      */
-    public Map<Node<Theory>, Set<Example>> getLeafExampleMapFromTree(String predicate) {
+    public Map<Node<HornClause>, Set<Example>> getLeafExampleMapFromTree(String predicate) {
         return leafExamplesMap.computeIfAbsent(predicate, e -> new HashMap<>());
     }
 
@@ -87,7 +104,7 @@ public class TreeTheory implements Initializable {
      * @param leaf      the leaf
      * @return the set of examples
      */
-    public Set<Example> getExampleFromLeaf(String predicate, Node<Theory> leaf) {
+    public Set<Example> getExampleFromLeaf(String predicate, Node<HornClause> leaf) {
         return leafExamplesMap.get(predicate).get(leaf);
     }
 
@@ -95,18 +112,16 @@ public class TreeTheory implements Initializable {
      * Retrieves the root of the tree responsible for dealing with the given example. If the tree does not exists
      * yet, it is created.
      *
-     * @param example         the example
-     * @param predicate       the predicate of the example
-     * @param acceptPredicate tje accept predicate of the theory
+     * @param example   the example
+     * @param predicate the predicate of the example
      * @return the tree
      */
-    public Node<Theory> getTreeForExample(Example example, String predicate,
-                                          Predicate<? super HornClause> acceptPredicate) {
-        Node<Theory> root = treeMap.get(predicate);
+    public Node<HornClause> getTreeForExample(Example example, String predicate) {
+        Node<HornClause> root = treeMap.get(predicate);
         if (root == null) {
             Atom head = LanguageUtils.toVariableAtom(example.getGoalQuery().getName(), example.getGoalQuery()
                     .getArity());
-            root = Node.newTree(buildDefaultTheory(head, acceptPredicate), buildDefaultTheory(head, acceptPredicate));
+            root = Node.newTree(buildDefaultTheory(head), buildDefaultTheory(head));
             treeMap.put(predicate, root);
         }
 
@@ -116,13 +131,12 @@ public class TreeTheory implements Initializable {
     /**
      * Builds a default {@link Theory} for a given example
      *
-     * @param example         the example
-     * @param acceptPredicate tje accept predicate of the theory
+     * @param example the example
      * @return the {@link Theory}
      */
-    protected static Theory buildDefaultTheory(Atom example, Predicate<? super HornClause> acceptPredicate) {
+    protected static HornClause buildDefaultTheory(Atom example) {
         Conjunction body = new Conjunction(Literal.FALSE_LITERAL);
-        return new Theory(new HornClause(example, body), acceptPredicate);
+        return new HornClause(example, body);
     }
 
 }

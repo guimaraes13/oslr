@@ -23,6 +23,7 @@ package br.ufrj.cos.knowledge.theory;
 
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.KnowledgeException;
+import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
 
@@ -86,6 +87,25 @@ public class Theory extends Knowledge<HornClause> {
         try {
             Collection<HornClause> copy = collection.getClass().newInstance();
             copy.addAll(collection);
+            return new Theory(copy, acceptPredicate);
+        } catch (Exception e) {
+            throw new KnowledgeException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
+        }
+    }
+
+    /**
+     * Copies the theory creating new instance of the inner rules and its bodies. With this copy, any changes to the
+     * body of a rule will not change the original theory, although changes in the atoms and literal will do.
+     *
+     * @return a copy of this {@link Theory}
+     * @throws KnowledgeException in case of reflection error
+     */
+    public Theory deepCopy() throws KnowledgeException {
+        try {
+            Collection<HornClause> copy = collection.getClass().newInstance();
+            for (HornClause hornClause : this) {
+                copy.add(new HornClause(hornClause.getHead(), new Conjunction(hornClause.getBody())));
+            }
             return new Theory(copy, acceptPredicate);
         } catch (Exception e) {
             throw new KnowledgeException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);

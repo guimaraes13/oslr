@@ -108,6 +108,15 @@ public class Node<E> {
     }
 
     /**
+     * Checks if this node is a default child node.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isDefaultChild() {
+        return defaultChild == null;
+    }
+
+    /**
      * Gets the parent.
      *
      * @return the parent

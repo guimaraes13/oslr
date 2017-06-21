@@ -155,7 +155,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param theory the {@link Theory}
      * @return the {@link WamProgram}
      */
-    public static WamProgram compileTheory(Theory theory) {
+    public static WamProgram compileTheory(Iterable<? extends HornClause> theory) {
         WamProgram wamProgram = new WamBaseProgram();
         appendRuleToProgram(theory, wamProgram);
         wamProgram.save();
@@ -522,6 +522,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
+    public Map<Example, Map<Atom, Double>> inferExamples(HornClause clause, Iterable<? extends Example> examples) {
+        return inferWithTheoryExamples(Collections.singleton(clause), new QueryIterable(examples));
+    }
+
+    @Override
     public Map<Example, Map<Atom, Double>> inferExamples(Iterable<? extends HornClause> appendClauses,
                                                          Iterable<? extends Example> examples) {
         return inferExamplesAppendingClauses(appendClauses, new QueryIterable(examples));
@@ -696,11 +701,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * <p>
      * This method is useful to evaluate a theory revision without save the parameters.
      *
-     * @param theory    the {@link Theory}
+     * @param theory    a {@link Iterable} of {@link HornClause}s
      * @param converter the iterable to infer
      * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
      */
-    protected Map<Example, Map<Atom, Double>> inferWithTheoryExamples(Theory theory,
+    protected Map<Example, Map<Atom, Double>> inferWithTheoryExamples(Iterable<? extends HornClause> theory,
                                                                       IterableConverter<Example, Query> converter) {
         if (theory == null) { return null; }
         WamProgram wamProgram = compileTheory(theory);

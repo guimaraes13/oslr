@@ -210,6 +210,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         }
     }
 
+    @Override
+    public void theoryRevisionAccepted(Theory revised, Theory old) {
+
+    }
+
     /**
      * Performs the operation for a single example
      *

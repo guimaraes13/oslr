@@ -30,8 +30,7 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -75,9 +74,7 @@ public abstract class IncomingExampleManager implements Initializable {
      * @throws TheoryRevisionException in an error occurs during the revision
      */
     public void incomingExamples(Example example) throws TheoryRevisionException {
-        List<Example> exampleList = new ArrayList<>(1);
-        exampleList.add(example);
-        incomingExamples(exampleList);
+        incomingExamples(Collections.singletonList(example));
     }
 
     /**

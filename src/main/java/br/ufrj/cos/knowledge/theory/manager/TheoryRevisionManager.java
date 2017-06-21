@@ -115,28 +115,31 @@ public class TheoryRevisionManager implements Initializable {
      * Compares the revision with the current theory, if the revision outperform the current theory by a given
      * threshold, applies the revision on the theory.
      *
-     * @param revisionOperator     the revision operator
+     * @param operatorEvaluator     the revision operator
      * @param targets              the targets for the revision
      * @param currentEvaluation    the current evaluation value of the theory
      * @param improvementThreshold the improvement threshold
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    protected void applyRevision(RevisionOperatorEvaluator revisionOperator, Iterable<? extends Example> targets,
+    protected void applyRevision(RevisionOperatorEvaluator operatorEvaluator, Iterable<? extends Example> targets,
                                  double currentEvaluation, double improvementThreshold) throws TheoryRevisionException {
-        double revised = revisionOperator.evaluateOperator(learningSystem.getExamples(), targets);
+        double revised = operatorEvaluator.evaluateOperator(learningSystem.getExamples(), targets);
 
         int improve = theoryMetric.compare(revised, currentEvaluation);
+        Theory currentTheory = learningSystem.getTheory();
         LogMessages logMessage;
         if (improve >= improvementThreshold) {
-            learningSystem.setTheory(revisionOperator.getRevisedTheory(targets));
+            Theory revisedTheory = operatorEvaluator.getRevisedTheory(targets);
+            learningSystem.setTheory(revisedTheory);
             learningSystem.trainParameters(learningSystem.getExamples());
             learningSystem.saveTrainedParameters();
+            operatorEvaluator.theoryRevisionAccepted(revisedTheory, currentTheory);
             logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
         } else {
             logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
         }
         logger.debug(logMessage.toString(), improve, improvementThreshold);
-        revisionOperator.clearCachedTheory();
+        operatorEvaluator.clearCachedTheory();
     }
 
     /**

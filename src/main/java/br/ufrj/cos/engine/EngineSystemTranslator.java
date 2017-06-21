@@ -118,8 +118,7 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
 
     /**
      * Method to infer the probability of the examples based on the {@link Theory}, {@link KnowledgeBase} and the
-     * parameters from the logic engine. The parameters changes due the call of this
-     * method should not be stored.
+     * parameters from the logic engine. The parameters changes due the call of this method should not be stored.
      * <p>
      * This method is useful to evaluate a theory revision without save the parameters.
      *
@@ -131,8 +130,7 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
 
     /**
      * Method to infer the probability of the examples based on the {@link Theory}, {@link KnowledgeBase} and the
-     * parameters from the logic engine. The parameters changes due the call of this
-     * method should not be stored.
+     * parameters from the logic engine. The parameters changes due the call of this method should not be stored.
      * <p>
      * This method is useful to evaluate a theory revision without save the parameters.
      *
@@ -141,6 +139,19 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
      * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
      */
     public abstract Map<Example, Map<Atom, Double>> inferExamples(Theory theory, Iterable<? extends Example> examples);
+
+    /**
+     * Method to infer the probability of the examples based on the {@link HornClause}, {@link KnowledgeBase} and the
+     * parameters from the logic engine. The parameters changes due the call of this method should not be stored.
+     * <p>
+     * This method is useful to evaluate a clause revision without save the parameters.
+     *
+     * @param clause   the {@link HornClause}
+     * @param examples the iterable to infer
+     * @return a {@link Map} of the solutions to its correspondent {@link Example}s.
+     */
+    public abstract Map<Example, Map<Atom, Double>> inferExamples(HornClause clause,
+                                                                  Iterable<? extends Example> examples);
 
     /**
      * Method to infer the probability of the examples based on the {@link Theory} (appending new clauses),

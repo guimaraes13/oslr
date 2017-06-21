@@ -222,6 +222,11 @@ public class LearningSystem {
         return getEngineSystemTranslator().inferExamples(theory, examples);
     }
 
+    public Map<Example, Map<Atom, Double>> inferExamples(HornClause clause,
+                                                         Iterable<? extends Example> examples) {
+        return engineSystemTranslator.inferExamples(clause, examples);
+    }
+
     /**
      * Delegates the inference of the examples, with {@link Theory} modifications, to the
      * {@link EngineSystemTranslator}.
