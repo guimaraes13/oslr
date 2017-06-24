@@ -65,6 +65,12 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      * The depth of the relevant breadth first search.
      */
     public int relevantDepth = 0;
+    /**
+     * To train using all the examples. if setted to {@code false}, it trains using only the examples considered
+     * independents.
+     */
+    public boolean trainUsingAllExamples = true;
+
     protected double delta = DEFAULT_DELTA;
 
     @Override
@@ -89,8 +95,9 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
             if (bestPossibleImprovement >= epsilon) {
                 // even the best possible improvement is not enough to pass the threshold
-                //QUESTION: train on the sample or on all the targets?
+                // another way would train on the sample or on all the targets?
                 RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
+                if (trainUsingAllExamples) { sample = targets; }
                 applyRevision(revisionOperator, sample, currentEvaluation, epsilon);
             }
         }
@@ -130,10 +137,9 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             currentRelevants = learningSystem.relevantsBreadthFirstSearch(terms, relevantDepth, false);
             if (Collections.disjoint(previousRelevants, currentRelevants)) {
                 examples.add(example);
-                previousRelevants.addAll(currentRelevants);
             }
+            if (trainUsingAllExamples) { previousRelevants.addAll(currentRelevants); }
             counter++;
-            //QUESTION: Another way would be to add the current to the previous ones even if the sets are not disjoint
         }
         logger.debug(LogMessages.SAMPLING_FROM_TARGETS.toString(), examples.size(), counter);
         return examples;

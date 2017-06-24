@@ -84,6 +84,19 @@ public class Conjunction extends LinkedHashSet<Literal> {
         return true;
     }
 
+    /**
+     * Gets the last element of the conjunction.
+     *
+     * @return the last element of the conjunction
+     */
+    public Literal getLastElement() {
+        Literal literal = null;
+        for (Literal iterated : this) {
+            literal = iterated;
+        }
+        return literal;
+    }
+
     @Override
     public String toString() {
         return LanguageUtils.listToString(this);
