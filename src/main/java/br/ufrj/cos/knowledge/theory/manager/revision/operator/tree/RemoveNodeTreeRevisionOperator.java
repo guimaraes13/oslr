@@ -42,7 +42,7 @@ import java.util.LinkedHashSet;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"unused", "Duplicates"})
+@SuppressWarnings({"unused"})
 public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     @Override

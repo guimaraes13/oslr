@@ -23,8 +23,8 @@ package br.ufrj.cos.knowledge.theory.manager;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.ExceptionMessages;

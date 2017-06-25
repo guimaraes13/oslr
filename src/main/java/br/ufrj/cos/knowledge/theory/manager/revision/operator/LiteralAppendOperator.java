@@ -19,13 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision.operator.tree;
+package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
@@ -54,10 +53,8 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
             HornClause initialClause = buildEmptyClause(targets);
             if (initialClause == null) { return theory; }
 
-            Literal literal = buildExtendedHornClause(targets, initialClause, new HashSet<>());
-            initialClause.getBody().add(literal);
-
-            theory.add(initialClause);
+            HornClause hornClause = buildExtendedHornClause(targets, initialClause, new HashSet<>());
+            theory.add(hornClause);
             return theory;
         } catch (KnowledgeException e) {
             throw new TheoryRevisionException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
@@ -91,12 +88,12 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
      * @param examples           the examples
      * @param initialClause      the initial clause
      * @param equivalentLiterals the equivalent literals
-     * @return the new literal
+     * @return the horn clause
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract Literal buildExtendedHornClause(Iterable<? extends Example> examples,
-                                                    HornClause initialClause,
-                                                    Collection<? extends Literal> equivalentLiterals)
+    public abstract HornClause buildExtendedHornClause(Iterable<? extends Example> examples,
+                                                       HornClause initialClause,
+                                                       Collection<? extends Literal> equivalentLiterals)
             throws TheoryRevisionException;
 
 }

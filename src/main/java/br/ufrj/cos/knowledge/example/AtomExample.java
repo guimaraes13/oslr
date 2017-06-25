@@ -47,6 +47,7 @@ public class AtomExample extends Atom implements Example {
      * @param name  the {@link Atom}'s predicate name
      * @param terms the {@link Atom}'s {@link Term}s
      */
+    @SuppressWarnings("SameParameterValue")
     public AtomExample(String name, List<Term> terms) {
         this(name, terms, true);
     }

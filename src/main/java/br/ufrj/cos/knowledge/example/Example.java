@@ -23,7 +23,6 @@ package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.logic.Variable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -66,7 +65,7 @@ public interface Example {
      *
      * @return the {@link Map}
      */
-    public default Map<Term, Variable> getVariableMap() {
+    public default Map<Term, Term> getVariableMap() {
         return new HashMap<>();
     }
 

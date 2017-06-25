@@ -30,12 +30,16 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.multithreading.ClauseSubstitutionAsyncTransformer;
+import br.ufrj.cos.util.multithreading.MultithreadingEvaluation;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -63,16 +67,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * Represents a constant for no maximum side way movements.
      */
     public static final int NO_MAXIMUM_SIDE_WAY_MOVEMENTS = -1;
-
-    /**
-     * The default value for {@link #evaluationTimeout}.
-     */
-    public static final int DEFAULT_EVALUATION_TIMEOUT = 300;
-
-    /**
-     * The default value for {@link #numberOfThreads}.
-     */
-    public static final int DEFAULT_NUMBER_OF_THREADS = 1;
 
     /**
      * The default value for {@link #improvementThreshold}.
@@ -150,12 +144,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * <p>
      * By default, is 300 seconds (i.e. 5 minutes).
      */
-    public int evaluationTimeout = DEFAULT_EVALUATION_TIMEOUT;
+    public int evaluationTimeout = MultithreadingEvaluation.DEFAULT_EVALUATION_TIMEOUT;
 
     /**
      * The maximum number of threads this class is allowed to create.
      */
-    public int numberOfThreads = DEFAULT_NUMBER_OF_THREADS;
+    public int numberOfThreads = MultithreadingEvaluation.DEFAULT_NUMBER_OF_THREADS;
 
     /**
      * A internal metric to be used on the optimization of the candidate clauses.
@@ -164,22 +158,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public TheoryMetric internalMetric;
 
-    /**
-     * Submits one evaluator {@link HornClause} to the pool and returns its {@link Future} value.
-     *
-     * @param evaluator      the evaluator {@link HornClause}
-     * @param evaluationPool the pool
-     * @return the {@link Future} value
-     */
-    protected static Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
-                                                                  ExecutorService evaluationPool) {
-        try {
-            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
-        } catch (Exception e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-        }
-        return null;
-    }
+    protected MultithreadingEvaluation<Map.Entry<HornClause, Map<Term, Term>>> multithreading;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -195,6 +174,9 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                     LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
                                                    variableGeneratorClassName), e);
         }
+        multithreading = new MultithreadingEvaluation(learningSystem, internalMetric, evaluationTimeout,
+                                                      new ClauseSubstitutionAsyncTransformer());
+        multithreading.numberOfThreads = numberOfThreads;
     }
 
     @Override
@@ -274,7 +256,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
 
             logger.trace(LogMessages.EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
-            AsyncTheoryEvaluator bestClause = getBestClausesFromCandidates(candidateClauses.entrySet());
+            AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet());
             if (bestClause == null) {
                 logger.debug(LogMessages.ERROR_EVALUATING_MINIMAL_CLAUSES);
                 return null;
@@ -288,6 +270,22 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         } catch (Exception e) {
             throw new TheoryRevisionException(LogMessages.ERROR_REVISING_THEORY.toString(), e);
         }
+    }
+
+    /**
+     * Builds the bottom clause based on the target {@link Example}
+     *
+     * @param target the target {@link Example}
+     * @return the bottom clause
+     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     */
+    protected HornClause buildBottomClause(Example target) throws InstantiationException, IllegalAccessException {
+        Set<Atom> relevants = learningSystem.relevantsBreadthFirstSearch(target.getPositiveTerms(), relevantsDepth,
+                                                                         !refine);
+        Map<Term, Term> variableMap = target.getVariableMap();
+
+        return toVariableHornClauseForm(target, relevants, variableMap);
     }
 
     /**
@@ -337,62 +335,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Checks if is to stop due to much iterations without improvements.
-     *
-     * @param sideWayMovements the number of iterations without improvements
-     * @return {@code true} if it is to stop, {@code false} if it is to continue
-     */
-    protected boolean isToStopBySideWayMovements(int sideWayMovements) {
-        return maximumSideWayMovements > NO_MAXIMUM_SIDE_WAY_MOVEMENTS && sideWayMovements > maximumSideWayMovements;
-    }
-
-    /**
-     * Builds the bottom clause based on the target {@link Example}
-     *
-     * @param target the target {@link Example}
-     * @return the bottom clause
-     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
-     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
-     */
-    protected HornClause buildBottomClause(Example target) throws InstantiationException, IllegalAccessException {
-        Set<Atom> relevants = learningSystem.relevantsBreadthFirstSearch(target.getPositiveTerms(), relevantsDepth,
-                                                                         !refine);
-        Map<Term, Variable> variableMap = target.getVariableMap();
-
-        return toVariableHornClauseForm(target, relevants, variableMap);
-    }
-
-    /**
-     * Evaluates the candidate clauses against the metric, and returns the best evaluated {@link HornClause}.
-     * <p>
-     * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
-     *
-     * @param candidates the candidate clauses
-     * @return the best evaluated {@link HornClause}
-     */
-    protected AsyncTheoryEvaluator getBestClausesFromCandidates(
-            Collection<? extends Map.Entry<HornClause, Map<Term, Term>>> candidates) {
-        if (candidates == null || candidates.isEmpty()) { return null; }
-        AsyncTheoryEvaluator bestClause = null;
-        int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
-        try {
-            logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
-            ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
-            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool);
-
-            evaluationPool.shutdown();
-            evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
-                                            TimeUnit.SECONDS);
-            evaluationPool.shutdownNow();
-            logger.trace(LogMessages.END_ASYNC_EVALUATION);
-            bestClause = retrieveEvaluatedMetrics(futures, null);
-        } catch (InterruptedException e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-        }
-        return bestClause;
-    }
-
-    /**
      * Creates a variable version of the {@link HornClause} with the variable target {@link Example} in the head
      *
      * @param target      the target {@link Example}
@@ -405,7 +347,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     @SuppressWarnings("OverlyCoupledMethod")
     protected HornClause toVariableHornClauseForm(Example target, Collection<? extends Atom> body,
-                                                  Map<Term, Variable> variableMap) throws IllegalAccessException,
+                                                  Map<Term, Term> variableMap) throws IllegalAccessException,
             InstantiationException {
         VariableGenerator variableGenerator = variableGeneratorClass.newInstance();
         //Maps the Term::getName to each Variable in the values of variableMap and makes a Set of it
@@ -420,78 +362,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Submits the candidate {@link HornClause}s to the evaluation pool.
+     * Checks if is to stop due to much iterations without improvements.
      *
-     * @param candidates     the candidates
-     * @param evaluationPool the pool
-     * @return the {@link Set} of {@link Future} evaluations.
+     * @param sideWayMovements the number of iterations without improvements
+     * @return {@code true} if it is to stop, {@code false} if it is to continue
      */
-    protected Set<Future<AsyncTheoryEvaluator>> submitCandidates(
-            Iterable<? extends Map.Entry<HornClause, Map<Term, Term>>>
-                    candidates, ExecutorService evaluationPool) {
-        Set<Future<AsyncTheoryEvaluator>> futures = new LinkedHashSet<>();
-        AsyncTheoryEvaluator evaluator;
-        for (Map.Entry<HornClause, Map<Term, Term>> candidate : candidates) {
-            evaluator = buildAsyncTheoryEvaluator(candidate.getKey(), candidate.getValue());
-            futures.add(submitCandidate(evaluator, evaluationPool));
-        }
-        futures.remove(null);
-        return futures;
-    }
-
-    /**
-     * Retrieves the evaluations from the {@link Future} {@link AsyncTheoryEvaluator}s and appends it to a
-     * {@link Map}. Also, returns the best evaluated {@link HornClause}.
-     *
-     * @param futures       the {@link Future} {@link AsyncTheoryEvaluator}
-     * @param evaluationMap the {@link Map} with the evaluations
-     * @return the best evaluated {@link HornClause}
-     */
-    @SuppressWarnings("SameParameterValue")
-    protected AsyncTheoryEvaluator retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator>> futures,
-                                                            Map<HornClause, Double> evaluationMap) {
-        AsyncTheoryEvaluator evaluated;
-        double bestClauseValue = internalMetric.getDefaultValue();
-        AsyncTheoryEvaluator bestClause = null;
-        int count = 0;
-        for (Future<AsyncTheoryEvaluator> future : futures) {
-            try {
-                evaluated = future.get();
-                if (!evaluated.isEvaluationFinished()) { continue; }
-                count++;
-                if (evaluationMap != null) {
-                    evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
-                }
-                if (internalMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
-                    bestClauseValue = evaluated.getEvaluation();
-                    bestClause = evaluated;
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-            } catch (CancellationException ignored) {
-                logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), evaluationTimeout);
-            }
-        }
-        logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
-                     (double) count / futures.size() * 100, futures.size());
-        return bestClause;
-    }
-
-    /**
-     * Builds an {@link AsyncTheoryEvaluator} from a candidate {@link HornClause} and a substitution map.
-     *
-     * @param candidate       the candidate {@link HornClause}
-     * @param substitutionMap the substitution map
-     * @return the {@link AsyncTheoryEvaluator}
-     */
-    protected AsyncTheoryEvaluator buildAsyncTheoryEvaluator(HornClause candidate, Map<Term, Term> substitutionMap) {
-        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
-                                                                  learningSystem.getTheoryEvaluator(),
-                                                                  internalMetric, evaluationTimeout);
-        evaluator.setHornClause(candidate);
-        evaluator.setSubstitutionMap(substitutionMap);
-
-        return evaluator;
+    protected boolean isToStopBySideWayMovements(int sideWayMovements) {
+        return maximumSideWayMovements > NO_MAXIMUM_SIDE_WAY_MOVEMENTS && sideWayMovements > maximumSideWayMovements;
     }
 
     /**
@@ -507,7 +384,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         Set<Pair<HornClause, Map<Term, Term>>> clauses =
                 HornClauseUtils.buildAllCandidatesFromClause(clause.getHead(), clause.getBody(), candidates);
 
-        return getBestClausesFromCandidates(clauses);
+        return multithreading.getBestClausesFromCandidates(clauses);
     }
 
     /**

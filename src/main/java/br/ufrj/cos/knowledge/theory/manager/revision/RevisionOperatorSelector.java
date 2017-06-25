@@ -19,10 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision.operator;
+package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;

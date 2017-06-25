@@ -350,7 +350,7 @@ public final class HornClauseUtils {
     }
 
     /**
-     * Creates the new candidates rules, by adding on possible literal to the current rule's body. The current rule
+     * Creates the new candidate rules, by adding on possible literal to the current rule's body. The current rule
      * is represented by the head and body parameters.
      * <p>
      * In addition, it skips equivalents sets, by checking if the free variables at the candidate atom can be renamed
@@ -432,12 +432,49 @@ public final class HornClauseUtils {
      * @param candidate the additional literal in the body
      * @return {@code true} if the {@link HornClause} is safe, {@code false} otherwise
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean willBeRuleSafe(Atom head, Iterable<Literal> body, Literal candidate) {
         Set<Term> nonSafe = getNonSafeTerms(head, body);
         if (candidate.isNegated()) {
             appendNonConstantTerms(candidate, nonSafe);
         }
         return getSafeTerms(body).containsAll(nonSafe);
+    }
+
+    /**
+     * Creates the new candidate rules, by adding on possible literal to the current rule's body. The current rule
+     * is represented by the head and body parameters.
+     * <p>
+     * In addition, it skips equivalents sets, by checking if the free variables at the candidate atom can be renamed
+     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
+     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
+     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
+     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
+     * the selected rule.
+     *
+     * @param initialClause  the initial clause
+     * @param candidates     the {@link Iterable} of candidates
+     * @param answerLiterals the set of candidate literals as the answer of the method
+     * @param skipCandidates the atoms to skip
+     */
+    public static void buildAllLiteralFromClause(HornClause initialClause, Iterable<Literal> candidates,
+                                                 Set<Literal> answerLiterals, Set<EquivalentAtom> skipCandidates) {
+        Set<Term> fixedTerms;           // the terms already in the rule, to be ignored in the equivalent evaluation
+        EquivalentAtom currentAtom;     // the current atom
+        Atom head = initialClause.getHead();
+        Conjunction body = initialClause.getBody();
+        fixedTerms = body.stream().flatMap(l -> l.getTerms().stream()).collect(Collectors.toSet());
+        fixedTerms.addAll(head.getTerms());
+
+        for (Literal candidate : candidates) {
+            if (Collections.disjoint(fixedTerms, candidate.getTerms()) ||
+                    !HornClauseUtils.willBeRuleSafe(head, body, candidate)) { continue; }
+            currentAtom = new EquivalentAtom(candidate, fixedTerms);
+            if (!skipCandidates.contains(currentAtom)) {
+                skipCandidates.add(currentAtom);
+                answerLiterals.add(candidate);
+            }
+        }
     }
 
 }

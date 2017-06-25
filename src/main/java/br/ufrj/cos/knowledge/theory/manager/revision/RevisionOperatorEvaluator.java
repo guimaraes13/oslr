@@ -19,14 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.manager.revision.operator;
+package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
@@ -165,8 +165,8 @@ public class RevisionOperatorEvaluator implements Initializable {
     /**
      * Method to send a feedback to the revision operator, telling that the revision was accepted, in order to allow
      * it to do something.
-     *  @param revised the revised theory
      *
+     * @param revised the revised theory
      */
     public void theoryRevisionAccepted(Theory revised) {
         revisionOperator.theoryRevisionAccepted(revised);

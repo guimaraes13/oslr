@@ -44,11 +44,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMe
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.SelectFirstRevisionOperator;
+import br.ufrj.cos.knowledge.theory.manager.revision.*;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
@@ -412,7 +408,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InitializationException if an error occurs with the file
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void saveConfigurations() throws InitializationException {
         try {
             String configFileContent = LanguageUtils.readFileToString(configurationFilePath);

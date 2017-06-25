@@ -42,7 +42,7 @@ theoryMetrics:
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric      {}
 
 revisionOperatorEvaluators:
-   - !br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator
+   - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
       revisionOperator: !br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule
          theoryMetric:     !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric
             parametersRetrainedBeforeEvaluate: false
@@ -56,7 +56,7 @@ revisionOperatorEvaluators:
          numberOfThreads:              1
          internalMetric:   !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric {}
 
-revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.operator.SelectFirstRevisionOperator {}
+revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator {}
 revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample {}
 theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}

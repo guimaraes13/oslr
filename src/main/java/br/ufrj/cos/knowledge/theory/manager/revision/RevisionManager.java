@@ -22,8 +22,6 @@
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorSelector;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;

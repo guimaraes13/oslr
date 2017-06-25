@@ -39,7 +39,6 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("MethodWithTooManyParameters")
 public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Double>>, Pair<AtomExample, Double>> {
 
     @Override

@@ -27,8 +27,8 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperatorEvaluator;
 import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -116,7 +116,7 @@ public class TheoryRevisionManager implements Initializable {
      * Compares the revision with the current theory, if the revision outperform the current theory by a given
      * threshold, applies the revision on the theory.
      *
-     * @param operatorEvaluator     the revision operator
+     * @param operatorEvaluator    the revision operator
      * @param targets              the targets for the revision
      * @param currentEvaluation    the current evaluation value of the theory
      * @param improvementThreshold the improvement threshold

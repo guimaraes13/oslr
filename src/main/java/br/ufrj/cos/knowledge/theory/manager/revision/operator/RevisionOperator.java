@@ -132,9 +132,10 @@ public abstract class RevisionOperator implements Initializable {
     /**
      * Method to send a feedback to the revision operator, telling that the revision was accepted, in order to allow
      * it to do something.
-     *  @param revised the revised theory
      *
+     * @param revised the revised theory
      */
+    @SuppressWarnings("unused")
     public abstract void theoryRevisionAccepted(Theory revised);
 
 }

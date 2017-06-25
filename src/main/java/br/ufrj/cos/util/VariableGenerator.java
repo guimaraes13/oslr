@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.util;
 
+import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Variable;
 
 import java.util.Collection;
@@ -49,6 +50,26 @@ public class VariableGenerator implements Iterator<Variable> {
      */
     public VariableGenerator() {
         usedNames = new HashSet<>();
+    }
+
+    /**
+     * Constructs this class without repeating names from the atom.
+     *
+     * @param atom the atom
+     */
+    public VariableGenerator(Atom atom) {
+        usedNames = new HashSet<>();
+        appendUsedNamesFromAtom(atom);
+        this.counter = usedNames.size();
+    }
+
+    /**
+     * Appends the terms from the atom to the used terms
+     *
+     * @param atom the atom
+     */
+    protected void appendUsedNamesFromAtom(Atom atom) {
+        atom.getTerms().forEach(t -> usedNames.add(t.getName()));
     }
 
     @Override

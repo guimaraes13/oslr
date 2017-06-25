@@ -290,7 +290,7 @@ public final class LanguageUtils {
      * @throws IllegalAccessException if an error occurs when instantiating a new list of {@link Term}s
      * @throws InstantiationException if an error occurs when instantiating a new list of {@link Term}s
      */
-    public static Atom toVariableAtom(Atom atom, Map<Term, Variable> variableMap,
+    public static Atom toVariableAtom(Atom atom, Map<Term, Term> variableMap,
                                       VariableGenerator generator) throws IllegalAccessException,
             InstantiationException {
         List<Term> terms = atom.getTerms().getClass().newInstance();
@@ -303,6 +303,31 @@ public final class LanguageUtils {
         }
 
         return new Atom(atom.getName(), terms);
+    }
+
+    /**
+     * Turn into variable the {@link Term}s of the given {@link Atom} and returns as {@link Literal}.
+     *
+     * @param atom        the {@link Atom}
+     * @param variableMap the {@link Map} of {@link Term}s to {@link Variable}s
+     * @param generator   the {@link VariableGenerator}
+     * @return the new {@link Literal}
+     * @throws IllegalAccessException if an error occurs when instantiating a new list of {@link Term}s
+     * @throws InstantiationException if an error occurs when instantiating a new list of {@link Term}s
+     */
+    public static Literal toVariableLiteral(Atom atom, Map<Term, Term> variableMap,
+                                            VariableGenerator generator) throws IllegalAccessException,
+            InstantiationException {
+        List<Term> terms = atom.getTerms().getClass().newInstance();
+        for (Term term : atom.getTerms()) {
+            if (term.isConstant()) {
+                terms.add(variableMap.computeIfAbsent(term, k -> generator.next()));
+            } else {
+                terms.add(term);
+            }
+        }
+
+        return new Literal(atom.getName(), terms);
     }
 
     /**
@@ -339,8 +364,6 @@ public final class LanguageUtils {
     /**
      * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
      * unification is not possibly, returns null.
-     * <p>
-     * This method is not symmetric, i.e. {@code isAtomUnifiableToGoal(a, b) != isAtomUnifiableToGoal(b, a)}.
      *
      * @param atom the atom
      * @param goal the goal

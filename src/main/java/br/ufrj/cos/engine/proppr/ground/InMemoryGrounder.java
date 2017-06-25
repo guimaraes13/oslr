@@ -48,7 +48,6 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("HardCodedStringLiteral")
 public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
 
     /**

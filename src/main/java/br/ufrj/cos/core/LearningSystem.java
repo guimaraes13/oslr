@@ -309,7 +309,19 @@ public class LearningSystem {
      *
      * @param terms          the seed {@link Term}s
      * @param relevantsDepth the depth of the relevant breadth first search
-     * @param safeStop       if is to stop the search and the found atoms is sufficient to make the terms safe
+     * @return the relevant {@link Atom}s to the seed {@link Term}s
+     */
+    public Set<Atom> relevantsBreadthFirstSearch(Collection<Term> terms, int relevantsDepth) {
+        return relevantsBreadthFirstSearch(terms, relevantsDepth, false);
+    }
+
+    /**
+     * Gets the relevant {@link Atom}s, given the relevant seed {@link Term}s, by performing a breadth-first search
+     * on the {@link KnowledgeBase}'s cached graph
+     *
+     * @param terms          the seed {@link Term}s
+     * @param relevantsDepth the depth of the relevant breadth first search
+     * @param safeStop       if is to stop the search when the found atoms is sufficient to make the terms safe
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})

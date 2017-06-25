@@ -94,8 +94,8 @@ public class ProPprExample implements Example {
     }
 
     @Override
-    public Map<Term, Variable> getVariableMap() {
-        Map<Term, Variable> variableMap = new HashMap<>();
+    public Map<Term, Term> getVariableMap() {
+        Map<Term, Term> variableMap = new HashMap<>();
 
         Term term;
         for (int i = 0; i < goal.getArity(); i++) {
@@ -126,7 +126,7 @@ public class ProPprExample implements Example {
      * @param variable    the value {@link Variable}
      * @param variableMap the {@link Map}
      */
-    protected void getTermOnIndex(int i, Variable variable, Map<Term, Variable> variableMap) {
+    protected void getTermOnIndex(int i, Variable variable, Map<Term, Term> variableMap) {
         for (AtomExample atomExample : atomExamples) {
             variableMap.put(atomExample.getTerms().get(i), variable);
         }
@@ -138,7 +138,7 @@ public class ProPprExample implements Example {
      *
      * @param variableMap the variable to clean
      */
-    protected void clearConstantGoalFromVariableMap(Map<Term, Variable> variableMap) {
+    protected void clearConstantGoalFromVariableMap(Map<Term, Term> variableMap) {
         for (Term term : goal.getTerms()) {
             if (term.isConstant()) {
                 variableMap.remove(term);

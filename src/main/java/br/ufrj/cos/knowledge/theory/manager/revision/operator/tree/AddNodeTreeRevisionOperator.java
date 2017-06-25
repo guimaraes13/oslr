@@ -27,7 +27,7 @@ import br.ufrj.cos.knowledge.manager.Node;
 import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.logic.Conjunction;
+import br.ufrj.cos.knowledge.theory.manager.revision.operator.LiteralAppendOperator;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
@@ -43,7 +43,6 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"unused", "Duplicates"})
 public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     protected HornClause revisedClause;
@@ -64,19 +63,6 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         return redundantLiterals;
     }
 
-    /**
-     * Creates a new extended clause from the initialClause appending the append literal to the end of its body.
-     *
-     * @param initialClause the initial clause
-     * @param append        the append literal
-     * @return the extended clause
-     */
-    protected static HornClause appendLiteralToClause(HornClause initialClause, Literal append) {
-        HornClause clause = new HornClause(initialClause.getHead(), new Conjunction(initialClause.getBody()));
-        clause.getBody().add(append);
-        return clause;
-    }
-
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
@@ -85,6 +71,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                     LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
                                                    LiteralAppendOperator.class.getSimpleName()));
         }
+        this.appendOperator.setLearningSystem(learningSystem);
     }
 
     @Override
@@ -160,21 +147,19 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      */
     protected Theory createSortedTheory(Node<HornClause> node, Iterable<? extends Example> examples,
                                         boolean removeOld) throws KnowledgeException {
-        Literal append = appendOperator.buildExtendedHornClause(examples, node.getElement(),
-                                                                buildRedundantLiterals(node));
-        if (append == null) { return null; }
+        HornClause hornClause = appendOperator.buildExtendedHornClause(examples, node.getElement(),
+                                                                       buildRedundantLiterals(node));
+        if (hornClause == null) { return null; }
 
         Theory theory = learningSystem.getTheory().copy();
         if (removeOld) { theory.remove(node.getElement()); }
-        theory.add(appendLiteralToClause(node.getElement(), append));
+        theory.add(hornClause);
 
         List<HornClause> clauses = new ArrayList<>(theory);
         clauses.sort(Comparator.comparing(LanguageUtils::formatHornClause));
 
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
     }
-
-    //TODO: create a class to deal with the search for the literal to append
 
     /**
      * Gets the {@link LiteralAppendOperator}.
