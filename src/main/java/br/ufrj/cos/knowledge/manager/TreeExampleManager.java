@@ -217,7 +217,9 @@ public class TreeExampleManager extends IncomingExampleManager {
             for (Node<HornClause> leaf : entry.getValue()) {
                 treeTheory.revisionLeaf = leaf;
                 targets = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
-                if (targets != null && !targets.isEmpty()) { learningSystem.reviseTheory(targets); }
+                if (targets != null && !targets.isEmpty()) {
+                    learningSystem.reviseTheory(Collections.singletonList(targets));
+                }
             }
         }
     }

@@ -551,29 +551,29 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void buildLearningSystem() throws InitializationException {
         logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
+        //TODO: start from an empty set of example
         learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
         learningSystem.concurrent = controlConcurrence;
         List<TheoryMetric> theoryMetrics = initializeMetrics();
         initializeOperatorSelector();
-        initializeRevisionManager();
         initializeIncomingExampleManager();
         learningSystem.incomingExampleManager = incomingExampleManager;
         initializeTheoryEvaluator(theoryMetrics);
         learningSystem.theoryEvaluator = theoryEvaluator;
-        initializeTheoryRevisionManager(revisionManager);
+        initializeTheoryRevisionManager();
         learningSystem.theoryRevisionManager = theoryRevisionManager;
     }
 
     /**
      * Initializes the {@link TheoryRevisionManager}.
      *
-     * @param revisionManager the {@link RevisionManager}
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeTheoryRevisionManager(RevisionManager revisionManager) throws InitializationException {
+    protected void initializeTheoryRevisionManager() throws InitializationException {
         if (theoryRevisionManager == null) {
             theoryRevisionManager = new TheoryRevisionManager();
         }
+        initializeRevisionManager();
         theoryRevisionManager.setLearningSystem(learningSystem);
         theoryRevisionManager.setRevisionManager(revisionManager);
         theoryRevisionManager.initialize();
@@ -617,7 +617,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             revisionManager = new RevisionManager();
         }
         revisionManager.setOperatorSelector(revisionOperatorSelector);
-        revisionManager.initialize();
     }
 
     /**

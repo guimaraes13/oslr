@@ -27,6 +27,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.Initializable;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Class to getBestRevisionOperator all incoming examples as they arrive.
@@ -55,7 +56,8 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
 
     @Override
     public void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException {
-        learningSystem.reviseTheory(examples);
+        //TODO: add example to the learning system's set of examples
+        learningSystem.reviseTheory(Collections.singletonList(examples));
     }
 
 }

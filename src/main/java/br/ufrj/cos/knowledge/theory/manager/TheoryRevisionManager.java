@@ -60,6 +60,9 @@ public class TheoryRevisionManager implements Initializable {
      */
     public static final TheoryMetric DEFAULT_THEORY_METRIC = new RocCurveMetric();
 
+    protected boolean theoryChanged = false;
+    protected double theoryEvaluation;
+
     protected LearningSystem learningSystem;
     protected RevisionManager revisionManager;
     protected TheoryMetric theoryMetric;
@@ -98,18 +101,35 @@ public class TheoryRevisionManager implements Initializable {
         if (theoryMetric == null) {
             theoryMetric = DEFAULT_THEORY_METRIC;
         }
+        revisionManager.setTheoryRevisionManager(this);
+        revisionManager.initialize();
     }
 
     /**
      * Method to call the revision of the {@link Theory} on the {@link RevisionManager}
      *
-     * @param targets the target {@link Example}s
+     * @param revisionPoints the target {@link Example}s
+     */
+    public void revise(List<? extends Collection<? extends Example>> revisionPoints) {
+        theoryChanged = true;
+        revisionManager.reviseTheory(revisionPoints);
+    }
+
+    /**
+     * Compares the revision with the current theory, if the revision outperform the current theory by a given
+     * threshold, applies the revision on the theory.
+     *
+     * @param operatorEvaluator the revision operator
+     * @param targets           the targets for the revision
+     * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public void revise(Collection<? extends Example> targets) throws TheoryRevisionException {
-        RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
-
-        applyRevision(revisionOperator, targets, learningSystem.evaluateTheory(theoryMetric), NO_IMPROVEMENT_THRESHOLD);
+    public boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator,
+                                 Collection<? extends Example> targets) throws TheoryRevisionException {
+        if (theoryChanged) {
+            theoryEvaluation = learningSystem.evaluateTheory(theoryMetric);
+        }
+        return applyRevision(operatorEvaluator, targets, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
     }
 
     /**
@@ -120,10 +140,12 @@ public class TheoryRevisionManager implements Initializable {
      * @param targets              the targets for the revision
      * @param currentEvaluation    the current evaluation value of the theory
      * @param improvementThreshold the improvement threshold
+     * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    protected void applyRevision(RevisionOperatorEvaluator operatorEvaluator, Iterable<? extends Example> targets,
-                                 double currentEvaluation, double improvementThreshold) throws TheoryRevisionException {
+    protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, Iterable<? extends Example> targets,
+                                    double currentEvaluation,
+                                    double improvementThreshold) throws TheoryRevisionException {
         double revised = operatorEvaluator.evaluateOperator(learningSystem.getExamples(), targets);
 
         int improve = theoryMetric.compare(revised, currentEvaluation);
@@ -135,11 +157,14 @@ public class TheoryRevisionManager implements Initializable {
             learningSystem.saveTrainedParameters();
             operatorEvaluator.theoryRevisionAccepted(revisedTheory);
             logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
+            theoryChanged = true;
         } else {
             logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
+            theoryChanged = false;
         }
         logger.debug(logMessage.toString(), improve, improvementThreshold);
         operatorEvaluator.clearCachedTheory();
+        return theoryChanged;
     }
 
     /**

@@ -22,13 +22,26 @@
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.Initializable;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
+import br.ufrj.cos.util.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Responsible for applying the revision operator on the {@link br.ufrj.cos.knowledge.theory.Theory}.
+ * <p>
+ * It is recommended that the implementation of the IncomingExampleManager and the RevisionManager shares a
+ * common object, in such a way that the former could save hints to the latter, telling where the revision points
+ * are in the theory.
+ * <p>
+ * This hints should be stored matching the position of the collection of the examples in the list. Possibly
+ * using the index as a key to retrieve de revision point/hint.
+ * <p>
+ * The default implementation of this class do not look for those hints.
  * <p>
  * Created on 26/04/17.
  *
@@ -36,26 +49,49 @@ import br.ufrj.cos.util.LanguageUtils;
  */
 public class RevisionManager implements Initializable {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    protected TheoryRevisionManager theoryRevisionManager;
     protected RevisionOperatorSelector operatorSelector;
 
     /**
-     * Method to select the best suited {@link RevisionOperatorEvaluator} given the examples.
+     * Revises the theory based on the list of collection of examples.
+     * <p>
+     * It is recommended that the implementation of the IncomingExampleManager and the RevisionManager shares a
+     * common object, in such a way that the former could save hints to the latter, telling where the revision points
+     * are in the theory.
+     * <p>
+     * This hints should be stored matching the position of the collection of the examples in the list. Possibly
+     * using the index as a key to retrieve de revision point/hint.
+     * <p>
+     * The default implementation of this class do not look for those hints.
      *
-     * @param targets the target {@link Example}s
-     * @return the best suited {@link RevisionOperatorEvaluator}
-     * @throws TheoryRevisionException in case an error occurs on the revision
+     * @param revisionPoints the revision points
      */
-    @SuppressWarnings("RedundantThrows")
-    public RevisionOperatorEvaluator getBestRevisionOperator(Iterable<? extends Example> targets)
-            throws TheoryRevisionException {
-        return operatorSelector.selectOperator(targets);
+    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
+        for (Collection<? extends Example> revision : revisionPoints) {
+            try {
+                theoryRevisionManager.applyRevision(operatorSelector.selectOperator(revision), revision);
+            } catch (TheoryRevisionException e) {
+                logger.error(LogMessages.ERROR_REVISING_THEORY, e);
+            }
+        }
     }
 
     @Override
     public void initialize() throws InitializationException {
+        List<String> fields = new ArrayList<>();
         if (operatorSelector == null) {
-            throw new InitializationException(
-                    ExceptionMessages.errorFieldsSet(this, RevisionOperatorSelector.class.getSimpleName()));
+            fields.add(RevisionOperatorSelector.class.getSimpleName());
+        }
+        if (theoryRevisionManager == null) {
+            fields.add(TheoryRevisionManager.class.getSimpleName());
+        }
+        if (!fields.isEmpty()) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
     }
 
@@ -72,6 +108,21 @@ public class RevisionManager implements Initializable {
                                                    RevisionOperatorSelector.class.getSimpleName()));
         }
         this.operatorSelector = operatorSelector;
+    }
+
+    /**
+     * Sets the {@link TheoryRevisionManager} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param theoryRevisionManager the {@link TheoryRevisionManager}
+     * @throws InitializationException if the {@link TheoryRevisionManager} is already set
+     */
+    public void setTheoryRevisionManager(TheoryRevisionManager theoryRevisionManager) throws InitializationException {
+        if (this.theoryRevisionManager != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   TheoryRevisionManager.class.getSimpleName()));
+        }
+        this.theoryRevisionManager = theoryRevisionManager;
     }
 
 }

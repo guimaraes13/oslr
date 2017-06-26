@@ -82,7 +82,7 @@ public class LikelihoodMetric extends AccumulatorMetric<Double, Double> {
 
     @Override
     public String toString() {
-        return "Likelihood";
+        return "Likelihood\t";
     }
 
 }

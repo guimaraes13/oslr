@@ -50,7 +50,7 @@ public class RecallMetric extends ConfusionMatrixBasedMetric {
 
     @Override
     public String toString() {
-        return "Recall";
+        return "Recall\t\t";
     }
 
 }

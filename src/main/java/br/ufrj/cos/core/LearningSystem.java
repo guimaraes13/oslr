@@ -31,7 +31,6 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
@@ -103,11 +102,10 @@ public class LearningSystem {
     /**
      * Method to call the revision on the {@link Theory} bases on the target {@link Example}s.
      *
-     * @param targets the target {@link Example}s
-     * @throws TheoryRevisionException in case an error occurs on the revision
+     * @param revisionPoints the target {@link Example}s
      */
-    public synchronized void reviseTheory(Collection<? extends Example> targets) throws TheoryRevisionException {
-        theoryRevisionManager.revise(targets);
+    public synchronized void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
+        theoryRevisionManager.revise(revisionPoints);
     }
 
     /**

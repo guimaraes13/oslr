@@ -50,7 +50,7 @@ public class F1ScoreMetric extends ConfusionMatrixBasedMetric {
 
     @Override
     public String toString() {
-        return "F1 Score";
+        return "F1 Score\t";
     }
 
 }

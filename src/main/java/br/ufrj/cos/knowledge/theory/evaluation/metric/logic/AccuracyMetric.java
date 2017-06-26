@@ -50,7 +50,7 @@ public class AccuracyMetric extends ConfusionMatrixBasedMetric {
 
     @Override
     public String toString() {
-        return "Accuracy";
+        return "Accuracy\t";
     }
 
 }

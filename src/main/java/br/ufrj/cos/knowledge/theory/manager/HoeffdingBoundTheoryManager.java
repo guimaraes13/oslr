@@ -85,22 +85,24 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     @Override
-    public void revise(Collection<? extends Example> targets) throws TheoryRevisionException {
+    public boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator,
+                                 Collection<? extends Example> targets) throws TheoryRevisionException {
         double bestEpsilon = calculateHoeffdingBound(theoryMetric.getRange(), targets.size());
-        double currentEvaluation = learningSystem.evaluateTheory(theoryMetric);
-        double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(currentEvaluation);
+        if (theoryChanged) { theoryEvaluation = learningSystem.evaluateTheory(theoryMetric); }
+        double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(theoryEvaluation);
 
+        // tests if the best possible improvement is enough to pass the weakest threshold
         if (bestPossibleImprovement >= bestEpsilon) {
             Collection<? extends Example> sample = getIndependentSample(targets);
             double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
+            // tests if the best possible improvement is enough to pass the right threshold
             if (bestPossibleImprovement >= epsilon) {
-                // even the best possible improvement is not enough to pass the threshold
-                // another way would train on the sample or on all the targets?
-                RevisionOperatorEvaluator revisionOperator = revisionManager.getBestRevisionOperator(targets);
                 if (trainUsingAllExamples) { sample = targets; }
-                applyRevision(revisionOperator, sample, currentEvaluation, epsilon);
+                // calls the revision on the right threshold
+                return applyRevision(operatorEvaluator, sample, theoryEvaluation, epsilon);
             }
         }
+        return false;
     }
 
     /**
