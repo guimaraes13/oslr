@@ -83,7 +83,8 @@ public class RevisionManager implements Initializable {
      */
     protected boolean callRevision(Collection<? extends Example> examples, TheoryMetric metric) {
         try {
-            return theoryRevisionManager.applyRevision(operatorSelector.selectOperator(examples, metric), examples);
+            RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(examples, metric);
+            if (operatorEvaluator != null) { return theoryRevisionManager.applyRevision(operatorEvaluator, examples); }
         } catch (TheoryRevisionException e) {
             logger.error(LogMessages.ERROR_REVISING_THEORY, e);
         }

@@ -44,7 +44,10 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMe
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
-import br.ufrj.cos.knowledge.theory.manager.revision.*;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
+import br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
@@ -507,8 +510,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Logs the metrics.
      */
     protected void printMetrics() {
-        Map<TheoryMetric, Double> evaluations = learningSystem.evaluate();
-        for (Map.Entry<TheoryMetric, Double> entry : evaluations.entrySet()) {
+        learningSystem.getExamples().addAll(examples);
+        List<Map.Entry<TheoryMetric, Double>> evaluations = new ArrayList<>(learningSystem.evaluate().entrySet());
+        evaluations.sort(Comparator.comparing(o -> o.getKey().toString()));
+        for (Map.Entry<TheoryMetric, Double> entry : evaluations) {
             logger.warn(LogMessages.EVALUATION_UNDER_METRIC.toString(), entry.getKey(), entry.getValue());
         }
     }
@@ -531,13 +536,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void reviseExamples() {
         //TODO: delegate this function to the ExampleStream
-//        for (Example example : examples) {
-        try {
-            learningSystem.incomingExampleManager.incomingExamples(examples);
-        } catch (TheoryRevisionException e) {
-            logger.error(LogMessages.ERROR_REVISING_THEORY, e);
-        }
-//        }
+        learningSystem.incomingExampleManager.incomingExamples(examples);
     }
 
     /**

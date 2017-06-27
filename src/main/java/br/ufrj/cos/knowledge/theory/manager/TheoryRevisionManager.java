@@ -54,12 +54,15 @@ public class TheoryRevisionManager implements Initializable {
      * Represent no improvement threshold, i.e. any improvement is valid.
      */
     public static final double NO_IMPROVEMENT_THRESHOLD = 0.0;
-
     /**
      * The default theory metric.
      */
     public static final TheoryMetric DEFAULT_THEORY_METRIC = new RocCurveMetric();
-
+    /**
+     * If is to remove the revised examples from the learning system.
+     */
+    @SuppressWarnings("CanBeFinal")
+    public boolean clearRevisedExamples = false;
     protected boolean theoryChanged = false;
     protected double theoryEvaluation;
 
@@ -129,7 +132,12 @@ public class TheoryRevisionManager implements Initializable {
         if (theoryChanged) {
             theoryEvaluation = learningSystem.evaluateTheory(theoryMetric);
         }
-        return applyRevision(operatorEvaluator, targets, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
+        boolean revised = applyRevision(operatorEvaluator, targets, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
+        if (revised && clearRevisedExamples) {
+            //noinspection SuspiciousMethodCalls
+            learningSystem.getExamples().removeAll(targets);
+        }
+        return revised;
     }
 
     /**
@@ -149,20 +157,21 @@ public class TheoryRevisionManager implements Initializable {
         double revised = operatorEvaluator.evaluateOperator(targets, theoryMetric);
 
         double improve = theoryMetric.difference(revised, currentEvaluation);
-        LogMessages logMessage;
+        LogMessages logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
+        theoryChanged = false;
         if (improve >= improvementThreshold) {
             Theory revisedTheory = operatorEvaluator.getRevisedTheory(targets);
-            learningSystem.setTheory(revisedTheory);
-            learningSystem.trainParameters(learningSystem.getExamples());
-            learningSystem.saveTrainedParameters();
-            operatorEvaluator.theoryRevisionAccepted(revisedTheory);
-            logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
-            theoryChanged = true;
-        } else {
-            logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
-            theoryChanged = false;
+            if (revisedTheory != null) {
+                learningSystem.setTheory(revisedTheory);
+                learningSystem.trainParameters(learningSystem.getExamples());
+                learningSystem.saveTrainedParameters();
+                operatorEvaluator.theoryRevisionAccepted(revisedTheory);
+                logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
+                theoryChanged = true;
+            }
         }
         logger.debug(logMessage.toString(), improve, improvementThreshold);
+        logger.debug(LogMessages.THEORY_CONTENT.toString(), learningSystem.getTheory().toString());
         return theoryChanged;
     }
 

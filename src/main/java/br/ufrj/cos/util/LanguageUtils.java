@@ -196,7 +196,7 @@ public final class LanguageUtils {
         if (body != null && !body.isEmpty()) {
             stringBuilder.append(body);
         } else {
-            stringBuilder.append(Atom.TRUE_ATOM);
+            stringBuilder.append(Literal.TRUE_LITERAL);
         }
         stringBuilder.append(CLAUSE_END_OF_LINE);
 

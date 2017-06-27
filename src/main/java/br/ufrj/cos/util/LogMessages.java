@@ -91,6 +91,7 @@ public enum LogMessages {
                                "---------------\n{}\n--------------- CONFIGURATION FILE ---------------"),
     THEORY_FILE("Theory File:\t{}\n--------------- THEORY FILE " +
                         "---------------\n{}\n--------------- THEORY FILE ---------------"),
+    THEORY_CONTENT("\n------------------ THEORY -----------------\n{}\n------------------ THEORY -----------------"),
 
     ANSWERING_QUERY("Answering query:\t{}"),
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
@@ -104,7 +105,8 @@ public enum LogMessages {
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
     ANSWER_STATE_WITH_VALUE("State:\t{},\t{}"),
     SAMPLING_FROM_TARGETS("Sampled {} examples out of {} targets."),
-    THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no improvements. Improvement of {}, threshold of {}."),
+    THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
+                                        "threshold of {}."),
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}.");
 
     protected final String message;

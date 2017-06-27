@@ -84,8 +84,9 @@ public class RevisionOperatorEvaluator implements Initializable {
                                    TheoryMetric metric) throws TheoryRevisionException {
         if (!isEvaluated) {
             updatedTheory = revisionOperator.performOperation(targets);
-            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory);
             isEvaluated = true;
+            if (updatedTheory == null) { return metric.getDefaultValue(); }
+            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory);
         }
 
         return evaluationValue;

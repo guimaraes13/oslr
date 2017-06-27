@@ -45,6 +45,7 @@ public class Atom extends Clause {
     /**
      * {@link Atom} that represents the true logic value
      */
+    @SuppressWarnings("unused")
     public static final Atom TRUE_ATOM = new Atom(TRUE_VALUE);
 
     /**

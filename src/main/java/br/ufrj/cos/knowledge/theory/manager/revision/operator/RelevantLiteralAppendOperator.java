@@ -111,12 +111,14 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             throws TheoryRevisionException {
         try {
             HornClause substitutionClause = buildSubstitutionClause(initialClause);
-            Set<Example> querySet = buildQueriesFromExamples(examples, initialClause);
+            Set<Example> querySet = buildQueriesFromExamples(examples, initialClause.getHead(),
+                                                             substitutionClause.getHead());
             Map<Example, Map<Atom, Double>> inferredExamples =
                     learningSystem.inferExamples(Collections.singleton(substitutionClause), querySet);
             Set<EquivalentAtom> skipCandidates = buildSkipCandidates(initialClause, equivalentLiterals);
             Set<Literal> literals = getLiteralCandidatesFromExamples(initialClause, substitutionClause.getHead(),
                                                                      inferredExamples, skipCandidates);
+            if (literals.isEmpty()) { return null; }
             literalTransformer.setInitialClause(initialClause);
             AsyncTheoryEvaluator bestCandidate = multithreading.getBestClausesFromCandidates(literals);
             return bestCandidate.getHornClause();
@@ -137,28 +139,35 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
         List<Term> terms = new ArrayList<>();
         appendVariablesFromAtom(initialClause.getHead(), terms);
 
-        for (Literal literal : initialClause.getBody()) {
-            appendVariablesFromAtom(literal, terms);
+        Conjunction body;
+        if (initialClause.getBody().isEmpty()) {
+            body = new Conjunction(Literal.TRUE_LITERAL);
+        } else {
+            for (Literal literal : initialClause.getBody()) {
+                appendVariablesFromAtom(literal, terms); //TODO: do not append repeated variables
+            }
+            body = initialClause.getBody();
         }
 
-        return new HornClause(new Atom(SUBSTITUTION_PREDICATE, terms), initialClause.getBody());
+        return new HornClause(new Atom(SUBSTITUTION_PREDICATE, terms), body);
     }
 
     /**
      * Builds the queries from the positive examples to make possible find the substitution of each proved example.
      *
-     * @param examples      the examples
-     * @param initialClause the initial clause
+     * @param examples          the examples
+     * @param initialClauseHead the initial clause head
+     * @param substitutionHead  the substitution clause head
      * @return the queries of examples
      */
     protected static Set<Example> buildQueriesFromExamples(Iterable<? extends Example> examples,
-                                                           HornClause initialClause) {
+                                                           Atom initialClauseHead, Atom substitutionHead) {
         Set<Example> querySet = new HashSet<>();
         for (Example example : examples) {
-            if (!LanguageUtils.isAtomUnifiableToGoal(initialClause.getHead(), example.getGoalQuery())) { continue; }
+            if (!LanguageUtils.isAtomUnifiableToGoal(example.getGoalQuery(), initialClauseHead)) { continue; }
             for (AtomExample atomExample : example.getGroundedQuery()) {
                 if (!atomExample.isPositive()) { continue; }
-                querySet.add(buildQueryFromExample(initialClause.getHead(), atomExample));
+                querySet.add(buildQueryFromExample(substitutionHead, atomExample));
             }
         }
         return querySet;
@@ -235,7 +244,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
      */
     protected static void appendVariablesFromAtom(Atom atom, List<Term> append) {
         for (Term term : atom.getTerms()) {
-            if (!term.isConstant()) {
+            if (!term.isConstant() && !append.contains(term)) {
                 append.add(term);
             }
         }

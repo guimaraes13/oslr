@@ -49,6 +49,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
 
     @Override
     protected double calculateResult(List<Pair<AtomExample, Double>> result) {
+        if (result.isEmpty()) { return getDefaultValue(); }
         List<Pair<Double, Double>> rocPoints = buildRocCurve(result);
         return integrateRocCurve(rocPoints);
     }

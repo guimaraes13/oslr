@@ -462,13 +462,11 @@ public final class HornClauseUtils {
         Set<Term> fixedTerms;           // the terms already in the rule, to be ignored in the equivalent evaluation
         EquivalentAtom currentAtom;     // the current atom
         Atom head = initialClause.getHead();
-        Conjunction body = initialClause.getBody();
-        fixedTerms = body.stream().flatMap(l -> l.getTerms().stream()).collect(Collectors.toSet());
+        fixedTerms = initialClause.getBody().stream().flatMap(l -> l.getTerms().stream()).collect(Collectors.toSet());
         fixedTerms.addAll(head.getTerms());
 
         for (Literal candidate : candidates) {
-            if (Collections.disjoint(fixedTerms, candidate.getTerms()) ||
-                    !HornClauseUtils.willBeRuleSafe(head, body, candidate)) { continue; }
+            if (Collections.disjoint(fixedTerms, candidate.getTerms())) { continue; }
             currentAtom = new EquivalentAtom(candidate, fixedTerms);
             if (!skipCandidates.contains(currentAtom)) {
                 skipCandidates.add(currentAtom);

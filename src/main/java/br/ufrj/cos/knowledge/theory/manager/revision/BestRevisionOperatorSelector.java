@@ -101,19 +101,22 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
     private static class BestSelector implements RevisionOperatorEvaluatorSelector {
 
         protected final Collection<RevisionOperatorEvaluator> operatorEvaluators;
+        protected final RevisionOperatorEvaluator preferred;
 
         public BestSelector(Collection<RevisionOperatorEvaluator> operatorEvaluators) {
             this.operatorEvaluators = operatorEvaluators;
+            this.preferred = operatorEvaluators.iterator().next();
         }
 
         @Override
         public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric) {
-            RevisionOperatorEvaluator bestEvaluated = null;
+            RevisionOperatorEvaluator bestEvaluated = preferred;
             double bestEvaluation = metric.getDefaultValue();
             double current;
 
             for (RevisionOperatorEvaluator evaluator : operatorEvaluators) {
                 try {
+                    evaluator.clearCachedTheory();
                     current = evaluator.evaluateOperator(targets, metric);
                     if (metric.compare(current, bestEvaluation) > 0) {
                         bestEvaluation = current;

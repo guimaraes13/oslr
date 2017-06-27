@@ -28,6 +28,7 @@ import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.LiteralAppendOperator;
+import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
@@ -72,6 +73,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                                                    LiteralAppendOperator.class.getSimpleName()));
         }
         this.appendOperator.setLearningSystem(learningSystem);
+        appendOperator.initialize();
     }
 
     @Override
@@ -89,19 +91,19 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                 return addLiteralToTheory(revisionLeaf, targets);
             }
         } catch (KnowledgeException e) {
-            throw new TheoryRevisionException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
+            throw new TheoryRevisionException(ExceptionMessages.ERROR_REVISING_THE_THEORY.toString(), e);
         }
     }
 
     @Override
     public void theoryRevisionAccepted(Theory revised) {
         Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
+        if (revisionLeaf.isDefaultChild()) { revisionLeaf = revisionLeaf.getParent(); }
         if (revisionLeaf.isRoot() && TreeTheory.isDefaultTheory(revisionLeaf)) {
             // turns into true theory
             revisionLeaf.getElement().getBody().clear();
             revisionLeaf.getElement().getBody().add(Literal.TRUE_LITERAL);
         }
-        if (revisionLeaf.isDefaultChild()) { revisionLeaf = revisionLeaf.getParent(); }
         TreeTheory.addNodeToTree(revisionLeaf, revisedClause);
     }
 
@@ -147,10 +149,12 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      */
     protected Theory createSortedTheory(Node<HornClause> node, Iterable<? extends Example> examples,
                                         boolean removeOld) throws KnowledgeException {
-        HornClause hornClause = appendOperator.buildExtendedHornClause(examples, node.getElement(),
+        HornClause element = node.isRoot() ? new HornClause(node.getElement().getHead(), new Conjunction()) :
+                node.getElement();
+        HornClause hornClause = appendOperator.buildExtendedHornClause(examples, element,
                                                                        buildRedundantLiterals(node));
         if (hornClause == null) { return null; }
-
+        revisedClause = hornClause;
         Theory theory = learningSystem.getTheory().copy();
         if (removeOld) { theory.remove(node.getElement()); }
         theory.add(hornClause);

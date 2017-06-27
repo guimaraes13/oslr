@@ -35,6 +35,7 @@ public enum ExceptionMessages {
     //No additional parameters to format
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
+    ERROR_REVISING_THE_THEORY("Error when revising the theory."),
     ERROR_GETTING_CLASS_BY_NAME("Error when getting the class by its name."),
 
     //One additional parameters to format
@@ -45,7 +46,7 @@ public enum ExceptionMessages {
     ERROR_UNBOUNDED_RANGE_METRIC("Error the unbounded range metric {} is not by the class {}."),
 
     //Two additional parameters to format
-    ERROR_APPENDING_LITERAL("Error when appending literal to initial clause {}."),
+    ERROR_APPENDING_LITERAL("Error when appending literal to initial clause {}"),
     FILE_NOT_EXISTS("File {} for {} does not exists.");
 
     protected final String message;

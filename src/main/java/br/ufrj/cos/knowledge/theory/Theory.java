@@ -120,4 +120,5 @@ public class Theory extends Knowledge<HornClause> {
         }
         return stringBuilder.toString().trim();
     }
+
 }
