@@ -551,8 +551,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void buildLearningSystem() throws InitializationException {
         logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
-        //TODO: start from an empty set of example
-        learningSystem = new LearningSystem(knowledgeBase, theory, examples, engineSystemTranslator);
+        learningSystem = new LearningSystem(knowledgeBase, theory, new Examples(), engineSystemTranslator);
         learningSystem.concurrent = controlConcurrence;
         List<TheoryMetric> theoryMetrics = initializeMetrics();
         initializeOperatorSelector();

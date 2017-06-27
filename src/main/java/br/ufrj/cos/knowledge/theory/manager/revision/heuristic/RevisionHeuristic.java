@@ -19,56 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.knowledge.theory.evaluation.metric;
+package br.ufrj.cos.knowledge.theory.manager.revision.heuristic;
 
-import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.logic.Atom;
-import br.ufrj.cos.util.Initializable;
 
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.Map;
 
 /**
- * Responsible for evaluating the {@link Theory} against some metric.
+ * Class to calculate a heuristic value of how good a collection of examples is for revise. The heuristic should be
+ * as simple as possible and should not rely on inference.
  * <p>
- * Created on 26/04/17.
+ * Created on 26/06/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
-public abstract class TheoryMetric implements Comparator<Double>, Initializable {
+public abstract class RevisionHeuristic implements Comparator<Collection<? extends Example>> {
 
-    /**
-     * Flag to specify if the {@link EngineSystemTranslator} should retrain the parameters for each intermediary rule
-     * candidate.
-     * <p>
-     * If it is {@code true}, each candidate rule will have its parameters fine tuned before evaluation,
-     * this will reveal the real contribution of a rule, but can be too computational expensive.
-     * <p>
-     * If it is {@code false}, candidate rule will be evaluated with the default parameters defined be the
-     * {@link EngineSystemTranslator}. This is computational cheaper, but might make a poorer candidate rule be better
-     * evaluated than a better one.
-     * <p>
-     * Also, notice that some {@link TheoryMetric}s may be insensitive to parameters.
-     */
-    public boolean parametersRetrainedBeforeEvaluate = false;
     /**
      * The default value of the metric, it should be proper overridden by subclasses.
      */
     protected double defaultValue = 0;
-
-    /**
-     * Evaluates the example based on the inferred results.
-     *
-     * @param inferredResult the results from the {@link EngineSystemTranslator}
-     * @param examples       the {@link Examples}
-     * @return the evaluated metric
-     */
-    public abstract double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples);
 
     /**
      * Gets the default value of a metric, this value must by the worst possible value of the metric. This value
@@ -80,14 +54,6 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     public double getDefaultValue() {
         return defaultValue;
     }
-
-    /**
-     * Gets the range of the metric. The range of a metric is the absolute difference between the smallest and
-     * biggest value the metric can assume.
-     *
-     * @return the range of the metric.
-     */
-    public abstract double getRange();
 
     /**
      * Calculates a quantitative difference between candidate and current.
@@ -106,7 +72,7 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
      * @return the quantitative difference between candidate and current
      */
     public double difference(Double candidate, Double current) {
-        return Math.abs(candidate - current) * compare(candidate, current);
+        return Math.abs(candidate - current) * Double.compare(candidate, current);
     }
 
     /**
@@ -119,29 +85,16 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
      * {@inheritDoc}
      */
     @Override
-    public int compare(Double o1, Double o2) {
-        return Double.compare(o1, o2);
+    public int compare(Collection<? extends Example> o1, Collection<? extends Example> o2) {
+        return Double.compare(evaluate(o1), evaluate(o2));
     }
 
     /**
-     * Calculates the best possible improvement over the currentEvaluation. The best possible improvement is the
-     * comparison between the {@link #getMaximumValue()} against the current evaluation.
+     * Evaluates the example based on the inferred results.
      *
-     * @param currentEvaluation the current evaluation
-     * @return the best possible improvement
+     * @param examples the {@link Examples}
+     * @return the evaluated metric
      */
-    public double bestPossibleImprovement(Double currentEvaluation) {
-        return compare(getMaximumValue(), currentEvaluation);
-    }
-
-    /**
-     * Gets the maximum value of the metric. The maximum value of the metric is the best value the metric can take.
-     *
-     * @return the maximum value of the metric.
-     */
-    public abstract double getMaximumValue();
-
-    @Override
-    public abstract String toString();
+    public abstract double evaluate(Collection<? extends Example> examples);
 
 }

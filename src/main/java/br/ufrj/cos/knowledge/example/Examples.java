@@ -42,7 +42,12 @@ public class Examples extends Knowledge<ProPprExample> {
     @SuppressWarnings({"CanBeFinal", "NonConstantFieldWithUpperCaseName"})
     public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
 
-    protected Map<String, Set<ProPprExample>> proPprExampleSetPredicateMap;
+    /**
+     * Default constructor.
+     */
+    public Examples() {
+        super(new HashSet<>());
+    }
 
     /**
      * Constructor with the example lists
@@ -55,8 +60,31 @@ public class Examples extends Knowledge<ProPprExample> {
     public Examples(Collection<ProPprExample> proPprExamples, Collection<? extends AtomExample> atomExamples) throws
             IllegalAccessException, InstantiationException {
         super(proPprExamples);
-        this.proPprExampleSetPredicateMap = buildPredicateMap();
         appendAtomExamplesIntoProPpr(atomExamples);
+    }
+
+    /**
+     * Appends the {@link AtomExample}s into the corresponding {@link ProPprExample}. An {@link AtomExample} is
+     * appended to a {@link ProPprExample} if it is a possible grounding of the {@link ProPprExample}'s goal.
+     * <p>
+     * {@link AtomExample}s that is not ground of any {@link ProPprExample}'s goal will be discarded.
+     * <p>
+     * An {@link AtomExample} may be added to more than one {@link ProPprExample}.
+     *
+     * @param atomExamples the {@link AtomExample}s
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     */
+    protected void appendAtomExamplesIntoProPpr(Iterable<? extends AtomExample> atomExamples) throws
+            IllegalAccessException, InstantiationException {
+        Map<String, Set<ProPprExample>> proPprExampleSetPredicateMap = buildPredicateMap();
+        for (AtomExample atomExample : atomExamples) {
+            for (ProPprExample proPprExample : proPprExampleSetPredicateMap.get(atomExample.getName())) {
+                if (LanguageUtils.isAtomUnifiableToGoal(atomExample, proPprExample.getGoal())) {
+                    proPprExample.getAtomExamples().add(atomExample);
+                }
+            }
+        }
     }
 
     /**
@@ -75,26 +103,6 @@ public class Examples extends Knowledge<ProPprExample> {
         }
 
         return predicateMap;
-    }
-
-    /**
-     * Appends the {@link AtomExample}s into the corresponding {@link ProPprExample}. An {@link AtomExample} is
-     * appended to a {@link ProPprExample} if it is a possible grounding of the {@link ProPprExample}'s goal.
-     * <p>
-     * {@link AtomExample}s that is not ground of any {@link ProPprExample}'s goal will be discarded.
-     * <p>
-     * An {@link AtomExample} may be added to more than one {@link ProPprExample}.
-     *
-     * @param atomExamples the {@link AtomExample}s
-     */
-    protected void appendAtomExamplesIntoProPpr(Iterable<? extends AtomExample> atomExamples) {
-        for (AtomExample atomExample : atomExamples) {
-            for (ProPprExample proPprExample : proPprExampleSetPredicateMap.get(atomExample.getName())) {
-                if (LanguageUtils.isAtomUnifiableToGoal(atomExample, proPprExample.getGoal())) {
-                    proPprExample.getAtomExamples().add(atomExample);
-                }
-            }
-        }
     }
 
 }

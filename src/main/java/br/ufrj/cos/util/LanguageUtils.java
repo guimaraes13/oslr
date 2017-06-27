@@ -333,6 +333,16 @@ public final class LanguageUtils {
     /**
      * Creates an {@link Atom} to be the root of a new tree.
      *
+     * @param atom the {@link Atom}
+     * @return the {@link Atom}
+     */
+    public static Atom toVariableAtom(Atom atom) {
+        return toVariableAtom(atom.getName(), atom.getArity());
+    }
+
+    /**
+     * Creates an {@link Atom} to be the root of a new tree.
+     *
      * @param name  the {@link Atom}'s name
      * @param arity the {@link Atom}'s arity
      * @return the {@link Atom}

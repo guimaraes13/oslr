@@ -23,11 +23,15 @@ package br.ufrj.cos.knowledge.manager;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 
 /**
  * Class to getBestRevisionOperator all incoming examples as they arrive.
@@ -56,8 +60,28 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
 
     @Override
     public void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException {
-        //TODO: add example to the learning system's set of examples
+        learningSystem.getExamples().addAll(convertToProPprExamples(examples));
         learningSystem.reviseTheory(Collections.singletonList(examples));
+    }
+
+    /**
+     * Converts a {@link Collection} of {@link Example}s to a {@link Collection} of {@link ProPprExample}.
+     *
+     * @param examples the {@link Collection} of {@link Example}s
+     * @return the {@link Collection} of {@link ProPprExample}
+     */
+    public static Collection<ProPprExample> convertToProPprExamples(Collection<? extends Example> examples) {
+        Collection<ProPprExample> proPprExamples = new LinkedHashSet<>(examples.size());
+        for (Example example : examples) {
+            if (example instanceof ProPprExample) {
+                proPprExamples.add((ProPprExample) example);
+            } else {
+                proPprExamples.add(
+                        new ProPprExample(LanguageUtils.toVariableAtom(example.getGoalQuery()),
+                                          new ArrayList<>(example.getGroundedQuery())));
+            }
+        }
+        return proPprExamples;
     }
 
 }

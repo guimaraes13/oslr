@@ -58,6 +58,7 @@ public enum LogMessages {
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
 
     //One additional parameters to format
+    CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
 
     ERROR_PROVING_GOAL("Could not prove the goal:\t{}"),

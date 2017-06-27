@@ -77,7 +77,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     @Override
     public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
         try {
-            Node<HornClause> revisionLeaf = treeTheory.revisionLeaf;
+            Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
             if (revisionLeaf.isRoot()) {
                 // this is the root node
                 return addRuleToTheory(revisionLeaf, targets);
@@ -95,7 +95,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     @Override
     public void theoryRevisionAccepted(Theory revised) {
-        Node<HornClause> revisionLeaf = treeTheory.revisionLeaf;
+        Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
         if (revisionLeaf.isRoot() && TreeTheory.isDefaultTheory(revisionLeaf)) {
             // turns into true theory
             revisionLeaf.getElement().getBody().clear();

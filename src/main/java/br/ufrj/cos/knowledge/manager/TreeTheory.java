@@ -32,6 +32,7 @@ import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +52,8 @@ public class TreeTheory implements Initializable {
     /**
      * The leaf that represent the revision point.
      */
-    public Node<HornClause> revisionLeaf;
+    public List<Node<HornClause>> revisionLeaves;
+    public int revisionLeafIndex;
 
     protected Map<String, Node<HornClause>> treeMap;
     protected Map<String, Map<Node<HornClause>, Set<Example>>> leafExamplesMap;
@@ -79,6 +81,17 @@ public class TreeTheory implements Initializable {
      */
     public static Node<HornClause> addNodeToTree(Node<HornClause> parent, HornClause child) {
         return parent.addChildToNode(child, buildDefaultTheory(parent.getElement().getHead()));
+    }
+
+    /**
+     * Builds a default {@link Theory} for a given head
+     *
+     * @param head the head
+     * @return the {@link Theory}
+     */
+    protected static HornClause buildDefaultTheory(Atom head) {
+        Conjunction body = new Conjunction(Literal.FALSE_LITERAL);
+        return new HornClause(head, body);
     }
 
     /**
@@ -149,15 +162,8 @@ public class TreeTheory implements Initializable {
         return root;
     }
 
-    /**
-     * Builds a default {@link Theory} for a given head
-     *
-     * @param head the head
-     * @return the {@link Theory}
-     */
-    protected static HornClause buildDefaultTheory(Atom head) {
-        Conjunction body = new Conjunction(Literal.FALSE_LITERAL);
-        return new HornClause(head, body);
+    public Node<HornClause> getRevisionLeaf() {
+        return revisionLeaves.get(revisionLeafIndex);
     }
 
 }

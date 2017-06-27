@@ -34,12 +34,9 @@ import java.util.List;
 /**
  * Responsible for applying the revision operator on the {@link br.ufrj.cos.knowledge.theory.Theory}.
  * <p>
- * It is recommended that the implementation of the IncomingExampleManager and the RevisionManager shares a
- * common object, in such a way that the former could save hints to the latter, telling where the revision points
- * are in the theory.
- * <p>
- * This hints should be stored matching the position of the collection of the examples in the list. Possibly
- * using the index as a key to retrieve de revision point/hint.
+ * It is recommended that the implementation of the IncomingExampleManager, the RevisionManager and the desired
+ * operators share a common object, in such a way that they could send revision hints to each other, telling where
+ * the revision points are in the theory.
  * <p>
  * The default implementation of this class do not look for those hints.
  * <p>
@@ -60,12 +57,9 @@ public class RevisionManager implements Initializable {
     /**
      * Revises the theory based on the list of collection of examples.
      * <p>
-     * It is recommended that the implementation of the IncomingExampleManager and the RevisionManager shares a
-     * common object, in such a way that the former could save hints to the latter, telling where the revision points
-     * are in the theory.
-     * <p>
-     * This hints should be stored matching the position of the collection of the examples in the list. Possibly
-     * using the index as a key to retrieve de revision point/hint.
+     * It is recommended that the implementation of the IncomingExampleManager, the RevisionManager and the desired
+     * operators share a common object, in such a way that they could send revision hints to each other, telling where
+     * the revision points are in the theory.
      * <p>
      * The default implementation of this class do not look for those hints.
      *
@@ -73,12 +67,23 @@ public class RevisionManager implements Initializable {
      */
     public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
         for (Collection<? extends Example> revision : revisionPoints) {
-            try {
-                theoryRevisionManager.applyRevision(operatorSelector.selectOperator(revision), revision);
-            } catch (TheoryRevisionException e) {
-                logger.error(LogMessages.ERROR_REVISING_THEORY, e);
-            }
+            callRevision(revision);
         }
+    }
+
+    /**
+     * Calls the revision on the collection of examples
+     *
+     * @param examples the examples
+     * @return {@code true} if the revision was applied, {@code false} otherwise
+     */
+    protected boolean callRevision(Collection<? extends Example> examples) {
+        try {
+            return theoryRevisionManager.applyRevision(operatorSelector.selectOperator(examples), examples);
+        } catch (TheoryRevisionException e) {
+            logger.error(LogMessages.ERROR_REVISING_THEORY, e);
+        }
+        return false;
     }
 
     @Override

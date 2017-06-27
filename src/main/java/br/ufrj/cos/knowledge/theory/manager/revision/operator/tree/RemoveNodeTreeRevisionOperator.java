@@ -48,7 +48,7 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
     @Override
     public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
         try {
-            Node<HornClause> revisionLeaf = treeTheory.revisionLeaf;
+            Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
             if (revisionLeaf.isRoot()) {
                 // this is the root node
                 if (TreeTheory.isDefaultTheory(revisionLeaf)) {
@@ -116,7 +116,7 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     @Override
     public void theoryRevisionAccepted(Theory revised) {
-        Node<HornClause> revisionLeaf = treeTheory.revisionLeaf;
+        Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
         if (revisionLeaf.isRoot()) {
             revisionLeaf.getElement().getBody().clear();
             revisionLeaf.getElement().getBody().add(Literal.FALSE_LITERAL);
