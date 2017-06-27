@@ -53,6 +53,10 @@ public class TreeTheory implements Initializable {
      * The leaf that represent the revision point.
      */
     public List<Node<HornClause>> revisionLeaves;
+
+    /**
+     * The current revision index.
+     */
     public int revisionLeafIndex;
 
     protected Map<String, Node<HornClause>> treeMap;
@@ -162,6 +166,11 @@ public class TreeTheory implements Initializable {
         return root;
     }
 
+    /**
+     * Gets the current revision leaf.
+     *
+     * @return the current revision leaf
+     */
     public Node<HornClause> getRevisionLeaf() {
         return revisionLeaves.get(revisionLeafIndex);
     }

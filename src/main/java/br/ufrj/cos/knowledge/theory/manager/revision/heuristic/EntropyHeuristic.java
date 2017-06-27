@@ -80,4 +80,5 @@ public class EntropyHeuristic extends RevisionHeuristic {
     protected static double calculateSumTerm(double portion) {
         return portion > 0 ? portion * StrictMath.log(portion) / StrictMath.log(LOG_BASE) : 0.0;
     }
+
 }

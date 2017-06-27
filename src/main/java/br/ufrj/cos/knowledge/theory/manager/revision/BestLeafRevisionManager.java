@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Class to select the best leaves to use as revision based on some heuristic.
+ * Class to select the best leaves to use as revision, based on some heuristic.
  * <p>
  * Created on 26/06/17.
  *
@@ -50,6 +50,7 @@ public class BestLeafRevisionManager extends RevisionManager {
     /**
      * The maximum number of leaves to call the revision, at once.
      */
+    @SuppressWarnings("CanBeFinal")
     public int numberOfLeavesToRevise = DEFAULT_LEAVES_TO_REFINE;
 
     protected TreeTheory treeTheory;
@@ -88,12 +89,24 @@ public class BestLeafRevisionManager extends RevisionManager {
      */
     protected List<Pair<Integer, ? extends Collection<? extends Example>>> sortKeepingIndexes(
             List<? extends Collection<? extends Example>> revisionPoints) {
-        List<Pair<Integer, ? extends Collection<? extends Example>>> sorted = new ArrayList<>(revisionPoints.size());
-        for (int i = 0; i < revisionPoints.size(); i++) {
-            sorted.add(new ImmutablePair<>(i, revisionPoints.get(i)));
-        }
+        List<Pair<Integer, ? extends Collection<? extends Example>>> sorted = buildIndexPairList(revisionPoints);
         sorted.sort((o1, o2) -> revisionHeuristic.compare(o1.getValue(), o2.getValue()));
         return sorted;
+    }
+
+    /**
+     * Builds list of index and collection pairs.
+     *
+     * @param revisionPoints the revision points
+     * @return the list of pairs
+     */
+    protected List<Pair<Integer, ? extends Collection<? extends Example>>> buildIndexPairList(
+            List<? extends Collection<? extends Example>> revisionPoints) {
+        List<Pair<Integer, ? extends Collection<? extends Example>>> list = new ArrayList<>(revisionPoints.size());
+        for (int i = 0; i < revisionPoints.size(); i++) {
+            list.add(new ImmutablePair<>(i, revisionPoints.get(i)));
+        }
+        return list;
     }
 
     /**
@@ -120,4 +133,27 @@ public class BestLeafRevisionManager extends RevisionManager {
         this.treeTheory = treeTheory;
     }
 
+    /**
+     * Gets the revision heuristic.
+     *
+     * @return the revision heuristic
+     */
+    public RevisionHeuristic getRevisionHeuristic() {
+        return revisionHeuristic;
+    }
+
+    /**
+     * Sets the revision heuristic.
+     *
+     * @param revisionHeuristic the revision heuristic
+     * @throws InitializationException if the {@link TreeTheory} is already set
+     */
+    public void setRevisionHeuristic(RevisionHeuristic revisionHeuristic) throws InitializationException {
+        if (this.revisionHeuristic != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RevisionHeuristic.class.getSimpleName()));
+        }
+        this.revisionHeuristic = revisionHeuristic;
+    }
 }

@@ -42,6 +42,7 @@ public abstract class RevisionHeuristic implements Comparator<Collection<? exten
     /**
      * The default value of the metric, it should be proper overridden by subclasses.
      */
+    @SuppressWarnings("CanBeFinal")
     protected double defaultValue = 0;
 
     /**
@@ -65,12 +66,13 @@ public abstract class RevisionHeuristic implements Comparator<Collection<? exten
      * <p>
      * If they are equal, it should return 0.
      * <p>
-     * Preferably, the implementation must have the same properties as {@link #compare(Double, Double)}
+     * Preferably, the implementation must have the same properties as {@link #compare(Collection, Collection)}.
      *
      * @param candidate the candidate value
      * @param current   the current value
      * @return the quantitative difference between candidate and current
      */
+    @SuppressWarnings("MethodMayBeStatic")
     public double difference(Double candidate, Double current) {
         return Math.abs(candidate - current) * Double.compare(candidate, current);
     }

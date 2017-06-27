@@ -6,6 +6,7 @@
     </entry_points>
     <pattern value="br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator" />
     <pattern value="br.ufrj.cos.knowledge.theory.manager.revision.operator.RelevantLiteralAppendOperator" />
+    <pattern value="br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RevisionHeuristic" />
   </component>
   <component name="JavadocGenerationManager">
     <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/Desktop" />
