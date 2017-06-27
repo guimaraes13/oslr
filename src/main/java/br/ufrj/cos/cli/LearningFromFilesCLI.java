@@ -325,14 +325,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @return the default {@link RevisionOperatorEvaluator}s
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    @SuppressWarnings("OverlyCoupledMethod")
     protected static List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
         List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
         BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
-        TheoryMetric metric = new LogLikelihoodMetric();
-        metric.parametersRetrainedBeforeEvaluate = true;
-        bottomClause.setTheoryMetric(metric);
-        bottomClause.internalMetric = new F1ScoreMetric();
+        bottomClause.setTheoryMetric(new F1ScoreMetric());
         operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
         return operatorEvaluator;
     }

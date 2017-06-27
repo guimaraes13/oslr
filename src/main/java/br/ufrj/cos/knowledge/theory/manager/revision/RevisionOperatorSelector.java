@@ -23,6 +23,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
@@ -51,13 +52,13 @@ public abstract class RevisionOperatorSelector implements Initializable {
     }
 
     /**
-     * Selects the best suited {@link RevisionOperator} to be applied on the {@link Theory}
+     * Selects the best suited {@link RevisionOperator} to be applied on the {@link Theory}, based on the metric.
      *
      * @param targets the target iterator
+     * @param metric  the metric
      * @return the best suited {@link RevisionOperatorEvaluator}
      */
-    @SuppressWarnings("unused")
-    public abstract RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets);
+    public abstract RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric);
 
     /**
      * Sets the {@link RevisionOperatorEvaluator} set if it is not yet set. If it is already set, throws an error.

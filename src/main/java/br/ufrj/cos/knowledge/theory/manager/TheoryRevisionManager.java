@@ -112,7 +112,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     public void revise(List<? extends Collection<? extends Example>> revisionPoints) {
         theoryChanged = true;
-        revisionManager.reviseTheory(revisionPoints);
+        revisionManager.reviseTheory(revisionPoints, theoryMetric);
     }
 
     /**
@@ -146,9 +146,9 @@ public class TheoryRevisionManager implements Initializable {
     protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, Iterable<? extends Example> targets,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
-        double revised = operatorEvaluator.evaluateOperator(learningSystem.getExamples(), targets);
+        double revised = operatorEvaluator.evaluateOperator(targets, theoryMetric);
 
-        int improve = theoryMetric.compare(revised, currentEvaluation);
+        double improve = theoryMetric.difference(revised, currentEvaluation);
         LogMessages logMessage;
         if (improve >= improvementThreshold) {
             Theory revisedTheory = operatorEvaluator.getRevisedTheory(targets);
@@ -163,7 +163,6 @@ public class TheoryRevisionManager implements Initializable {
             theoryChanged = false;
         }
         logger.debug(logMessage.toString(), improve, improvementThreshold);
-        operatorEvaluator.clearCachedTheory();
         return theoryChanged;
     }
 

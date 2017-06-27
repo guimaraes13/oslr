@@ -32,9 +32,6 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Responsible for changing the {@link Theory}.
  * <p>
@@ -52,23 +49,16 @@ public abstract class RevisionOperator implements Initializable {
     protected LearningSystem learningSystem;
 
     /**
-     * The external metric of the operator, this metric will be used to evaluated the theory by applying the operator.
-     * In addition, a operator might have internal metrics to take internal decision.
+     * The internal metric of the operator, this metric may not be used to evaluated the theory by applying the
+     * operator.
      */
     protected TheoryMetric theoryMetric;
 
     @Override
     public void initialize() throws InitializationException {
-        List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
-            fields.add(LearningSystem.class.getSimpleName());
-        }
-        if (theoryMetric == null) {
-            fields.add(TheoryMetric.class.getSimpleName());
-        }
-
-        if (!fields.isEmpty()) {
-            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
         }
     }
 

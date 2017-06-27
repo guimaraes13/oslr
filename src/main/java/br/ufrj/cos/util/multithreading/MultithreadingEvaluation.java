@@ -58,7 +58,7 @@ public class MultithreadingEvaluation<V> {
      */
     public static final int DEFAULT_EVALUATION_TIMEOUT = 300;
     protected final LearningSystem learningSystem;
-    protected final TheoryMetric internalMetric;
+    protected final TheoryMetric theoryMetric;
     protected final int evaluationTimeout;
     protected final AsyncEvaluatorTransformer<V> transformer;
     /**
@@ -70,15 +70,15 @@ public class MultithreadingEvaluation<V> {
      * Constructor with necessary parameters.
      *
      * @param learningSystem    the learning system
-     * @param internalMetric    the internal metric
+     * @param theoryMetric      the internal metric
      * @param evaluationTimeout the evaluation time out
      * @param transformer       the transformer
      */
     public MultithreadingEvaluation(LearningSystem learningSystem,
-                                    TheoryMetric internalMetric, int evaluationTimeout,
+                                    TheoryMetric theoryMetric, int evaluationTimeout,
                                     AsyncEvaluatorTransformer<V> transformer) {
         this.learningSystem = learningSystem;
-        this.internalMetric = internalMetric;
+        this.theoryMetric = theoryMetric;
         this.evaluationTimeout = evaluationTimeout;
         this.transformer = transformer;
     }
@@ -126,7 +126,7 @@ public class MultithreadingEvaluation<V> {
         for (V candidate : candidates) {
             evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
                                                  learningSystem.getTheoryEvaluator(),
-                                                 internalMetric, evaluationTimeout);
+                                                 theoryMetric, evaluationTimeout);
             evaluator = transformer.transform(evaluator, candidate);
             futures.add(MultithreadingEvaluation.submitCandidate(evaluator, evaluationPool));
         }
@@ -146,7 +146,7 @@ public class MultithreadingEvaluation<V> {
     public AsyncTheoryEvaluator retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator>> futures,
                                                          Map<HornClause, Double> evaluationMap) {
         AsyncTheoryEvaluator evaluated;
-        double bestClauseValue = internalMetric.getDefaultValue();
+        double bestClauseValue = theoryMetric.getDefaultValue();
         AsyncTheoryEvaluator bestClause = null;
         int count = 0;
         for (Future<AsyncTheoryEvaluator> future : futures) {
@@ -157,7 +157,7 @@ public class MultithreadingEvaluation<V> {
                 if (evaluationMap != null) {
                     evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
                 }
-                if (internalMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
+                if (theoryMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
                     bestClauseValue = evaluated.getEvaluation();
                     bestClause = evaluated;
                 }

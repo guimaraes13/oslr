@@ -23,6 +23,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.manager.TreeTheory;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RevisionHeuristic;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
@@ -57,12 +58,12 @@ public class BestLeafRevisionManager extends RevisionManager {
     protected RevisionHeuristic revisionHeuristic;
 
     @Override
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
+    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
         int totalRevision = Math.min(revisionPoints.size(), numberOfLeavesToRevise);
         List<Pair<Integer, ? extends Collection<? extends Example>>> revisions = sortKeepingIndexes(revisionPoints);
         for (int i = 0; i < totalRevision; i++) {
             treeTheory.revisionLeafIndex = revisions.get(i).getKey();
-            callRevision(revisions.get(i).getValue());
+            callRevision(revisions.get(i).getValue(), metric);
         }
     }
 
@@ -100,7 +101,7 @@ public class BestLeafRevisionManager extends RevisionManager {
      * @param revisionPoints the revision points
      * @return the list of pairs
      */
-    protected List<Pair<Integer, ? extends Collection<? extends Example>>> buildIndexPairList(
+    protected static List<Pair<Integer, ? extends Collection<? extends Example>>> buildIndexPairList(
             List<? extends Collection<? extends Example>> revisionPoints) {
         List<Pair<Integer, ? extends Collection<? extends Example>>> list = new ArrayList<>(revisionPoints.size());
         for (int i = 0; i < revisionPoints.size(); i++) {

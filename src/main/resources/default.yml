@@ -44,7 +44,7 @@ theoryMetrics:
 revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
       revisionOperator: !br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule
-         theoryMetric:     !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric
+         theoryMetric:   !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric
             parametersRetrainedBeforeEvaluate: false
          variableGeneratorClassName:   br.ufrj.cos.util.VariableGenerator
          refine:                       false
@@ -54,7 +54,6 @@ revisionOperatorEvaluators:
          generic:                      true
          evaluationTimeout:            300
          numberOfThreads:              1
-         internalMetric:   !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric {}
 
 revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator {}
 revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}

@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
@@ -55,7 +56,7 @@ public class RevisionManager implements Initializable {
     protected RevisionOperatorSelector operatorSelector;
 
     /**
-     * Revises the theory based on the list of collection of examples.
+     * Revises the theory based on the list of collection of examples, based on the metric.
      * <p>
      * It is recommended that the implementation of the IncomingExampleManager, the RevisionManager and the desired
      * operators share a common object, in such a way that they could send revision hints to each other, telling where
@@ -64,22 +65,25 @@ public class RevisionManager implements Initializable {
      * The default implementation of this class do not look for those hints.
      *
      * @param revisionPoints the revision points
+     * @param metric         the metric
      */
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
+    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
         for (Collection<? extends Example> revision : revisionPoints) {
-            callRevision(revision);
+            callRevision(revision, metric);
         }
     }
 
     /**
-     * Calls the revision on the collection of examples
+     * Calls the revision chosen by the {@link RevisionOperatorSelector}, based on the metric, on the collection of
+     * examples.
      *
      * @param examples the examples
+     * @param metric   the metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      */
-    protected boolean callRevision(Collection<? extends Example> examples) {
+    protected boolean callRevision(Collection<? extends Example> examples, TheoryMetric metric) {
         try {
-            return theoryRevisionManager.applyRevision(operatorSelector.selectOperator(examples), examples);
+            return theoryRevisionManager.applyRevision(operatorSelector.selectOperator(examples, metric), examples);
         } catch (TheoryRevisionException e) {
             logger.error(LogMessages.ERROR_REVISING_THEORY, e);
         }

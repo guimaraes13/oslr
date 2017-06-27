@@ -25,6 +25,7 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.*;
@@ -90,6 +91,10 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
+        if (theoryMetric == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, TheoryMetric.class.getSimpleName()));
+        }
         literalTransformer = new LiteralAppendAsyncTransformer();
         multithreading = new MultithreadingEvaluation<>(learningSystem, theoryMetric, evaluationTimeout,
                                                         literalTransformer);

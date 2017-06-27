@@ -25,7 +25,6 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("unused")
 public class TreeExampleManager extends IncomingExampleManager {
 
     /**
@@ -132,7 +130,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException {
+    public void incomingExamples(Collection<? extends Example> examples) {
         Map<String, Set<Node<HornClause>>> modifiedLeaves = placeIncomingExamples(examples);
         logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(), learningSystem.getExamples().size());
         callRevision(modifiedLeaves);
@@ -218,9 +216,8 @@ public class TreeExampleManager extends IncomingExampleManager {
      * guaranteed that the revision will occur.
      *
      * @param modifiedLeaves the modified leaves
-     * @throws TheoryRevisionException in an error occurs during the revision
      */
-    protected void callRevision(Map<String, Set<Node<HornClause>>> modifiedLeaves) throws TheoryRevisionException {
+    protected void callRevision(Map<String, Set<Node<HornClause>>> modifiedLeaves) {
         List<Set<Example>> targets;
         for (Map.Entry<String, Set<Node<HornClause>>> entry : modifiedLeaves.entrySet()) {
             treeTheory.revisionLeaves = new ArrayList<>();

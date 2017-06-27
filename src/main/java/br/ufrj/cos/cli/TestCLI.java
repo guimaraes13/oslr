@@ -53,7 +53,6 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("unused")
 public class TestCLI extends CommandLineInterface {
 
     /**
@@ -79,6 +78,7 @@ public class TestCLI extends CommandLineInterface {
     /**
      * The {@link TheoryMetric}s.
      */
+    @SuppressWarnings("unused")
     public TheoryMetric[] theoryMetrics;
     /**
      * The input directory to read the files from.
@@ -165,6 +165,7 @@ public class TestCLI extends CommandLineInterface {
         }
     }
 
+    @SuppressWarnings("unused")
     @Override
     public void run() {
         Map<Example, Map<Atom, Double>> inferredExamples = learningFromFilesCLI.learningSystem.inferExamples(examples);

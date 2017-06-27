@@ -47,6 +47,7 @@ public enum LogMessages {
     ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:"),
     //    ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
     ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:"),
+    ERROR_EVALUATING_REVISION_OPERATOR("Error when evaluating the revision operator, reason:"),
 
     ERROR_MAIN_PROGRAM("Main program error, reason:"),
     ERROR_PARSING_FAILED("Parsing failed, reason:"),

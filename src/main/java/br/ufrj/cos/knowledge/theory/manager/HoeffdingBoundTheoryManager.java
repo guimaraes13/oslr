@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("unused")
 public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
 
     /**
@@ -64,11 +63,13 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     /**
      * The depth of the relevant breadth first search.
      */
+    @SuppressWarnings("CanBeFinal")
     public int relevantDepth = 0;
     /**
      * To train using all the examples. if setted to {@code false}, it trains using only the examples considered
      * independents.
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean trainUsingAllExamples = true;
 
     protected double delta = DEFAULT_DELTA;

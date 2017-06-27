@@ -24,7 +24,6 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.LanguageUtils;
 
@@ -59,7 +58,7 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException {
+    public void incomingExamples(Collection<? extends Example> examples) {
         learningSystem.getExamples().addAll(convertToProPprExamples(examples));
         learningSystem.reviseTheory(Collections.singletonList(examples));
     }

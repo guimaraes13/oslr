@@ -23,7 +23,6 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
@@ -74,19 +73,18 @@ public class RevisionOperatorEvaluator implements Initializable {
     }
 
     /**
-     * Evaluates a {@link Theory} as {@link RevisionOperator} was applied.
+     * Evaluates a {@link Theory} as {@link RevisionOperator} was applied, based on the metric.
      *
-     * @param examples the {@link Examples}
-     * @param targets  the target {@link Example}s
+     * @param targets the target {@link Example}s
+     * @param metric  the metric
      * @return the evaluated value
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public double evaluateOperator(Examples examples,
-                                   Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public double evaluateOperator(Iterable<? extends Example> targets,
+                                   TheoryMetric metric) throws TheoryRevisionException {
         if (!isEvaluated) {
             updatedTheory = revisionOperator.performOperation(targets);
-            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(revisionOperator.getTheoryMetric(),
-                                                                                   examples, updatedTheory);
+            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory);
             isEvaluated = true;
         }
 
@@ -110,15 +108,6 @@ public class RevisionOperatorEvaluator implements Initializable {
             return updatedTheory;
         }
         return revisionOperator.performOperation(targets);
-    }
-
-    /**
-     * Gets the {@link TheoryMetric}.
-     *
-     * @return the {@link TheoryMetric}
-     */
-    public TheoryMetric getTheoryMetric() {
-        return revisionOperator.getTheoryMetric();
     }
 
     /**

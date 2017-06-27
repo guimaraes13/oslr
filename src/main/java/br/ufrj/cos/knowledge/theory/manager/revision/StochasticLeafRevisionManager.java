@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.util.InitializationException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,7 +54,7 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
     protected Random random;
 
     @Override
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints) {
+    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
         int totalRevision = Math.min(revisionPoints.size(), numberOfLeavesToRevise);
         List<Pair<Integer, ? extends Collection<? extends Example>>> pairList = buildIndexPairList(revisionPoints);
         List<Pair<Integer, Double>> heuristicList = buildHeuristicList(revisionPoints);
@@ -61,7 +62,7 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
         for (int i = 0; i < totalRevision; i++) {
             index = rouletteSelection(heuristicList);
             treeTheory.revisionLeafIndex = pairList.get(index).getKey();
-            callRevision(pairList.get(index).getValue());
+            callRevision(pairList.get(index).getValue(), metric);
             pairList.remove(index);
             heuristicList.remove(index);
         }

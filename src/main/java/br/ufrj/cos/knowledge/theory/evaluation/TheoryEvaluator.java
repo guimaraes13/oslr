@@ -142,11 +142,11 @@ public class TheoryEvaluator implements Initializable {
      * The parameters and theory changes due the call of this method should not be stored.
      *
      * @param metric   the {@link TheoryMetric}
-     * @param examples the {@link Examples}
      * @param theory   the {@link Theory}
      * @return the evaluation value
      */
-    public double evaluateTheory(TheoryMetric metric, Examples examples, Theory theory) {
+    public double evaluateTheory(TheoryMetric metric, Theory theory) {
+        Examples examples = learningSystem.getExamples();
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (metric.parametersRetrainedBeforeEvaluate) {
             evaluationResult = learningSystem.inferExampleTrainingParameters(theory, examples);

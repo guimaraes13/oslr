@@ -90,6 +90,17 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     public abstract double getRange();
 
     /**
+     * Calculates the best possible improvement over the currentEvaluation. The best possible improvement is the
+     * comparison between the {@link #getMaximumValue()} against the current evaluation.
+     *
+     * @param currentEvaluation the current evaluation
+     * @return the best possible improvement
+     */
+    public double bestPossibleImprovement(Double currentEvaluation) {
+        return difference(getMaximumValue(), currentEvaluation);
+    }
+
+    /**
      * Calculates a quantitative difference between candidate and current.
      * <p>
      * If the candidate is better than the current, it should returns a positive number represents how much better it
@@ -106,8 +117,15 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
      * @return the quantitative difference between candidate and current
      */
     public double difference(Double candidate, Double current) {
-        return Math.abs(candidate - current) * compare(candidate, current);
+        return Math.abs(candidate - current) * Math.signum(compare(candidate, current));
     }
+
+    /**
+     * Gets the maximum value of the metric. The maximum value of the metric is the best value the metric can take.
+     *
+     * @return the maximum value of the metric.
+     */
+    public abstract double getMaximumValue();
 
     /**
      * Note: this comparator imposes orderings that are inconsistent with equals; in the means that two different
@@ -122,24 +140,6 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     public int compare(Double o1, Double o2) {
         return Double.compare(o1, o2);
     }
-
-    /**
-     * Calculates the best possible improvement over the currentEvaluation. The best possible improvement is the
-     * comparison between the {@link #getMaximumValue()} against the current evaluation.
-     *
-     * @param currentEvaluation the current evaluation
-     * @return the best possible improvement
-     */
-    public double bestPossibleImprovement(Double currentEvaluation) {
-        return compare(getMaximumValue(), currentEvaluation);
-    }
-
-    /**
-     * Gets the maximum value of the metric. The maximum value of the metric is the best value the metric can take.
-     *
-     * @return the maximum value of the metric.
-     */
-    public abstract double getMaximumValue();
 
     @Override
     public abstract String toString();

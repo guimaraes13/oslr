@@ -24,7 +24,6 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.external.access.ExampleStream;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
@@ -72,9 +71,8 @@ public abstract class IncomingExampleManager implements Initializable {
      * Decides what to do with the arrived {@link Example}.
      *
      * @param example the arrived {@link Example}s
-     * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public void incomingExamples(Example example) throws TheoryRevisionException {
+    public void incomingExamples(Example example) {
         incomingExamples(Collections.singletonList(example));
     }
 
@@ -82,9 +80,8 @@ public abstract class IncomingExampleManager implements Initializable {
      * Decides what to do with the arrived {@link Example}s.
      *
      * @param examples the arrived {@link Example}s
-     * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract void incomingExamples(Collection<? extends Example> examples) throws TheoryRevisionException;
+    public abstract void incomingExamples(Collection<? extends Example> examples);
 
     /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.

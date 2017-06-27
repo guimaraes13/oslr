@@ -151,21 +151,15 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public int numberOfThreads = MultithreadingEvaluation.DEFAULT_NUMBER_OF_THREADS;
 
-    /**
-     * A internal metric to be used on the optimization of the candidate clauses.
-     * <p>
-     * If not specified, the {@link #theoryMetric} will be used.
-     */
-    public TheoryMetric internalMetric;
-
     protected MultithreadingEvaluation<Map.Entry<HornClause, Map<Term, Term>>> multithreading;
 
     @SuppressWarnings("unchecked")
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
-        if (internalMetric == null) {
-            internalMetric = theoryMetric;
+        if (theoryMetric == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, TheoryMetric.class.getSimpleName()));
         }
         try {
             variableGeneratorClass = (Class<? extends VariableGenerator>) Class.forName(variableGeneratorClassName);
@@ -174,7 +168,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                     LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
                                                    variableGeneratorClassName), e);
         }
-        multithreading = new MultithreadingEvaluation(learningSystem, internalMetric, evaluationTimeout,
+        multithreading = new MultithreadingEvaluation(learningSystem, theoryMetric, evaluationTimeout,
                                                       new ClauseSubstitutionAsyncTransformer());
         multithreading.numberOfThreads = numberOfThreads;
     }
@@ -319,13 +313,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             if (currentClause == null) { break; }
             substitutionMap = currentClause.getSubstitutionMap();
             if (substitutionMap == null) { substitutionMap = new HashMap<>(); }
-            if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
+            if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
                     improvementThreshold) {
                 bestClause = currentClause;
                 sideWayMovements = 0;
             } else {
                 sideWayMovements++;
-                if (internalMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
+                if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
                         !generic) {
                     bestClause = currentClause;
                 }
@@ -396,7 +390,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public double evaluateTheory() {
         AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
-                                                                  learningSystem.getTheoryEvaluator(), internalMetric,
+                                                                  learningSystem.getTheoryEvaluator(), theoryMetric,
                                                                   evaluationTimeout);
         return evaluator.call().getEvaluation();
     }
