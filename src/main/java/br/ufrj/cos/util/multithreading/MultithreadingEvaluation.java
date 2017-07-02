@@ -24,7 +24,6 @@ package br.ufrj.cos.util.multithreading;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
-import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
@@ -157,19 +156,19 @@ public class MultithreadingEvaluation<V> {
                 if (evaluationMap != null) {
                     evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
                 }
-                if (theoryMetric.compare(evaluated.getEvaluation(), bestClauseValue) > 0) {
+                if (theoryMetric.compare(evaluated.getEvaluation(), bestClauseValue) >= 0) {
                     bestClauseValue = evaluated.getEvaluation();
                     bestClause = evaluated;
                 }
             } catch (InterruptedException | ExecutionException e) {
-                BottomClauseBoundedRule.logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+                logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
             } catch (CancellationException ignored) {
-                BottomClauseBoundedRule.logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(),
-                                                     evaluationTimeout);
+                logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(),
+                             evaluationTimeout);
             }
         }
-        BottomClauseBoundedRule.logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
-                                             (double) count / futures.size() * 100, futures.size());
+        logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
+                     (double) count / futures.size() * 100, futures.size());
         return bestClause;
     }
 
@@ -185,7 +184,7 @@ public class MultithreadingEvaluation<V> {
         try {
             return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
         } catch (Exception e) {
-            BottomClauseBoundedRule.logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
         }
         return null;
     }

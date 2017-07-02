@@ -28,6 +28,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
@@ -122,16 +123,19 @@ public class TheoryRevisionManager implements Initializable {
      * Compares the revision with the current theory, if the revision outperform the current theory by a given
      * threshold, applies the revision on the theory.
      *
-     * @param operatorEvaluator the revision operator
-     * @param targets           the targets for the revision
+     * @param operatorSelector the operator selector
+     * @param targets          the targets for the revision
+     * @param theoryMetric     the theory metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator,
-                                 Collection<? extends Example> targets) throws TheoryRevisionException {
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector, Collection<? extends Example> targets,
+                                 TheoryMetric theoryMetric) throws TheoryRevisionException {
         if (theoryChanged) {
-            theoryEvaluation = learningSystem.evaluateTheory(theoryMetric);
+            theoryEvaluation = learningSystem.evaluateTheory(this.theoryMetric);
         }
+        RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
+        if (operatorEvaluator == null) { return false; }
         boolean revised = applyRevision(operatorEvaluator, targets, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
         if (revised && clearRevisedExamples) {
             //noinspection SuspiciousMethodCalls

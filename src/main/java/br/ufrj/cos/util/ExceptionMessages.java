@@ -46,7 +46,7 @@ public enum ExceptionMessages {
     ERROR_UNBOUNDED_RANGE_METRIC("Error the unbounded range metric {} is not by the class {}."),
 
     //Two additional parameters to format
-    ERROR_APPENDING_LITERAL("Error when appending literal to initial clause {}"),
+    ERROR_APPENDING_LITERAL("Error when appending literal to initial clause, reason:\t{}"),
     FILE_NOT_EXISTS("File {} for {} does not exists.");
 
     protected final String message;

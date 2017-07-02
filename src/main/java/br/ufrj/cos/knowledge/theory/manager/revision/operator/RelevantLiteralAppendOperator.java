@@ -121,12 +121,11 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             if (literals.isEmpty()) { return null; }
             literalTransformer.setInitialClause(initialClause);
             AsyncTheoryEvaluator bestCandidate = multithreading.getBestClausesFromCandidates(literals);
-            return bestCandidate.getHornClause();
+            return bestCandidate != null ? bestCandidate.getHornClause() : null;
         } catch (RuntimeException e) {
-            throw new TheoryRevisionException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_APPENDING_LITERAL.toString(), initialClause),
-                    e);
+            logger.trace(ExceptionMessages.ERROR_APPENDING_LITERAL.toString(), e);
         }
+        return null;
     }
 
     /**

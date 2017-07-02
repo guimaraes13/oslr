@@ -23,7 +23,9 @@ package br.ufrj.cos.knowledge.theory.manager;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
+import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
@@ -86,8 +88,8 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     @Override
-    public boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator,
-                                 Collection<? extends Example> targets) throws TheoryRevisionException {
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector, Collection<? extends Example> targets,
+                                 TheoryMetric theoryMetric) throws TheoryRevisionException {
         double bestEpsilon = calculateHoeffdingBound(theoryMetric.getRange(), targets.size());
         if (theoryChanged) { theoryEvaluation = learningSystem.evaluateTheory(theoryMetric); }
         double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(theoryEvaluation);
@@ -100,6 +102,8 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             if (bestPossibleImprovement >= epsilon) {
                 if (trainUsingAllExamples) { sample = targets; }
                 // calls the revision on the right threshold
+                RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
+                if (operatorEvaluator == null) { return false; }
                 return applyRevision(operatorEvaluator, sample, theoryEvaluation, epsilon);
             }
         }
