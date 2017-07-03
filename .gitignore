@@ -4,3 +4,4 @@
 *.log
 *.old*
 /src/main/java/br/ufrj/cos/cli/Main.java
+/src/main/resources/build.properties

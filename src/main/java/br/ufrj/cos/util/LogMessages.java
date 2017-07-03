@@ -75,6 +75,7 @@ public enum LogMessages {
     EXAMPLES_SIZE("Number of read iterator lines:\t{}"),
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),
+    ERROR_READING_BUILD_PROPERTIES("Error reading build properties, reason:\t{}"),
     //    GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
 
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
@@ -100,6 +101,7 @@ public enum LogMessages {
     ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:"),
 
     //Two additional parameters to format
+    COMMITTED_VERSION("Last commit hash {} at {}. This do not guarantee that there were no committed files."),
     EVALUATED_TIMEOUT_PROPORTION("{}% out of {} rules has finished the evaluation within the timeout."),
     EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),

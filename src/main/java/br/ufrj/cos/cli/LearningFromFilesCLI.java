@@ -66,6 +66,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,9 +85,25 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public static final Logger logger = LogManager.getLogger();
     /**
+     * The build properties file
+     */
+    public static final String BUILD_PROPERTIES_FILE = "src/main/resources/build.properties";
+    /**
      * The default yaml configuration file.
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
+    /**
+     * The revision property name
+     */
+    public static final String REVISION_PROPERTY = "revision";
+    /**
+     * The timestamp property name
+     */
+    public static final String TIMESTAMP_PROPERTY = "timestamp";
+    /**
+     * The timestamp format
+     */
+    public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss";
     /**
      * The name of the saved theory file.
      */
@@ -376,6 +393,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void initialize() throws InitializationException {
         instantiateClasses();
+        saveConfigurations();
     }
 
     /**
@@ -413,6 +431,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
             buildOutputDirectory(configFileContent);
             addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
+            logCommittedVersion();
             File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
                                                                     configurationFile.getCanonicalPath());
@@ -441,6 +460,34 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
         }
         outputDirectory.mkdirs();
+    }
+
+    /**
+     * Logs the committed version.
+     */
+    protected static void logCommittedVersion() {
+        Properties prop = new Properties();
+        InputStream input = null;
+
+        try {
+            input = new FileInputStream(BUILD_PROPERTIES_FILE);
+            prop.load(input);
+            long time = Long.parseLong(prop.getProperty(TIMESTAMP_PROPERTY));
+            String commit = prop.getProperty(REVISION_PROPERTY);
+            String timestamp = new SimpleDateFormat(TIMESTAMP_FORMAT).format(new Date(time));
+            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit, timestamp);
+            logger.info("");
+        } catch (IOException e) {
+            logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+                }
+            }
+        }
     }
 
     @Override
@@ -475,7 +522,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void run() {
         try {
-            saveConfigurations();
             long begin = TimeMeasure.getNanoTime();
             build();
             reviseExamples();
