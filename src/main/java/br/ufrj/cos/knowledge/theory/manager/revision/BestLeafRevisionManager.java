@@ -49,7 +49,8 @@ public class BestLeafRevisionManager extends RevisionManager {
      */
     public static final int DEFAULT_LEAVES_TO_REFINE = 1;
     /**
-     * The maximum number of leaves to call the revision, at once.
+     * The maximum number of leaves to call the revision, at once. Set to negative to revise all possible leaves at
+     * the time.
      */
     @SuppressWarnings("CanBeFinal")
     public int numberOfLeavesToRevise = DEFAULT_LEAVES_TO_REFINE;
@@ -59,7 +60,7 @@ public class BestLeafRevisionManager extends RevisionManager {
 
     @Override
     public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
-        int totalRevision = Math.min(revisionPoints.size(), numberOfLeavesToRevise);
+        int totalRevision = getMaximumRevisionPoints(revisionPoints);
         List<Pair<Integer, ? extends Collection<? extends Example>>> revisions = sortKeepingIndexes(revisionPoints);
         for (int i = 0; i < totalRevision; i++) {
             treeTheory.revisionLeafIndex = revisions.get(i).getKey();
@@ -67,19 +68,16 @@ public class BestLeafRevisionManager extends RevisionManager {
         }
     }
 
-    @Override
-    public void initialize() throws InitializationException {
-        super.initialize();
-        List<String> fields = new ArrayList<>();
-        if (treeTheory == null) {
-            fields.add(TreeTheory.class.getSimpleName());
-        }
-        if (revisionHeuristic == null) {
-            fields.add(RevisionHeuristic.class.getSimpleName());
-        }
-        if (!fields.isEmpty()) {
-            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
-        }
+    /**
+     * Gets the maximum revision points that will be used, based on the {@link #numberOfLeavesToRevise} and the size
+     * of the revisionPoints
+     *
+     * @param revisionPoints the revision points
+     * @return the maximum revision points that will be used
+     */
+    protected int getMaximumRevisionPoints(List<? extends Collection<? extends Example>> revisionPoints) {
+        return numberOfLeavesToRevise < DEFAULT_LEAVES_TO_REFINE ?
+                Math.min(revisionPoints.size(), numberOfLeavesToRevise) : revisionPoints.size();
     }
 
     /**
@@ -108,6 +106,21 @@ public class BestLeafRevisionManager extends RevisionManager {
             list.add(new ImmutablePair<>(i, revisionPoints.get(i)));
         }
         return list;
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        super.initialize();
+        List<String> fields = new ArrayList<>();
+        if (treeTheory == null) {
+            fields.add(TreeTheory.class.getSimpleName());
+        }
+        if (revisionHeuristic == null) {
+            fields.add(RevisionHeuristic.class.getSimpleName());
+        }
+        if (!fields.isEmpty()) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+        }
     }
 
     /**

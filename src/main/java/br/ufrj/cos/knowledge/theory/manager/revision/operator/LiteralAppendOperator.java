@@ -91,6 +91,7 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
      * @return the horn clause
      * @throws TheoryRevisionException in an error occurs during the revision
      */
+    @SuppressWarnings("RedundantThrows")
     public abstract HornClause buildExtendedHornClause(Iterable<? extends Example> examples,
                                                        HornClause initialClause,
                                                        Collection<? extends Literal> equivalentLiterals)

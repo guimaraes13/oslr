@@ -55,7 +55,7 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
 
     @Override
     public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
-        int totalRevision = Math.min(revisionPoints.size(), numberOfLeavesToRevise);
+        int totalRevision = getMaximumRevisionPoints(revisionPoints);
         List<Pair<Integer, ? extends Collection<? extends Example>>> pairList = buildIndexPairList(revisionPoints);
         List<Pair<Integer, Double>> heuristicList = buildHeuristicList(revisionPoints);
         int index;
