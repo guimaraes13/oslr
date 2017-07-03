@@ -66,7 +66,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,17 +88,45 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public static final String BUILD_PROPERTIES_FILE = "src/main/resources/build.properties";
     /**
+     * The default value for boolean properties
+     */
+    public static final String DEFAULT_BOOLEAN_VALUE = "false";
+    /**
+     * The has tag property name
+     */
+    public static final String HAS_TAG_PROPERTY = "hasTag";
+    /**
+     * The tag property name
+     */
+    public static final String TAG_PROPERTY = "tag";
+    /**
+     * The files property name
+     */
+    public static final String FILES_PROPERTY = "files";
+    /**
+     * The change files property name
+     */
+    public static final String CHANGED_FILES_PROPERTY = "changedFiles";
+    /**
+     * The has untracked files property name
+     */
+    public static final String HAS_UNTRACKED_FILES_PROPERTY = "hasUntrackedFiles";
+    /**
+     * The untracked files property name
+     */
+    public static final String UNTRACKED_FILES_PROPERTY = "untrackedFiles";
+    /**
+     * The default value for the untracked files property
+     */
+    public static final String UNTRACKED_FILES_DEFAULT_VALUE = "untracked files";
+    /**
      * The default yaml configuration file.
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
     /**
      * The revision property name
      */
-    public static final String REVISION_PROPERTY = "revision";
-    /**
-     * The timestamp property name
-     */
-    public static final String TIMESTAMP_PROPERTY = "timestamp";
+    public static final String COMMIT_PROPERTY = "commit";
     /**
      * The timestamp format
      */
@@ -468,15 +495,20 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     protected static void logCommittedVersion() {
         Properties prop = new Properties();
         InputStream input = null;
-
         try {
             input = new FileInputStream(BUILD_PROPERTIES_FILE);
             prop.load(input);
-            long time = Long.parseLong(prop.getProperty(TIMESTAMP_PROPERTY));
-            String commit = prop.getProperty(REVISION_PROPERTY);
-            String timestamp = new SimpleDateFormat(TIMESTAMP_FORMAT).format(new Date(time));
-            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit, timestamp);
-            logger.info("");
+            logCommit(prop);
+            boolean changed;
+            changed = isLoggedChangedFiles(prop.getProperty(CHANGED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
+                                           prop.getProperty(FILES_PROPERTY, FILES_PROPERTY),
+                                           LogMessages.UNCOMMITTED_FILE.toString());
+            changed |= isLoggedChangedFiles(prop.getProperty(HAS_UNTRACKED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
+                                            prop.getProperty(UNTRACKED_FILES_PROPERTY, UNTRACKED_FILES_DEFAULT_VALUE),
+                                            LogMessages.UNTRACKED_FILE.toString());
+            if (!changed) {
+                logger.info(LogMessages.ALL_FILES_COMMITTED.toString());
+            }
         } catch (IOException e) {
             logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
         } finally {
@@ -488,6 +520,39 @@ public class LearningFromFilesCLI extends CommandLineInterface {
                 }
             }
         }
+    }
+
+    /**
+     * Logs the commit
+     *
+     * @param prop the properties
+     */
+    protected static void logCommit(Properties prop) {
+        String commit = prop.getProperty(COMMIT_PROPERTY);
+        boolean hasTag = Boolean.parseBoolean(prop.getProperty(HAS_TAG_PROPERTY, DEFAULT_BOOLEAN_VALUE));
+        if (hasTag) {
+            logger.info(LogMessages.COMMITTED_VERSION_WITH_TAG.toString(),
+                        prop.getProperty(TAG_PROPERTY, TAG_PROPERTY), commit);
+        } else {
+            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit);
+        }
+    }
+
+    /**
+     * Logs the changed files
+     *
+     * @param hasProperty the has property value
+     * @param property    the property value
+     * @param message     the message
+     * @return {@code true} if there was(were) changed files.
+     */
+    protected static boolean isLoggedChangedFiles(String hasProperty, String property, String message) {
+        boolean changedFiles = Boolean.parseBoolean(hasProperty);
+        if (changedFiles) {
+            logger.warn(message, property);
+        }
+
+        return changedFiles;
     }
 
     @Override
