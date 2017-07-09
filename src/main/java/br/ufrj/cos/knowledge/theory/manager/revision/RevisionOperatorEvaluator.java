@@ -31,6 +31,8 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.Collection;
+
 /**
  * Responsible for evaluating an specific {@link RevisionOperator}.
  * <p>
@@ -80,13 +82,13 @@ public class RevisionOperatorEvaluator implements Initializable {
      * @return the evaluated value
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public double evaluateOperator(Iterable<? extends Example> targets,
+    public double evaluateOperator(Collection<? extends Example> targets,
                                    TheoryMetric metric) throws TheoryRevisionException {
         if (!isEvaluated) {
             updatedTheory = revisionOperator.performOperation(targets);
             isEvaluated = true;
             if (updatedTheory == null) { return metric.getDefaultValue(); }
-            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory);
+            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory, targets);
         }
 
         return evaluationValue;

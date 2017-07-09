@@ -41,6 +41,7 @@ public enum ExceptionMessages {
     //One additional parameters to format
     ERROR_ANSWERING_QUERY("Error when answering the query {}."),
     ERROR_RESET_FIELD_NOT_ALLOWED("Reset {} is not allowed."),
+    ERROR_RESET_AFTER_USE("Reset {}, after using it, is not allowed."),
     ERROR_GETTING_VARIABLE_GENERATOR_CLASS("Error when getting the variable generator class by its name:\t{}"),
     //    ERROR_CREATING_DIRECTORY("Error creating directory(is):\t{}"),
     ERROR_UNBOUNDED_RANGE_METRIC("Error the unbounded range metric {} is not by the class {}."),

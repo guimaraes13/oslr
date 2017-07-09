@@ -29,6 +29,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.Initializable;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -68,7 +69,8 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
      * @param examples       the {@link Examples}
      * @return the evaluated metric
      */
-    public abstract double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples);
+    public abstract double evaluate(Map<Example, Map<Atom, Double>> inferredResult,
+                                    Collection<? extends Example> examples);
 
     /**
      * Gets the default value of a metric, this value must by the worst possible value of the metric. This value

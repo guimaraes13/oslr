@@ -23,11 +23,10 @@ package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
-import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
 public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
 
     @Override
-    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Collection<? extends Example> examples) {
         J evaluation = calculateEvaluation(inferredResult, examples);
         return evaluation != null ? calculateResult(evaluation) : getDefaultValue();
     }
@@ -58,13 +57,14 @@ public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
      * @param examples       the examples
      * @return the result
      */
-    protected J calculateEvaluation(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    protected J calculateEvaluation(Map<Example, Map<Atom, Double>> inferredResult,
+                                    Collection<? extends Example> examples) {
         Map<Atom, Double> atomValues;
         J result = initialAccumulatorValue();
 
         if (inferredResult.isEmpty()) { return null; }
-        Set<ProPprExample> provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e))
-                .collect(Collectors.toSet());
+        Set<Example> provedExamples;
+        provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e)).collect(Collectors.toSet());
         boolean proved = false;
         for (Example example : provedExamples) {
             atomValues = inferredResult.get(example);

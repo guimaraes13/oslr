@@ -143,10 +143,10 @@ public class TheoryEvaluator implements Initializable {
      *
      * @param metric   the {@link TheoryMetric}
      * @param theory   the {@link Theory}
+     * @param examples the examples
      * @return the evaluation value
      */
-    public double evaluateTheory(TheoryMetric metric, Theory theory) {
-        Examples examples = learningSystem.getExamples();
+    public double evaluateTheory(TheoryMetric metric, Theory theory, Collection<? extends Example> examples) {
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (metric.parametersRetrainedBeforeEvaluate) {
             evaluationResult = learningSystem.inferExampleTrainingParameters(theory, examples);
@@ -198,7 +198,7 @@ public class TheoryEvaluator implements Initializable {
      * Sets the {@link TheoryMetric} set if it is not yet set. If it is already set, throws an error.
      *
      * @param theoryMetrics the {@link TheoryMetric} set
-     * @throws InitializationException if the {@link TheoryMetric} set is already set
+     * @throws InitializationException if the {@link TheoryMetric} is already set
      */
     public void setTheoryMetrics(
             Iterable<? extends TheoryMetric> theoryMetrics) throws InitializationException {

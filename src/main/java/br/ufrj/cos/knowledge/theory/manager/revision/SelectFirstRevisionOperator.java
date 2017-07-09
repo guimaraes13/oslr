@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.util.InitializationException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,7 +49,7 @@ public class SelectFirstRevisionOperator extends RevisionOperatorSelector {
     }
 
     @Override
-    public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric) {
+    public RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets, TheoryMetric metric) {
         return evaluators.get(0);
     }
 

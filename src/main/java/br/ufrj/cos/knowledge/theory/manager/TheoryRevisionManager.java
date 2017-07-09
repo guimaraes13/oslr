@@ -155,7 +155,7 @@ public class TheoryRevisionManager implements Initializable {
      * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, Iterable<? extends Example> targets,
+    protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, Collection<? extends Example> targets,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
         double revised = operatorEvaluator.evaluateOperator(targets, theoryMetric);

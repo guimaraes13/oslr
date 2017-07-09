@@ -63,10 +63,14 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      */
     public static final double DEFAULT_DELTA = 0.01;
     /**
+     * The default depth of the relevant breadth first search.
+     */
+    public static final int DEFAULT_RELEVANT_DEPTH = 0;
+    /**
      * The depth of the relevant breadth first search.
      */
     @SuppressWarnings("CanBeFinal")
-    public int relevantDepth = 0;
+    public int relevantDepth = DEFAULT_RELEVANT_DEPTH;
     /**
      * To train using all the examples. if setted to {@code false}, it trains using only the examples considered
      * independents.

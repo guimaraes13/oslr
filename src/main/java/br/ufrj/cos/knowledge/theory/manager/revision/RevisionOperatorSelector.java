@@ -58,13 +58,14 @@ public abstract class RevisionOperatorSelector implements Initializable {
      * @param metric  the metric
      * @return the best suited {@link RevisionOperatorEvaluator}
      */
-    public abstract RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric);
+    public abstract RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets,
+                                                             TheoryMetric metric);
 
     /**
      * Sets the {@link RevisionOperatorEvaluator} set if it is not yet set. If it is already set, throws an error.
      *
      * @param operatorEvaluators the {@link RevisionOperatorEvaluator} set
-     * @throws InitializationException if the {@link RevisionOperatorEvaluator} set is already set
+     * @throws InitializationException if the {@link RevisionOperatorEvaluator} is already set
      */
     public void setOperatorEvaluators(
             Collection<RevisionOperatorEvaluator> operatorEvaluators) throws InitializationException {

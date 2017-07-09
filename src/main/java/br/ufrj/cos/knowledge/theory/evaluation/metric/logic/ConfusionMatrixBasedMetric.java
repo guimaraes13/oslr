@@ -25,10 +25,10 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
-import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,7 +48,7 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
     protected int falseNegative;
 
     @Override
-    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Collection<? extends Example> examples) {
         initializeConfusionMatrix();
         calculateConfusionMatrix(inferredResult, examples);
         return calculateConfusionMatrixMetric();
@@ -70,10 +70,11 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
      * @param inferredResult the results from the {@link EngineSystemTranslator}
      * @param examples       the {@link Examples}
      */
-    protected void calculateConfusionMatrix(Map<Example, Map<Atom, Double>> inferredResult, Examples examples) {
+    protected void calculateConfusionMatrix(Map<Example, Map<Atom, Double>> inferredResult,
+                                            Collection<? extends Example> examples) {
         Map<Atom, Double> atomValues;
-        Set<ProPprExample> provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e))
-                .collect(Collectors.toSet());
+        Set<Example> provedExamples;
+        provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e)).collect(Collectors.toSet());
         for (Example example : provedExamples) {
             atomValues = inferredResult.get(example);
             for (AtomExample atomExample : example.getGroundedQuery()) {

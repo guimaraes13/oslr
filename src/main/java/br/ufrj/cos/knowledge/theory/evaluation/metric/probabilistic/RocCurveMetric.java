@@ -23,12 +23,12 @@ package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.logic.Atom;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
 
     @Override
     public List<Pair<AtomExample, Double>> calculateEvaluation(Map<Example, Map<Atom, Double>> inferredResult,
-                                                               Examples examples) {
+                                                               Collection<? extends Example> examples) {
         return super.calculateEvaluation(inferredResult, examples);
     }
 

@@ -58,7 +58,7 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
     }
 
     @Override
-    public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric) {
+    public RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets, TheoryMetric metric) {
         return selector.selectOperator(targets, metric);
     }
 
@@ -71,7 +71,7 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
          * @param metric  the metric
          * @return the operator
          */
-        public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric);
+        public RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets, TheoryMetric metric);
 
     }
 
@@ -90,7 +90,7 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
         }
 
         @Override
-        public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric) {
+        public RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets, TheoryMetric metric) {
             if (operatorEvaluator != null) {
                 operatorEvaluator.clearCachedTheory();
             }
@@ -109,7 +109,7 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
         }
 
         @Override
-        public RevisionOperatorEvaluator selectOperator(Iterable<? extends Example> targets, TheoryMetric metric) {
+        public RevisionOperatorEvaluator selectOperator(Collection<? extends Example> targets, TheoryMetric metric) {
             RevisionOperatorEvaluator bestEvaluated = preferred;
             double bestEvaluation = metric.getDefaultValue();
             double current;
