@@ -31,6 +31,19 @@ engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    prover:              !edu.cmu.ml.proppr.prove.DprProver {}
    squashingFunction:   !edu.cmu.ml.proppr.learn.tools.ClippedExp {}
 
+incomingExampleManager:    !br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample
+   sampleSelector:   !br.ufrj.cos.knowledge.theory.manager.revision.point.IndependentSampleSelector
+      relevantDepth: 0
+
+theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
+
+theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager
+   theoryMetric: !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
+
+revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}
+
+revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator {}
+
 theoryMetrics:
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.AccuracyMetric  {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.PrecisionMetric {}
@@ -54,10 +67,3 @@ revisionOperatorEvaluators:
          generic:                      true
          evaluationTimeout:            300
          numberOfThreads:              1
-
-revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator {}
-revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}
-incomingExampleManager:    !br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample {}
-theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
-theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager
-   theoryMetric: !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}

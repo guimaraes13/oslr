@@ -88,6 +88,9 @@ public class TheoryEvaluator implements Initializable {
         if (!fields.isEmpty()) {
             throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
+        for (TheoryMetric metric : theoryMetrics) {
+            metric.initialize();
+        }
     }
 
     /**

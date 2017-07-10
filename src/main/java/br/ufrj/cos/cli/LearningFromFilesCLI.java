@@ -664,14 +664,14 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         logger.info(LogMessages.BUILDING_LEARNING_SYSTEM.toString(), LearningSystem.class.getSimpleName());
         learningSystem = new LearningSystem(knowledgeBase, theory, new Examples(), engineSystemTranslator);
         learningSystem.concurrent = controlConcurrence;
-        List<TheoryMetric> theoryMetrics = initializeMetrics();
-        initializeOperatorSelector();
-        initializeIncomingExampleManager();
-        learningSystem.incomingExampleManager = incomingExampleManager;
-        initializeTheoryEvaluator(theoryMetrics);
-        learningSystem.theoryEvaluator = theoryEvaluator;
-        initializeTheoryRevisionManager();
-        learningSystem.theoryRevisionManager = theoryRevisionManager;
+
+        List<TheoryMetric> theoryMetrics = buildMetrics();
+        buildOperatorSelector();
+
+        buildIncomingExampleManager();
+        buildTheoryEvaluator(theoryMetrics);
+        buildTheoryRevisionManager();
+        learningSystem.initialize();
     }
 
     /**
@@ -679,14 +679,14 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeTheoryRevisionManager() throws InitializationException {
+    protected void buildTheoryRevisionManager() throws InitializationException {
         if (theoryRevisionManager == null) {
             theoryRevisionManager = new TheoryRevisionManager();
         }
-        initializeRevisionManager();
-        theoryRevisionManager.setLearningSystem(learningSystem);
+        buildRevisionManager();
+
         theoryRevisionManager.setRevisionManager(revisionManager);
-        theoryRevisionManager.initialize();
+        learningSystem.theoryRevisionManager = theoryRevisionManager;
     }
 
     /**
@@ -695,13 +695,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @param theoryMetrics the {@link TheoryMetric}s
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeTheoryEvaluator(List<TheoryMetric> theoryMetrics) throws InitializationException {
+    protected void buildTheoryEvaluator(List<TheoryMetric> theoryMetrics) throws InitializationException {
         if (theoryEvaluator == null) {
             theoryEvaluator = new TheoryEvaluator();
         }
-        theoryEvaluator.setLearningSystem(learningSystem);
         theoryEvaluator.setTheoryMetrics(theoryMetrics);
-        theoryEvaluator.initialize();
+        learningSystem.theoryEvaluator = theoryEvaluator;
     }
 
     /**
@@ -709,18 +708,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeIncomingExampleManager() throws InitializationException {
+    protected void buildIncomingExampleManager() throws InitializationException {
         if (incomingExampleManager == null) {
-            IndependentSampleSelector sampleSelector = new IndependentSampleSelector();
-            sampleSelector.setLearningSystem(learningSystem);
-            sampleSelector.initialize();
-
-            incomingExampleManager.setSampleSelector(sampleSelector);
-            incomingExampleManager = new ReviseAllIncomingExample(learningSystem, sampleSelector);
+            incomingExampleManager = new ReviseAllIncomingExample(learningSystem, new IndependentSampleSelector());
         } else {
             incomingExampleManager.setLearningSystem(learningSystem);
         }
-        incomingExampleManager.initialize();
+        learningSystem.incomingExampleManager = incomingExampleManager;
     }
 
     /**
@@ -728,7 +722,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeRevisionManager() throws InitializationException {
+    protected void buildRevisionManager() throws InitializationException {
         if (revisionManager == null) {
             revisionManager = new RevisionManager();
         }
@@ -740,14 +734,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      *
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void initializeOperatorSelector() throws InitializationException {
+    protected void buildOperatorSelector() throws InitializationException {
         if (revisionOperatorSelector == null) {
             revisionOperatorSelector = new SelectFirstRevisionOperator();
         }
         if (!revisionOperatorSelector.isOperatorEvaluatorsSetted()) {
-            revisionOperatorSelector.setOperatorEvaluators(initializeOperators());
+            revisionOperatorSelector.setOperatorEvaluators(buildOperators());
         }
-        revisionOperatorSelector.initialize();
     }
 
     /**
@@ -756,7 +749,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @return the {@link RevisionOperatorEvaluator}s
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected List<RevisionOperatorEvaluator> initializeOperators() throws InitializationException {
+    protected List<RevisionOperatorEvaluator> buildOperators() throws InitializationException {
         List<RevisionOperatorEvaluator> operatorEvaluator;
         if (revisionOperatorEvaluators == null || revisionOperatorEvaluators.length == 0) {
             operatorEvaluator = defaultRevisionOperator();
@@ -765,7 +758,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
         for (RevisionOperatorEvaluator operator : operatorEvaluator) {
             operator.setLearningSystem(learningSystem);
-            operator.initialize();
         }
         return operatorEvaluator;
     }
@@ -776,13 +768,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @return the {@link TheoryMetric}s
      * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected List<TheoryMetric> initializeMetrics() throws InitializationException {
-        List<TheoryMetric> metrics = (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
+    protected List<TheoryMetric> buildMetrics() throws InitializationException {
+        return (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
                 Arrays.asList(theoryMetrics));
-        for (TheoryMetric metric : metrics) {
-            metric.initialize();
-        }
-        return metrics;
     }
 
     /**

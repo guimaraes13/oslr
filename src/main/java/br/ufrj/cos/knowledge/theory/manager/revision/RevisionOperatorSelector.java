@@ -49,6 +49,9 @@ public abstract class RevisionOperatorSelector implements Initializable {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, RevisionOperatorEvaluator.class.getSimpleName()));
         }
+        for (RevisionOperatorEvaluator operator : operatorEvaluators) {
+            operator.initialize();
+        }
     }
 
     /**

@@ -35,6 +35,8 @@ import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
 
 import java.io.File;
 import java.util.*;
@@ -47,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-public class LearningSystem {
+public class LearningSystem implements Initializable {
 
     /**
      * Represents a constant for no maximum depth on the transitivity of the relevant concept.
@@ -98,6 +100,17 @@ public class LearningSystem {
         this.theory = theory;
         this.examples = examples;
         this.engineSystemTranslator = engineSystemTranslator;
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        incomingExampleManager.initialize();
+
+        theoryEvaluator.setLearningSystem(this);
+        theoryEvaluator.initialize();
+
+        theoryRevisionManager.setLearningSystem(this);
+        theoryRevisionManager.initialize();
     }
 
     /**

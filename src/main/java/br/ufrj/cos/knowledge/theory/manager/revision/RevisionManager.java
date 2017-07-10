@@ -103,6 +103,7 @@ public class RevisionManager implements Initializable {
         if (!fields.isEmpty()) {
             throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
+        operatorSelector.initialize();
     }
 
     /**
