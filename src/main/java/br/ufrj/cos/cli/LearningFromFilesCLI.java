@@ -50,6 +50,7 @@ import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.IndependentSampleSelector;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
@@ -710,9 +711,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void initializeIncomingExampleManager() throws InitializationException {
         if (incomingExampleManager == null) {
-            incomingExampleManager = new ReviseAllIncomingExample();
+            IndependentSampleSelector sampleSelector = new IndependentSampleSelector();
+            sampleSelector.setLearningSystem(learningSystem);
+            sampleSelector.initialize();
+
+            incomingExampleManager.setSampleSelector(sampleSelector);
+            incomingExampleManager = new ReviseAllIncomingExample(learningSystem, sampleSelector);
+        } else {
+            incomingExampleManager.setLearningSystem(learningSystem);
         }
-        incomingExampleManager.setLearningSystem(learningSystem);
         incomingExampleManager.initialize();
     }
 

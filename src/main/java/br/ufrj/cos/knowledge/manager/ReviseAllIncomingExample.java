@@ -24,13 +24,12 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
-import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
+import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 /**
  * Class to getBestRevisionOperator all incoming examples as they arrive.
@@ -41,8 +40,11 @@ import java.util.LinkedHashSet;
  */
 public class ReviseAllIncomingExample extends IncomingExampleManager {
 
+    protected RevisionExamples revisionExamples;
+    protected List<RevisionExamples> singleton;
+
     /**
-     * Default constructor to be in compliance to {@link Initializable} interface.
+     * Default constructor.
      */
     public ReviseAllIncomingExample() {
         super();
@@ -52,15 +54,25 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
      * Constructs a {@link ReviseAllIncomingExample} with its fields.
      *
      * @param learningSystem the {@link LearningSystem}
+     * @param sampleSelector the {@link RelevantSampleSelector}
      */
-    public ReviseAllIncomingExample(LearningSystem learningSystem) {
-        super(learningSystem);
+    public ReviseAllIncomingExample(LearningSystem learningSystem, RelevantSampleSelector sampleSelector) {
+        super(learningSystem, sampleSelector);
+        this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
+        this.singleton = Collections.singletonList(revisionExamples);
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        super.initialize();
+        this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
+        this.singleton = Collections.singletonList(revisionExamples);
     }
 
     @Override
     public void incomingExamples(Collection<? extends Example> examples) {
-        learningSystem.getExamples().addAll(convertToProPprExamples(examples));
-        learningSystem.reviseTheory(Collections.singletonList(examples));
+        for (Example example : convertToProPprExamples(examples)) { revisionExamples.addExample(example); }
+        learningSystem.reviseTheory(singleton);
     }
 
     /**

@@ -21,14 +21,13 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.InitializationException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -54,10 +53,11 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
     protected Random random;
 
     @Override
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
+    public void reviseTheory(List<? extends RevisionExamples> revisionPoints, TheoryMetric metric,
+                             final boolean trainUsingAllExamples) {
         int totalRevision = getMaximumRevisionPoints(revisionPoints);
-        List<Pair<Integer, ? extends Collection<? extends Example>>> pairList = buildIndexPairList(revisionPoints);
-        List<Pair<Integer, Double>> heuristicList = buildHeuristicList(revisionPoints);
+        List<Pair<Integer, ? extends RevisionExamples>> pairList = buildIndexPairList(revisionPoints);
+        List<Pair<Integer, Double>> heuristicList = buildHeuristicList(revisionPoints, trainUsingAllExamples);
         int index;
         for (int i = 0; i < totalRevision; i++) {
             index = rouletteSelection(heuristicList);
@@ -71,14 +71,19 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
     /**
      * Builds list of heuristic value and collection index pairs.
      *
-     * @param revisionPoints the revision points
+     * @param revisionPoints        the revision points
+     * @param trainUsingAllExamples if is to train using all examples or just the relevant sample
      * @return the list of pairs
      */
-    protected List<Pair<Integer, Double>> buildHeuristicList(
-            List<? extends Collection<? extends Example>> revisionPoints) {
+    protected List<Pair<Integer, Double>> buildHeuristicList(List<? extends RevisionExamples> revisionPoints,
+                                                             final boolean trainUsingAllExamples) {
         List<Pair<Integer, Double>> list = new ArrayList<>(revisionPoints.size());
+        ImmutablePair<Integer, Double> e;
+        double evaluate;
         for (int i = 0; i < revisionPoints.size(); i++) {
-            list.add(new ImmutablePair<>(i, revisionHeuristic.evaluate(revisionPoints.get(i))));
+            evaluate = revisionHeuristic.evaluate(revisionPoints.get(i).getTrainingExamples(trainUsingAllExamples));
+            e = new ImmutablePair<>(i, evaluate);
+            list.add(e);
         }
         return list;
     }

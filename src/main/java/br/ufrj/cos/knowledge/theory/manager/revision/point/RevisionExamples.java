@@ -25,11 +25,13 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Class to keep the examples to be used on the revision.
@@ -38,7 +40,7 @@ import java.util.*;
  *
  * @author Victor Guimarães
  */
-public class RevisionExamples implements Initializable {
+public class RevisionExamples {
 
     protected final Collection<Example> incomingExamples;
     protected final Collection<Example> relevantSample;
@@ -48,26 +50,47 @@ public class RevisionExamples implements Initializable {
 
     /**
      * Default constructor.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @param sampleSelector the {@link RelevantSampleSelector}
      */
-    public RevisionExamples() {
+    public RevisionExamples(LearningSystem learningSystem,
+                            RelevantSampleSelector sampleSelector) {
+        this.learningSystem = learningSystem;
+        this.sampleSelector = sampleSelector;
         this.incomingExamples = new HashSet<>();
         this.relevantSample = new HashSet<>();
         this.inferredExamples = new HashMap<>();
     }
 
-    @Override
-    public void initialize() throws InitializationException {
-        List<String> fields = new ArrayList<>();
-        if (learningSystem == null) {
-            fields.add(LearningSystem.class.getSimpleName());
-        }
-        if (sampleSelector == null) {
-            fields.add(RelevantSampleSelector.class.getSimpleName());
-        }
+    /**
+     * Gets the training examples based on the parameter. If is to train using all examples, returns all the incoming
+     * examples, otherwise returns the relevant sample.
+     *
+     * @param trainUsingAllExamples if is to train using all examples
+     * @return all the incoming examples if trainUsingAllExamples if {@code true}, otherwise returns the relevant
+     * sample.
+     */
+    public Collection<? extends Example> getTrainingExamples(boolean trainUsingAllExamples) {
+        return trainUsingAllExamples ? getIncomingExamples() : getRelevantSample();
+    }
 
-        if (!fields.isEmpty()) {
-            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
-        }
+    /**
+     * Gets the incoming examples.
+     *
+     * @return the incoming examples
+     */
+    protected Collection<Example> getIncomingExamples() {
+        return incomingExamples;
+    }
+
+    /**
+     * Gets the relevant sample.
+     *
+     * @return the relevant sample
+     */
+    public Collection<Example> getRelevantSample() {
+        return relevantSample;
     }
 
     /**
@@ -86,16 +109,36 @@ public class RevisionExamples implements Initializable {
     }
 
     /**
+     * Adds the examples to revise.
+     *
+     * @param examples the examples
+     */
+    public void addExample(Iterable<? extends Example> examples) {
+        for (Example example : examples) {
+            addExample(example);
+        }
+    }
+
+    /**
+     * Adds the example to revise.
+     *
+     * @param example the example
+     */
+    public void addExample(Example example) {
+        incomingExamples.add(example);
+        if (sampleSelector.isRelevant(example)) {
+            relevantSample.add(example);
+        }
+    }
+
+    /**
      * Adds the example to revise.
      *
      * @param example  the example
      * @param inferred the inferred values of the examples
      */
     public void addExample(Example example, Map<Atom, Double> inferred) {
-        incomingExamples.add(example);
-        if (sampleSelector.isRelevant(example)) {
-            relevantSample.add(example);
-        }
+        addExample(example);
         inferredExamples.put(example, inferred);
     }
 
@@ -121,24 +164,6 @@ public class RevisionExamples implements Initializable {
                                                    RelevantSampleSelector.class.getSimpleName()));
         }
         this.sampleSelector = sampleSelector;
-    }
-
-    /**
-     * Gets the incoming examples.
-     *
-     * @return the incoming examples
-     */
-    public Collection<Example> getIncomingExamples() {
-        return incomingExamples;
-    }
-
-    /**
-     * Gets the relevant sample.
-     *
-     * @return the relevant sample
-     */
-    public Collection<Example> getRelevantSample() {
-        return relevantSample;
     }
 
     /**

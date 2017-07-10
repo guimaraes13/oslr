@@ -21,10 +21,10 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RevisionHeuristic;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
@@ -32,7 +32,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -59,9 +58,11 @@ public class BestLeafRevisionManager extends RevisionManager {
     protected RevisionHeuristic revisionHeuristic;
 
     @Override
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
+    public void reviseTheory(List<? extends RevisionExamples> revisionPoints, TheoryMetric metric,
+                             final boolean trainUsingAllExamples) {
         int totalRevision = getMaximumRevisionPoints(revisionPoints);
-        List<Pair<Integer, ? extends Collection<? extends Example>>> revisions = sortKeepingIndexes(revisionPoints);
+        List<Pair<Integer, ? extends RevisionExamples>> revisions = sortKeepingIndexes(revisionPoints,
+                                                                                       trainUsingAllExamples);
         for (int i = 0; i < totalRevision; i++) {
             treeTheory.revisionLeafIndex = revisions.get(i).getKey();
             callRevision(revisions.get(i).getValue(), metric);
@@ -75,7 +76,7 @@ public class BestLeafRevisionManager extends RevisionManager {
      * @param revisionPoints the revision points
      * @return the maximum revision points that will be used
      */
-    protected int getMaximumRevisionPoints(List<? extends Collection<? extends Example>> revisionPoints) {
+    protected int getMaximumRevisionPoints(List<?> revisionPoints) {
         return numberOfLeavesToRevise < DEFAULT_LEAVES_TO_REFINE ?
                 Math.min(revisionPoints.size(), numberOfLeavesToRevise) : revisionPoints.size();
     }
@@ -83,13 +84,15 @@ public class BestLeafRevisionManager extends RevisionManager {
     /**
      * Sorts the revision points based on the heuristic, keeping the original index of the revision.
      *
-     * @param revisionPoints the revision points
+     * @param revisionPoints        the revision points
+     * @param trainUsingAllExamples if is to train using all examples or just the relevant sample
      * @return the sorted list with the revision points and original indexes
      */
-    protected List<Pair<Integer, ? extends Collection<? extends Example>>> sortKeepingIndexes(
-            List<? extends Collection<? extends Example>> revisionPoints) {
-        List<Pair<Integer, ? extends Collection<? extends Example>>> sorted = buildIndexPairList(revisionPoints);
-        sorted.sort((o1, o2) -> revisionHeuristic.compare(o1.getValue(), o2.getValue()));
+    protected List<Pair<Integer, ? extends RevisionExamples>> sortKeepingIndexes(
+            List<? extends RevisionExamples> revisionPoints, final boolean trainUsingAllExamples) {
+        List<Pair<Integer, ? extends RevisionExamples>> sorted = buildIndexPairList(revisionPoints);
+        sorted.sort((o1, o2) -> revisionHeuristic.compare(o1.getValue().getTrainingExamples(trainUsingAllExamples),
+                                                          o2.getValue().getTrainingExamples(trainUsingAllExamples)));
         return sorted;
     }
 
@@ -99,9 +102,9 @@ public class BestLeafRevisionManager extends RevisionManager {
      * @param revisionPoints the revision points
      * @return the list of pairs
      */
-    protected static List<Pair<Integer, ? extends Collection<? extends Example>>> buildIndexPairList(
-            List<? extends Collection<? extends Example>> revisionPoints) {
-        List<Pair<Integer, ? extends Collection<? extends Example>>> list = new ArrayList<>(revisionPoints.size());
+    protected static List<Pair<Integer, ? extends RevisionExamples>> buildIndexPairList(
+            List<? extends RevisionExamples> revisionPoints) {
+        List<Pair<Integer, ? extends RevisionExamples>> list = new ArrayList<>(revisionPoints.size());
         for (int i = 0; i < revisionPoints.size(); i++) {
             list.add(new ImmutablePair<>(i, revisionPoints.get(i)));
         }

@@ -25,6 +25,7 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
@@ -107,12 +108,11 @@ public class TreeExampleManager extends IncomingExampleManager {
      * @param leafExamples     the map of examples per leaves
      * @return {@code true} if this operation changes the set of modified list, {@code false} otherwise
      */
-    protected boolean addExamplesToLeaf(Node<HornClause> leaf, ProPprExample exampleFromSplit,
-                                        Set<Node<HornClause>> modifiedLeaves,
-                                        Map<Node<HornClause>, Set<Example>> leafExamples) {
+    protected static boolean addExamplesToLeaf(Node<HornClause> leaf, ProPprExample exampleFromSplit,
+                                               Set<Node<HornClause>> modifiedLeaves,
+                                               Map<Node<HornClause>, Set<Example>> leafExamples) {
         if (!exampleFromSplit.getGroundedQuery().isEmpty()) {
             leafExamples.computeIfAbsent(leaf, e -> new HashSet<>()).add(exampleFromSplit);
-            learningSystem.getExamples().add(exampleFromSplit);
             return modifiedLeaves.add(leaf);
         }
 
@@ -132,7 +132,6 @@ public class TreeExampleManager extends IncomingExampleManager {
     @Override
     public void incomingExamples(Collection<? extends Example> examples) {
         Map<String, Set<Node<HornClause>>> modifiedLeaves = placeIncomingExamples(examples);
-        logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(), learningSystem.getExamples().size());
         callRevision(modifiedLeaves);
     }
 
@@ -218,15 +217,21 @@ public class TreeExampleManager extends IncomingExampleManager {
      * @param modifiedLeaves the modified leaves
      */
     protected void callRevision(Map<String, Set<Node<HornClause>>> modifiedLeaves) {
-        List<Set<Example>> targets;
+        List<RevisionExamples> targets;
         for (Map.Entry<String, Set<Node<HornClause>>> entry : modifiedLeaves.entrySet()) {
             treeTheory.revisionLeaves = new ArrayList<>();
             targets = new ArrayList<>();
             for (Node<HornClause> leaf : entry.getValue()) {
                 Set<Example> target = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
                 if (target != null && !target.isEmpty()) {
-                    targets.add(target);
-                    treeTheory.revisionLeaves.add(leaf);
+                    try {
+                        RevisionExamples examples = new RevisionExamples(learningSystem, sampleSelector.copy());
+                        examples.addExample(target);
+                        targets.add(examples);
+                        treeTheory.revisionLeaves.add(leaf);
+                    } catch (InitializationException e) {
+                        logger.error(LogMessages.ERROR_REVISING_THEORY, e);
+                    }
                 }
             }
             learningSystem.reviseTheory(targets);
@@ -236,7 +241,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     /**
      * Gets the tree theory.
      *
-     * @return tree theory
+     * @return the tree theory
      */
     public TreeTheory getTreeTheory() {
         return treeTheory;
@@ -245,7 +250,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     /**
      * Sets the tree theory.
      *
-     * @param treeTheory tree theory
+     * @param treeTheory the tree theory
      * @throws InitializationException if the {@link TreeTheory} is already set
      */
     public void setTreeTheory(TreeTheory treeTheory) throws InitializationException {

@@ -30,12 +30,12 @@ import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -60,10 +60,11 @@ public class TheoryRevisionManager implements Initializable {
      */
     public static final TheoryMetric DEFAULT_THEORY_METRIC = new RocCurveMetric();
     /**
-     * If is to remove the revised examples from the learning system.
+     * To train using all the examples. if setted to {@code false}, it trains using only the examples considered
+     * independents.
      */
     @SuppressWarnings("CanBeFinal")
-    public boolean clearRevisedExamples = false;
+    public boolean trainUsingAllExamples = true;
     protected boolean theoryChanged = false;
     protected double theoryEvaluation;
 
@@ -114,9 +115,9 @@ public class TheoryRevisionManager implements Initializable {
      *
      * @param revisionPoints the target {@link Example}s
      */
-    public void revise(List<? extends Collection<? extends Example>> revisionPoints) {
+    public void revise(List<? extends RevisionExamples> revisionPoints) {
         theoryChanged = true;
-        revisionManager.reviseTheory(revisionPoints, theoryMetric);
+        revisionManager.reviseTheory(revisionPoints, theoryMetric, trainUsingAllExamples);
     }
 
     /**
@@ -124,24 +125,21 @@ public class TheoryRevisionManager implements Initializable {
      * threshold, applies the revision on the theory.
      *
      * @param operatorSelector the operator selector
-     * @param targets          the targets for the revision
+     * @param examples         the examples for the revision
      * @param theoryMetric     the theory metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public boolean applyRevision(RevisionOperatorSelector operatorSelector, Collection<? extends Example> targets,
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector, RevisionExamples examples,
                                  TheoryMetric theoryMetric) throws TheoryRevisionException {
         if (theoryChanged) {
             theoryEvaluation = learningSystem.evaluateTheory(this.theoryMetric);
         }
-        RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
+        RevisionOperatorEvaluator operatorEvaluator;
+        operatorEvaluator = operatorSelector.selectOperator(examples.getTrainingExamples(trainUsingAllExamples),
+                                                            theoryMetric);
         if (operatorEvaluator == null) { return false; }
-        boolean revised = applyRevision(operatorEvaluator, targets, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
-        if (revised && clearRevisedExamples) {
-            //noinspection SuspiciousMethodCalls
-            learningSystem.getExamples().removeAll(targets);
-        }
-        return revised;
+        return applyRevision(operatorEvaluator, examples, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
     }
 
     /**
@@ -149,22 +147,27 @@ public class TheoryRevisionManager implements Initializable {
      * threshold, applies the revision on the theory.
      *
      * @param operatorEvaluator    the revision operator
-     * @param targets              the targets for the revision
+     * @param examples             the examples for the revision
      * @param currentEvaluation    the current evaluation value of the theory
      * @param improvementThreshold the improvement threshold
      * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, Collection<? extends Example> targets,
+    protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, RevisionExamples examples,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
-        double revised = operatorEvaluator.evaluateOperator(targets, theoryMetric);
+        logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
+                     examples.getTrainingExamples(trainUsingAllExamples).size());
+        //FIXME: take a look at the evaluation. Use the cache and the sample
+        double revised = operatorEvaluator.evaluateOperator(examples.getTrainingExamples(trainUsingAllExamples),
+                                                            theoryMetric);
 
         double improve = theoryMetric.difference(revised, currentEvaluation);
         LogMessages logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
         theoryChanged = false;
         if (improve >= improvementThreshold) {
-            Theory revisedTheory = operatorEvaluator.getRevisedTheory(targets);
+            Theory revisedTheory;
+            revisedTheory = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
             if (revisedTheory != null) {
                 learningSystem.setTheory(revisedTheory);
                 learningSystem.trainParameters(learningSystem.getExamples());

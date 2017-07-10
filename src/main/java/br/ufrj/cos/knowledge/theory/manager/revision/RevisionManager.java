@@ -21,15 +21,14 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -64,11 +63,13 @@ public class RevisionManager implements Initializable {
      * <p>
      * The default implementation of this class do not look for those hints.
      *
-     * @param revisionPoints the revision points
-     * @param metric         the metric
+     * @param revisionPoints        the revision points
+     * @param metric                the metric
+     * @param trainUsingAllExamples if is to train using all examples or just the relevant sample
      */
-    public void reviseTheory(List<? extends Collection<? extends Example>> revisionPoints, TheoryMetric metric) {
-        for (Collection<? extends Example> revision : revisionPoints) {
+    public void reviseTheory(List<? extends RevisionExamples> revisionPoints, TheoryMetric metric,
+                             final boolean trainUsingAllExamples) {
+        for (RevisionExamples revision : revisionPoints) {
             callRevision(revision, metric);
         }
     }
@@ -77,11 +78,11 @@ public class RevisionManager implements Initializable {
      * Calls the revision chosen by the {@link RevisionOperatorSelector}, based on the metric, on the collection of
      * examples.
      *
-     * @param examples the examples
+     * @param examples the revision examples
      * @param metric   the metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      */
-    protected boolean callRevision(Collection<? extends Example> examples, TheoryMetric metric) {
+    protected boolean callRevision(RevisionExamples examples, TheoryMetric metric) {
         try {
             return theoryRevisionManager.applyRevision(operatorSelector, examples, metric);
         } catch (TheoryRevisionException e) {

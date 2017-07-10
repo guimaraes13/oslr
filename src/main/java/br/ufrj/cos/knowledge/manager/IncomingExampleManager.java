@@ -24,13 +24,16 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.external.access.ExampleStream;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -43,6 +46,7 @@ import java.util.Collections;
 public abstract class IncomingExampleManager implements Initializable {
 
     protected LearningSystem learningSystem;
+    protected RelevantSampleSelector sampleSelector;
 
     /**
      * Default constructor to be in compliance to {@link Initializable} interface.
@@ -54,17 +58,29 @@ public abstract class IncomingExampleManager implements Initializable {
      * Constructs a {@link IncomingExampleManager} with its fields.
      *
      * @param learningSystem the {@link LearningSystem}
+     * @param sampleSelector the {@link RelevantSampleSelector}
      */
-    protected IncomingExampleManager(LearningSystem learningSystem) {
+    protected IncomingExampleManager(LearningSystem learningSystem,
+                                     RelevantSampleSelector sampleSelector) {
         this.learningSystem = learningSystem;
+        this.sampleSelector = sampleSelector;
     }
 
     @Override
     public void initialize() throws InitializationException {
+        List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
-            throw new InitializationException(
-                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
+            fields.add(LearningSystem.class.getSimpleName());
         }
+        if (sampleSelector == null) {
+            fields.add(RelevantSampleSelector.class.getSimpleName());
+        }
+
+        if (!fields.isEmpty()) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
+        }
+        sampleSelector.setLearningSystem(learningSystem);
+        sampleSelector.initialize();
     }
 
     /**
@@ -96,6 +112,30 @@ public abstract class IncomingExampleManager implements Initializable {
                                                    LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
+    }
+
+    /**
+     * Gets the relevant sample selector.
+     *
+     * @return the relevant sample selector
+     */
+    public RelevantSampleSelector getSampleSelector() {
+        return sampleSelector;
+    }
+
+    /**
+     * Sets the relevant sample selector.
+     *
+     * @param sampleSelector the relevant sample selector
+     * @throws InitializationException if the {@link RelevantSampleSelector} is already set
+     */
+    public void setSampleSelector(RelevantSampleSelector sampleSelector) throws InitializationException {
+        if (this.sampleSelector != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   RelevantSampleSelector.class.getSimpleName()));
+        }
+        this.sampleSelector = sampleSelector;
     }
 
 }

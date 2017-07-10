@@ -27,20 +27,12 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
-import br.ufrj.cos.logic.Atom;
-import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Responsible to decide when to revise the {@link Theory} based on the Hoeffding's bound, with confidence delta.
@@ -55,28 +47,9 @@ import java.util.stream.Collectors;
 public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
 
     /**
-     * The logger
-     */
-    public static final Logger logger = LogManager.getLogger();
-    /**
      * The default value of delta.
      */
     public static final double DEFAULT_DELTA = 0.01;
-    /**
-     * The default depth of the relevant breadth first search.
-     */
-    public static final int DEFAULT_RELEVANT_DEPTH = 0;
-    /**
-     * The depth of the relevant breadth first search.
-     */
-    @SuppressWarnings("CanBeFinal")
-    public int relevantDepth = DEFAULT_RELEVANT_DEPTH;
-    /**
-     * To train using all the examples. if setted to {@code false}, it trains using only the examples considered
-     * independents.
-     */
-    @SuppressWarnings("CanBeFinal")
-    public boolean trainUsingAllExamples = true;
 
     protected double delta = DEFAULT_DELTA;
 
@@ -92,24 +65,20 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     @Override
-    public boolean applyRevision(RevisionOperatorSelector operatorSelector, Collection<? extends Example> targets,
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector, RevisionExamples examples,
                                  TheoryMetric theoryMetric) throws TheoryRevisionException {
-        double bestEpsilon = calculateHoeffdingBound(theoryMetric.getRange(), targets.size());
+        double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), examples.getRelevantSample().size());
+        //FIXME: is this update correct?
+        //FIXME: use the cache
         if (theoryChanged) { theoryEvaluation = learningSystem.evaluateTheory(theoryMetric); }
         double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(theoryEvaluation);
-
-        // tests if the best possible improvement is enough to pass the weakest threshold
-        if (bestPossibleImprovement >= bestEpsilon) {
-            Collection<? extends Example> sample = getIndependentSample(targets);
-            double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), sample.size());
-            // tests if the best possible improvement is enough to pass the right threshold
-            if (bestPossibleImprovement >= epsilon) {
-                if (trainUsingAllExamples) { sample = targets; }
-                // calls the revision on the right threshold
-                RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
-                if (operatorEvaluator == null) { return false; }
-                return applyRevision(operatorEvaluator, sample, theoryEvaluation, epsilon);
-            }
+        // tests if the best possible improvement is enough to pass the Hoeffding's threshold
+        if (bestPossibleImprovement >= epsilon) {
+            Collection<? extends Example> sample = examples.getTrainingExamples(trainUsingAllExamples);
+            // calls the revision on the right threshold
+            RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(sample, theoryMetric);
+            if (operatorEvaluator == null) { return false; }
+            return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
         }
         return false;
     }
@@ -128,32 +97,6 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     protected double calculateHoeffdingBound(double range, int sampleSize) {
         // equivalent form to \sqrt{frac{R^2 * ln(1/δ)}{2n}}
         return StrictMath.sqrt((range * range * -StrictMath.log(delta)) / (2 * sampleSize));
-    }
-
-    /**
-     * Gets an independent sample of example from the targets. Two example is said to be independent, in a given
-     * distance, if they do not share a common relevant in the given distance.
-     *
-     * @param targets the target {@link Example}s
-     * @return the independent sample
-     */
-    protected Collection<? extends Example> getIndependentSample(Iterable<? extends Example> targets) {
-        Set<Atom> previousRelevants = new HashSet<>();
-        Collection<Example> examples = new HashSet<>();
-        Set<Atom> currentRelevants;
-        Set<Term> terms;
-        int counter = 0;
-        for (Example example : targets) {
-            terms = example.getGoalQuery().getTerms().stream().filter(Term::isConstant).collect(Collectors.toSet());
-            currentRelevants = learningSystem.relevantsBreadthFirstSearch(terms, relevantDepth, false);
-            if (Collections.disjoint(previousRelevants, currentRelevants)) {
-                examples.add(example);
-            }
-            if (trainUsingAllExamples) { previousRelevants.addAll(currentRelevants); }
-            counter++;
-        }
-        logger.debug(LogMessages.SAMPLING_FROM_TARGETS.toString(), examples.size(), counter);
-        return examples;
     }
 
     /**

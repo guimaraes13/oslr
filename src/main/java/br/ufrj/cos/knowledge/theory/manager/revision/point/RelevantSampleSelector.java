@@ -21,9 +21,12 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.point;
 
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 
 /**
  * Class to select if a example is relevant to be evaluated or not. All the examples of a revision point must be
@@ -33,7 +36,17 @@ import br.ufrj.cos.util.InitializationException;
  *
  * @author Victor Guimarães
  */
-public interface RelevantSampleSelector extends Initializable {
+public abstract class RelevantSampleSelector implements Initializable {
+
+    protected LearningSystem learningSystem;
+
+    @Override
+    public void initialize() throws InitializationException {
+        if (learningSystem == null) {
+            throw new InitializationException(
+                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
+        }
+    }
 
     /**
      * Checks if a example is relevant in a revision point.
@@ -41,15 +54,39 @@ public interface RelevantSampleSelector extends Initializable {
      * @param example the example
      * @return {@code true} if it is, {@code false} otherwise
      */
-    public boolean isRelevant(Example example);
+    public abstract boolean isRelevant(Example example);
 
     /**
      * Creates another instance of this class with the same parameters of this instance, which are independents from
      * the examples. The new instance must behave exactly as this one, except by the part that is based on the
      * previously evaluated examples.
      *
-     * @return
+     * @return a copy of this instance
+     * @throws InitializationException if something goes wrong during the copy
      */
-    public RelevantSampleSelector copy() throws InitializationException;
+    public abstract RelevantSampleSelector copy() throws InitializationException;
 
+    /**
+     * Gets the learning system.
+     *
+     * @return the learning system
+     */
+    public LearningSystem getLearningSystem() {
+        return learningSystem;
+    }
+
+    /**
+     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param learningSystem the {@link LearningSystem}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
+        if (this.learningSystem != null) {
+            throw new InitializationException(
+                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                   LearningSystem.class.getSimpleName()));
+        }
+        this.learningSystem = learningSystem;
+    }
 }

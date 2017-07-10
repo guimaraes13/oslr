@@ -206,7 +206,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 }
                 return;
             }
-            logger.debug(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+            logger.info(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
             newRule = buildRuleForExample(example);
             if (theory.add(newRule)) {
                 logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
@@ -243,13 +243,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     protected HornClause buildRuleForExample(Example example) throws TheoryRevisionException {
         try {
-            logger.trace(LogMessages.BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
+            logger.debug(LogMessages.BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
             HornClause bottomClause = buildBottomClause(example);
 
-            logger.trace(LogMessages.FIND_MINIMAL_SAFE_CLAUSES);
+            logger.debug(LogMessages.FIND_MINIMAL_SAFE_CLAUSES);
             Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
 
-            logger.trace(LogMessages.EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
+            logger.debug(LogMessages.EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
             AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet());
             if (bestClause == null) {
                 logger.debug(LogMessages.ERROR_EVALUATING_MINIMAL_CLAUSES);
@@ -257,7 +257,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             }
 
             if (refine) {
-                logger.trace(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
+                logger.debug(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
                 bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap());
             }
             return bestClause.getHornClause();

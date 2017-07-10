@@ -110,7 +110,7 @@ public enum LogMessages {
     EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
     ANSWER_STATE_WITH_VALUE("State:\t{},\t{}"),
-    SAMPLING_FROM_TARGETS("Sampled {} examples out of {} targets."),
+    //    SAMPLING_FROM_TARGETS("Sampled {} examples out of {} targets."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
                                         "threshold of {}."),
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}.");

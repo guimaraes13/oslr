@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.point;
 
-import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
  *
  * @author Victor Guimarães
  */
-public class IndependentSampleSelector implements RelevantSampleSelector {
+public class IndependentSampleSelector extends RelevantSampleSelector {
 
     /**
      * The default depth of the relevant breadth first search.
@@ -54,12 +53,11 @@ public class IndependentSampleSelector implements RelevantSampleSelector {
      */
     protected static final String RELEVANT_DEPTH_FIELD_NAME = "relevantDepth";
     private static final boolean SAFE_STOP = false;
+    protected final Set<Atom> previousRelevants;
     /**
      * The depth of the relevant breadth first search.
      */
     public int relevantDepth = DEFAULT_RELEVANT_DEPTH;
-    protected LearningSystem learningSystem;
-    protected Set<Atom> previousRelevants;
 
     /**
      * Default constructor.
@@ -88,29 +86,6 @@ public class IndependentSampleSelector implements RelevantSampleSelector {
         relevantSampleSelector.setRelevantDepth(relevantDepth);
         relevantSampleSelector.initialize();
         return relevantSampleSelector;
-    }
-
-    /**
-     * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
-     *
-     * @param learningSystem the {@link LearningSystem}
-     * @throws InitializationException if the {@link LearningSystem} is already set
-     */
-    public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
-        if (this.learningSystem != null) {
-            throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LearningSystem.class.getSimpleName()));
-        }
-        this.learningSystem = learningSystem;
-    }
-
-    @Override
-    public void initialize() throws InitializationException {
-        if (learningSystem == null) {
-            throw new InitializationException(
-                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
-        }
     }
 
     /**

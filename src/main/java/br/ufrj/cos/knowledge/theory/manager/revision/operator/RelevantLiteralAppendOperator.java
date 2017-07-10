@@ -143,7 +143,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             body = new Conjunction(Literal.TRUE_LITERAL);
         } else {
             for (Literal literal : initialClause.getBody()) {
-                appendVariablesFromAtom(literal, terms); //TODO: do not append repeated variables
+                appendVariablesFromAtom(literal, terms);
             }
             body = initialClause.getBody();
         }
