@@ -174,4 +174,14 @@ public class RevisionExamples {
     public Map<Example, Map<Atom, Double>> getInferredExamples() {
         return inferredExamples;
     }
+
+    /**
+     * Checks if the revision examples is empty. It is contains no examples.
+     *
+     * @return {@code true} if it is empty, {@code false} otherwise
+     */
+    public boolean isEmpty() {
+        return incomingExamples.isEmpty();
+    }
+
 }

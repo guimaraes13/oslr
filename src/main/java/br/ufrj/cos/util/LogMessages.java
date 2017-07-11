@@ -85,7 +85,7 @@ public enum LogMessages {
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
     TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),
-
+    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}."),
     //    BUILDING_CLAUSE_FROM_EXAMPLE("Building a clause from the example:\t{}"),
 
     CONFIGURATION_FILE("Configuration File:\t{}\n--------------- CONFIGURATION FILE " +

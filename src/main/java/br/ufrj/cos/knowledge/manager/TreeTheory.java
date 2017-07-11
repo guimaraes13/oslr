@@ -23,6 +23,7 @@ package br.ufrj.cos.knowledge.manager;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
@@ -34,7 +35,6 @@ import br.ufrj.cos.util.LanguageUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Responsible for manage the theory as a tree.
@@ -60,7 +60,7 @@ public class TreeTheory implements Initializable {
     public int revisionLeafIndex;
 
     protected Map<String, Node<HornClause>> treeMap;
-    protected Map<String, Map<Node<HornClause>, Set<Example>>> leafExamplesMap;
+    protected Map<String, Map<Node<HornClause>, RevisionExamples>> leafExamplesMap;
 
     /**
      * Checks if the node represents a default theory.
@@ -131,7 +131,7 @@ public class TreeTheory implements Initializable {
      * @param predicate the predicate
      * @return the leaf examples map
      */
-    public Map<Node<HornClause>, Set<Example>> getLeafExampleMapFromTree(String predicate) {
+    public Map<Node<HornClause>, RevisionExamples> getLeafExampleMapFromTree(String predicate) {
         return leafExamplesMap.computeIfAbsent(predicate, e -> new HashMap<>());
     }
 
@@ -142,7 +142,7 @@ public class TreeTheory implements Initializable {
      * @param leaf      the leaf
      * @return the set of examples
      */
-    public Set<Example> getExampleFromLeaf(String predicate, Node<HornClause> leaf) {
+    public RevisionExamples getExampleFromLeaf(String predicate, Node<HornClause> leaf) {
         return leafExamplesMap.get(predicate).get(leaf);
     }
 

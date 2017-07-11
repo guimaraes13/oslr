@@ -25,6 +25,8 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.AllSampleSelector;
+import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
@@ -53,7 +55,7 @@ public class TreeExampleManager extends IncomingExampleManager {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
-
+    protected static final RelevantSampleSelector ALL_SAMPLE_SELECTOR = new AllSampleSelector();
     protected TreeTheory treeTheory;
 
     /**
@@ -108,11 +110,22 @@ public class TreeExampleManager extends IncomingExampleManager {
      * @param leafExamples     the map of examples per leaves
      * @return {@code true} if this operation changes the set of modified list, {@code false} otherwise
      */
-    protected static boolean addExamplesToLeaf(Node<HornClause> leaf, ProPprExample exampleFromSplit,
-                                               Set<Node<HornClause>> modifiedLeaves,
-                                               Map<Node<HornClause>, Set<Example>> leafExamples) {
+    protected boolean addExamplesToLeaf(Node<HornClause> leaf, ProPprExample exampleFromSplit,
+                                        Set<Node<HornClause>> modifiedLeaves,
+                                        Map<Node<HornClause>, RevisionExamples> leafExamples) {
         if (!exampleFromSplit.getGroundedQuery().isEmpty()) {
-            leafExamples.computeIfAbsent(leaf, e -> new HashSet<>()).add(exampleFromSplit);
+            RevisionExamples revisionExamples = leafExamples.get(leaf);
+            if (revisionExamples == null) {
+                try {
+                    revisionExamples = new RevisionExamples(learningSystem, sampleSelector.copy());
+                } catch (InitializationException ignored) {
+                    logger.warn(LogMessages.ERROR_INITIALIZING_REVISION_EXAMPLES.toString(),
+                                ALL_SAMPLE_SELECTOR.getClass().getSimpleName());
+                    revisionExamples = new RevisionExamples(learningSystem, ALL_SAMPLE_SELECTOR);
+                }
+                leafExamples.put(leaf, revisionExamples);
+            }
+            revisionExamples.addExample(exampleFromSplit);
             return modifiedLeaves.add(leaf);
         }
 
@@ -143,22 +156,29 @@ public class TreeExampleManager extends IncomingExampleManager {
      */
     protected Map<String, Set<Node<HornClause>>> placeIncomingExamples(Iterable<? extends Example> examples) {
         Map<String, Set<Node<HornClause>>> modifiedLeavesMap = new HashMap<>();
-        Node<HornClause> root;
-        Set<Atom> coveredExamples;
-        Pair<ProPprExample, ProPprExample> split;
-        String predicate;
         for (Example example : examples) {
-            predicate = LanguageUtils.getPredicateFromAtom(example.getGoalQuery());
-            Set<Node<HornClause>> modifiedLeaves = modifiedLeavesMap.computeIfAbsent(predicate, e -> new HashSet<>());
-            Map<Node<HornClause>, Set<Example>> leafExamples = treeTheory.getLeafExampleMapFromTree(predicate);
-            root = treeTheory.getTreeForExample(example, predicate);
-
-            coveredExamples = transverseTheoryTree(root, example, modifiedLeaves, leafExamples);
-            split = splitCoveredExamples(example, coveredExamples);
-            addExamplesToLeaf(root.getDefaultChild(), getNotCoveredExampleFromSplit(split),
-                              modifiedLeaves, leafExamples);
+            placeExample(modifiedLeavesMap, example);
         }
         return modifiedLeavesMap;
+    }
+
+    /**
+     * Places an incoming example into the correct leaves and append the leaves in the set of the modified leaves.
+     *
+     * @param modifiedLeavesMap the map of modified leaves by predicate
+     * @param example           the examples
+     */
+    protected void placeExample(Map<String, Set<Node<HornClause>>> modifiedLeavesMap, Example example) {
+        String predicate;
+        Node<HornClause> root;
+        Pair<ProPprExample, ProPprExample> split;
+
+        predicate = LanguageUtils.getPredicateFromAtom(example.getGoalQuery());
+        Set<Node<HornClause>> modifiedLeaves = modifiedLeavesMap.computeIfAbsent(predicate, e -> new HashSet<>());
+        Map<Node<HornClause>, RevisionExamples> leafExamples = treeTheory.getLeafExampleMapFromTree(predicate);
+        root = treeTheory.getTreeForExample(example, predicate);
+        split = splitCoveredExamples(example, transverseTheoryTree(root, example, modifiedLeaves, leafExamples));
+        addExamplesToLeaf(root.getDefaultChild(), getNotCoveredExampleFromSplit(split), modifiedLeaves, leafExamples);
     }
 
     /**
@@ -173,7 +193,7 @@ public class TreeExampleManager extends IncomingExampleManager {
      */
     protected Set<Atom> transverseTheoryTree(Node<HornClause> root, Example example,
                                              Set<Node<HornClause>> modifiedLeaves,
-                                             Map<Node<HornClause>, Set<Example>> leafExamples) {
+                                             Map<Node<HornClause>, RevisionExamples> leafExamples) {
         Map<Example, Map<Atom, Double>>
                 inferred = learningSystem.inferExamples(root.getElement(), example.getGroundedQuery());
         Set<Atom> coveredExamples = inferred.values().stream().
@@ -198,7 +218,7 @@ public class TreeExampleManager extends IncomingExampleManager {
      * @param leafExamples   the leaf examples map to save the examples of each leaf
      */
     protected void pushExampleToChild(Node<HornClause> node, Example example, Set<Node<HornClause>> modifiedLeaves,
-                                      Map<Node<HornClause>, Set<Example>> leafExamples) {
+                                      Map<Node<HornClause>, RevisionExamples> leafExamples) {
         Set<Atom> allCoveredExamples = new HashSet<>();
         Set<Atom> coveredExamples;
         Pair<ProPprExample, ProPprExample> split;
@@ -222,17 +242,10 @@ public class TreeExampleManager extends IncomingExampleManager {
             treeTheory.revisionLeaves = new ArrayList<>();
             targets = new ArrayList<>();
             for (Node<HornClause> leaf : entry.getValue()) {
-                Set<Example> target = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
+                RevisionExamples target = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
                 if (target != null && !target.isEmpty()) {
-                    try {
-                        //FIXME: create the RevisionExample on the TheoryTree
-                        RevisionExamples examples = new RevisionExamples(learningSystem, sampleSelector.copy());
-                        examples.addExample(target);
-                        targets.add(examples);
-                        treeTheory.revisionLeaves.add(leaf);
-                    } catch (InitializationException e) {
-                        logger.error(LogMessages.ERROR_REVISING_THEORY, e);
-                    }
+                    targets.add(target);
+                    treeTheory.revisionLeaves.add(leaf);
                 }
             }
             learningSystem.reviseTheory(targets);
