@@ -174,11 +174,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     @Override
-    public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
             Theory theory = learningSystem.getTheory().copy();
             for (Example example : targets) {
-                performOperationForExample(example, theory);
+                performOperationForExample(example, theory, targets);
             }
             return theory;
         } catch (KnowledgeException e) {
@@ -194,10 +194,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     /**
      * Performs the operation for a single example
      *
-     * @param example the example
-     * @param theory  the theory
+     * @param example            the example
+     * @param theory             the theory
+     * @param evaluationExamples the evaluation examples
      */
-    protected void performOperationForExample(Example example, Theory theory) {
+    protected void performOperationForExample(Example example, Theory theory,
+                                              Collection<? extends Example> evaluationExamples) {
         HornClause newRule;
         try {
             if (!example.isPositive() || isCovered(example, theory)) {
@@ -207,7 +209,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 return;
             }
             logger.info(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-            newRule = buildRuleForExample(example);
+            newRule = buildRuleForExample(evaluationExamples, example);
             if (theory.add(newRule)) {
                 logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
             }
@@ -237,11 +239,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     /**
      * Builds a {@link HornClause} from a target example, based on the Guimarães and Paes rule creation algorithm.
      *
-     * @param example the target example
+     * @param evaluationExamples the evaluation examples
+     * @param example            the target example
      * @return a {@link HornClause}
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    protected HornClause buildRuleForExample(Example example) throws TheoryRevisionException {
+    protected HornClause buildRuleForExample(Collection<? extends Example> evaluationExamples,
+                                             Example example) throws TheoryRevisionException {
         try {
             logger.debug(LogMessages.BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
             HornClause bottomClause = buildBottomClause(example);
@@ -250,7 +254,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
 
             logger.debug(LogMessages.EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
-            AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet());
+            AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet(),
+                                                                                          evaluationExamples);
             if (bestClause == null) {
                 logger.debug(LogMessages.ERROR_EVALUATING_MINIMAL_CLAUSES);
                 return null;
@@ -258,7 +263,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
 
             if (refine) {
                 logger.debug(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
-                bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap());
+                bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap(),
+                                        evaluationExamples);
             }
             return bestClause.getHornClause();
         } catch (Exception e) {
@@ -296,11 +302,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param initialClause       the initial minimal candidate clause
      * @param candidateLiterals   the candidate literals
      * @param initialSubstitution the initial substitution map
+     * @param evaluationExamples  the evaluation examples
      * @return a {@link AsyncTheoryEvaluator} containing the best {@link HornClause} found
      */
     @SuppressWarnings("OverlyLongMethod")
     protected AsyncTheoryEvaluator refineRule(AsyncTheoryEvaluator initialClause, Set<Literal> candidateLiterals,
-                                              Map<Term, Term> initialSubstitution) {
+                                              Map<Term, Term> initialSubstitution,
+                                              Collection<? extends Example> evaluationExamples) {
         Set<Literal> candidates = candidateLiterals;
         Map<Term, Term> substitutionMap = initialSubstitution;
         AsyncTheoryEvaluator bestClause = initialClause;
@@ -309,7 +317,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         while (!isToStopBySideWayMovements(sideWayMovements) && !candidates.isEmpty()) {
             candidates = HornClauseUtils.unifyCandidates(candidates, substitutionMap);
             candidates.removeAll(currentClause.getHornClause().getBody());
-            currentClause = specifyRule(currentClause.getHornClause(), candidates);
+            currentClause = specifyRule(currentClause.getHornClause(), candidates, evaluationExamples);
             if (currentClause == null) { break; }
             substitutionMap = currentClause.getSubstitutionMap();
             if (substitutionMap == null) { substitutionMap = new HashMap<>(); }
@@ -370,15 +378,17 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * the possible {@link Literal}s are tested. {@link Literal}s that make the {@link HornClause} unsafe are not
      * tested.
      *
-     * @param clause     the {@link HornClause}
-     * @param candidates the candidate {@link Literal}s
+     * @param clause             the {@link HornClause}
+     * @param candidates         the candidate {@link Literal}s
+     * @param evaluationExamples the evaluation examples
      * @return the best obtained clause
      */
-    protected AsyncTheoryEvaluator specifyRule(HornClause clause, Iterable<Literal> candidates) {
+    protected AsyncTheoryEvaluator specifyRule(HornClause clause, Iterable<Literal> candidates,
+                                               Collection<? extends Example> evaluationExamples) {
         Set<Pair<HornClause, Map<Term, Term>>> clauses =
                 HornClauseUtils.buildAllCandidatesFromClause(clause.getHead(), clause.getBody(), candidates);
 
-        return multithreading.getBestClausesFromCandidates(clauses);
+        return multithreading.getBestClausesFromCandidates(clauses, evaluationExamples);
     }
 
     /**
@@ -386,10 +396,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * success, the correspondent evaluation value is returned. If it fails, is returned the default value of the
      * metric, instead.
      *
+     * @param examples the examples
      * @return the evaluation value
      */
-    public double evaluateTheory() {
-        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
+    public double evaluateTheory(Collection<? extends Example> examples) {
+        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(examples,
                                                                   learningSystem.getTheoryEvaluator(), theoryMetric,
                                                                   evaluationTimeout);
         return evaluator.call().getEvaluation();

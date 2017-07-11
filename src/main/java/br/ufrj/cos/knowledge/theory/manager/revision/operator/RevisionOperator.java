@@ -32,6 +32,8 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 
+import java.util.Collection;
+
 /**
  * Responsible for changing the {@link Theory}.
  * <p>
@@ -69,7 +71,7 @@ public abstract class RevisionOperator implements Initializable {
      * @return the {@link Theory}
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public abstract Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException;
+    public abstract Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException;
 
     /**
      * Gets the {@link TheoryMetric}.

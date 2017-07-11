@@ -36,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -117,7 +118,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     public void revise(List<? extends RevisionExamples> revisionPoints) {
         theoryChanged = true;
-        revisionManager.reviseTheory(revisionPoints, theoryMetric, trainUsingAllExamples);
+        revisionManager.reviseTheory(revisionPoints, trainUsingAllExamples);
     }
 
     /**
@@ -126,20 +127,31 @@ public class TheoryRevisionManager implements Initializable {
      *
      * @param operatorSelector the operator selector
      * @param examples         the examples for the revision
-     * @param theoryMetric     the theory metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
-    public boolean applyRevision(RevisionOperatorSelector operatorSelector, RevisionExamples examples,
-                                 TheoryMetric theoryMetric) throws TheoryRevisionException {
-        if (theoryChanged) {
-            theoryEvaluation = learningSystem.evaluateTheory(this.theoryMetric);
-        }
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector,
+                                 RevisionExamples examples) throws TheoryRevisionException {
+        evaluateCurrentTheory(examples.getRelevantSample());
+        logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
+                     examples.getTrainingExamples(trainUsingAllExamples).size());
         RevisionOperatorEvaluator operatorEvaluator;
         operatorEvaluator = operatorSelector.selectOperator(examples.getTrainingExamples(trainUsingAllExamples),
                                                             theoryMetric);
         if (operatorEvaluator == null) { return false; }
         return applyRevision(operatorEvaluator, examples, theoryEvaluation, NO_IMPROVEMENT_THRESHOLD);
+    }
+
+    /**
+     * Evaluates the current theory, if necessary.
+     *
+     * @param examples the examples to be evaluated
+     */
+    protected void evaluateCurrentTheory(Collection<? extends Example> examples) {
+        //FIXME: take a look at the evaluation. Use the cache and the sample
+        if (theoryChanged) {
+            theoryEvaluation = learningSystem.evaluateTheory(this.theoryMetric, examples);
+        }
     }
 
     /**
@@ -156,11 +168,7 @@ public class TheoryRevisionManager implements Initializable {
     protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, RevisionExamples examples,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
-        logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
-                     examples.getTrainingExamples(trainUsingAllExamples).size());
-        //FIXME: take a look at the evaluation. Use the cache and the sample
-        double revised = operatorEvaluator.evaluateOperator(examples.getTrainingExamples(trainUsingAllExamples),
-                                                            theoryMetric);
+        double revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
 
         double improve = theoryMetric.difference(revised, currentEvaluation);
         LogMessages logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
@@ -170,7 +178,7 @@ public class TheoryRevisionManager implements Initializable {
             revisedTheory = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
             if (revisedTheory != null) {
                 learningSystem.setTheory(revisedTheory);
-                learningSystem.trainParameters(learningSystem.getExamples());
+                learningSystem.trainParameters(examples.getTrainingExamples(trainUsingAllExamples));
                 learningSystem.saveTrainedParameters();
                 operatorEvaluator.theoryRevisionAccepted(revisedTheory);
                 logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;

@@ -77,7 +77,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     }
 
     @Override
-    public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
             Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
             if (revisionLeaf.isRoot()) {
@@ -118,7 +118,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * @throws KnowledgeException in case of error during the operation
      */
     protected Theory addRuleToTheory(Node<HornClause> node,
-                                     Iterable<? extends Example> examples) throws KnowledgeException {
+                                     Collection<? extends Example> examples) throws KnowledgeException {
         return createSortedTheory(node, examples, false);
     }
 
@@ -133,7 +133,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * @throws KnowledgeException in case of error during the operation
      */
     protected Theory addLiteralToTheory(Node<HornClause> node,
-                                        Iterable<? extends Example> examples) throws KnowledgeException {
+                                        Collection<? extends Example> examples) throws KnowledgeException {
         return createSortedTheory(node, examples, true);
     }
 
@@ -147,7 +147,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * @return the new sorted theory
      * @throws KnowledgeException in case of error during the operation
      */
-    protected Theory createSortedTheory(Node<HornClause> node, Iterable<? extends Example> examples,
+    protected Theory createSortedTheory(Node<HornClause> node, Collection<? extends Example> examples,
                                         boolean removeOld) throws KnowledgeException {
         HornClause element = node.isRoot() ? new HornClause(node.getElement().getHead(), new Conjunction()) :
                 node.getElement();

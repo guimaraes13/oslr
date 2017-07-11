@@ -623,8 +623,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Logs the metrics.
      */
     protected void printMetrics() {
-        learningSystem.getExamples().addAll(examples);
-        List<Map.Entry<TheoryMetric, Double>> evaluations = new ArrayList<>(learningSystem.evaluate().entrySet());
+        List<Map.Entry<TheoryMetric, Double>> evaluations = new ArrayList<>(learningSystem.evaluate(examples)
+                                                                                    .entrySet());
         evaluations.sort(Comparator.comparing(o -> o.getKey().toString()));
         for (Map.Entry<TheoryMetric, Double> entry : evaluations) {
             logger.warn(LogMessages.EVALUATION_UNDER_METRIC.toString(), entry.getKey(), entry.getValue());
@@ -648,7 +648,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Call the method to revise the examples
      */
     protected void reviseExamples() {
-        //TODO: delegate this function to the ExampleStream
+        //IMPROVE: delegate this function to the ExampleStream
         for (Example example : examples) {
             learningSystem.incomingExampleManager.incomingExamples(example);
         }

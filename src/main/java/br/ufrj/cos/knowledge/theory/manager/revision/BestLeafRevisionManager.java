@@ -22,7 +22,6 @@
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.manager.TreeTheory;
-import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RevisionHeuristic;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
@@ -58,14 +57,14 @@ public class BestLeafRevisionManager extends RevisionManager {
     protected RevisionHeuristic revisionHeuristic;
 
     @Override
-    public void reviseTheory(List<? extends RevisionExamples> revisionPoints, TheoryMetric metric,
+    public void reviseTheory(List<? extends RevisionExamples> revisionPoints,
                              final boolean trainUsingAllExamples) {
         int totalRevision = getMaximumRevisionPoints(revisionPoints);
         List<Pair<Integer, ? extends RevisionExamples>> revisions = sortKeepingIndexes(revisionPoints,
                                                                                        trainUsingAllExamples);
         for (int i = 0; i < totalRevision; i++) {
             treeTheory.revisionLeafIndex = revisions.get(i).getKey();
-            callRevision(revisions.get(i).getValue(), metric);
+            callRevision(revisions.get(i).getValue());
         }
     }
 

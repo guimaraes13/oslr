@@ -22,6 +22,7 @@
 package br.ufrj.cos.util.multithreading;
 
 import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
@@ -88,16 +89,18 @@ public class MultithreadingEvaluation<V> {
      * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
      *
      * @param candidates the candidate clauses
+     * @param examples   the examples
      * @return the best evaluated {@link HornClause}
      */
-    public AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends V> candidates) {
+    public AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends V> candidates,
+                                                             Collection<? extends Example> examples) {
         if (candidates == null || candidates.isEmpty()) { return null; }
         AsyncTheoryEvaluator bestClause = null;
         int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
         try {
             logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
-            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool);
+            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool, examples);
 
             evaluationPool.shutdown();
             evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
@@ -116,14 +119,16 @@ public class MultithreadingEvaluation<V> {
      *
      * @param candidates     the candidates
      * @param evaluationPool the pool
+     * @param examples       the examples
      * @return the {@link Set} of {@link Future} evaluations.
      */
     protected Set<Future<AsyncTheoryEvaluator>> submitCandidates(Iterable<? extends V> candidates,
-                                                                 ExecutorService evaluationPool) {
+                                                                 ExecutorService evaluationPool,
+                                                                 Collection<? extends Example> examples) {
         Set<Future<AsyncTheoryEvaluator>> futures = new LinkedHashSet<>();
         AsyncTheoryEvaluator evaluator;
         for (V candidate : candidates) {
-            evaluator = new AsyncTheoryEvaluator(learningSystem.getExamples(),
+            evaluator = new AsyncTheoryEvaluator(examples,
                                                  learningSystem.getTheoryEvaluator(),
                                                  theoryMetric, evaluationTimeout);
             evaluator = transformer.transform(evaluator, candidate);

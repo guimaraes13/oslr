@@ -125,19 +125,21 @@ public class LearningSystem implements Initializable {
     /**
      * Evaluates the {@link Theory} against all the {@link TheoryMetric}s.
      *
+     * @param examples the examples
      * @return a {@link Map} with the evaluations per metric.
      */
-    public Map<TheoryMetric, Double> evaluate() {
-        return theoryEvaluator.evaluate();
+    public Map<TheoryMetric, Double> evaluate(Examples examples) {
+        return theoryEvaluator.evaluate(examples);
     }
 
     /**
      * Evaluates the {@link Theory} using the given {@link TheoryMetric}.
      *
-     * @param metric the {@link TheoryMetric}
+     * @param metric           the {@link TheoryMetric}
+     * @param examples the examples
      * @return the evaluation
      */
-    public synchronized double evaluateTheory(TheoryMetric metric) {
+    public synchronized double evaluateTheory(TheoryMetric metric, Collection<? extends Example> examples) {
         return theoryEvaluator.evaluateTheory(metric, examples);
     }
 

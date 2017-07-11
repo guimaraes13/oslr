@@ -47,7 +47,7 @@ import java.util.Iterator;
 public abstract class LiteralAppendOperator extends RevisionOperator {
 
     @Override
-    public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
             Theory theory = learningSystem.getTheory().copy();
             HornClause initialClause = buildEmptyClause(targets);
@@ -92,7 +92,7 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
      * @throws TheoryRevisionException in an error occurs during the revision
      */
     @SuppressWarnings("RedundantThrows")
-    public abstract HornClause buildExtendedHornClause(Iterable<? extends Example> examples,
+    public abstract HornClause buildExtendedHornClause(Collection<? extends Example> examples,
                                                        HornClause initialClause,
                                                        Collection<? extends Literal> equivalentLiterals)
             throws TheoryRevisionException;

@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision;
 
-import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.*;
@@ -64,13 +63,12 @@ public class RevisionManager implements Initializable {
      * The default implementation of this class do not look for those hints.
      *
      * @param revisionPoints        the revision points
-     * @param metric                the metric
      * @param trainUsingAllExamples if is to train using all examples or just the relevant sample
      */
-    public void reviseTheory(List<? extends RevisionExamples> revisionPoints, TheoryMetric metric,
+    public void reviseTheory(List<? extends RevisionExamples> revisionPoints,
                              final boolean trainUsingAllExamples) {
         for (RevisionExamples revision : revisionPoints) {
-            callRevision(revision, metric);
+            callRevision(revision);
         }
     }
 
@@ -79,12 +77,11 @@ public class RevisionManager implements Initializable {
      * examples.
      *
      * @param examples the revision examples
-     * @param metric   the metric
      * @return {@code true} if the revision was applied, {@code false} otherwise
      */
-    protected boolean callRevision(RevisionExamples examples, TheoryMetric metric) {
+    protected boolean callRevision(RevisionExamples examples) {
         try {
-            return theoryRevisionManager.applyRevision(operatorSelector, examples, metric);
+            return theoryRevisionManager.applyRevision(operatorSelector, examples);
         } catch (TheoryRevisionException e) {
             logger.error(LogMessages.ERROR_REVISING_THEORY, e);
         }

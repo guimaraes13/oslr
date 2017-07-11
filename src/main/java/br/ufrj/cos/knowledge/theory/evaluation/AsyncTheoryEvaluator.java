@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation;
 
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
@@ -31,6 +32,7 @@ import br.ufrj.cos.util.TimeMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -57,7 +59,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     protected final TheoryEvaluator theoryEvaluator;
     protected final TheoryMetric theoryMetric;
 
-    protected final Examples examples;
+    protected final Collection<? extends Example> examples;
 
     protected HornClause hornClause;
     protected Map<Term, Term> substitutionMap;
@@ -76,7 +78,8 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      * @param theoryMetric    the {@link TheoryMetric}
      * @param timeout         the maximum amount of time the thread is allowed to run
      */
-    public AsyncTheoryEvaluator(Examples examples, TheoryEvaluator theoryEvaluator, TheoryMetric theoryMetric,
+    public AsyncTheoryEvaluator(Collection<? extends Example> examples, TheoryEvaluator theoryEvaluator,
+                                TheoryMetric theoryMetric,
                                 int timeout) {
         this(examples, theoryEvaluator, theoryMetric);
         this.timeout = timeout;
@@ -89,7 +92,8 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
      * @param theoryEvaluator the {@link TheoryEvaluator}
      * @param theoryMetric    the {@link TheoryMetric}
      */
-    public AsyncTheoryEvaluator(Examples examples, TheoryEvaluator theoryEvaluator, TheoryMetric theoryMetric) {
+    public AsyncTheoryEvaluator(Collection<? extends Example> examples, TheoryEvaluator theoryEvaluator,
+                                TheoryMetric theoryMetric) {
         this.examples = examples;
         this.theoryEvaluator = theoryEvaluator;
         this.theoryMetric = theoryMetric;
@@ -127,7 +131,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     @Override
     public void run() {
         evaluationFinished = false;
-        evaluation = theoryEvaluator.evaluateTheory(theoryMetric, examples, hornClause);
+        evaluation = theoryEvaluator.evaluateTheoryAppendingClauses(theoryMetric, examples, hornClause);
         evaluationFinished = true;
     }
 

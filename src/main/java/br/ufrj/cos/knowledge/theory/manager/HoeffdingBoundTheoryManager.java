@@ -23,7 +23,6 @@ package br.ufrj.cos.knowledge.theory.manager;
 
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
-import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
@@ -31,6 +30,9 @@ import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.LogMessages;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 
@@ -45,6 +47,11 @@ import java.util.Collection;
  * @author Victor Guimarães
  */
 public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     /**
      * The default value of delta.
@@ -65,17 +72,17 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     @Override
-    public boolean applyRevision(RevisionOperatorSelector operatorSelector, RevisionExamples examples,
-                                 TheoryMetric theoryMetric) throws TheoryRevisionException {
+    public boolean applyRevision(RevisionOperatorSelector operatorSelector,
+                                 RevisionExamples examples) throws TheoryRevisionException {
         double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), examples.getRelevantSample().size());
-        //FIXME: is this update correct?
-        //FIXME: use the cache
-        if (theoryChanged) { theoryEvaluation = learningSystem.evaluateTheory(theoryMetric); }
+        evaluateCurrentTheory(examples.getRelevantSample());
         double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(theoryEvaluation);
         // tests if the best possible improvement is enough to pass the Hoeffding's threshold
         if (bestPossibleImprovement >= epsilon) {
             Collection<? extends Example> sample = examples.getTrainingExamples(trainUsingAllExamples);
             // calls the revision on the right threshold
+            logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
+                         examples.getTrainingExamples(trainUsingAllExamples).size());
             RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(sample, theoryMetric);
             if (operatorEvaluator == null) { return false; }
             return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);

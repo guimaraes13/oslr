@@ -96,11 +96,11 @@ public class TheoryEvaluator implements Initializable {
     /**
      * Evaluates the {@link Theory} against all its {@link TheoryMetric}s.
      *
+     * @param examples the examples
      * @return a {@link Map} of evaluations per metric
      */
-    public Map<TheoryMetric, Double> evaluate() {
+    public Map<TheoryMetric, Double> evaluate(Examples examples) {
         Map<TheoryMetric, Double> evaluations = new HashMap<>();
-        Examples examples = learningSystem.getExamples();
         Map<Example, Map<Atom, Double>> inferredExamples = inferExamples(examples, false);
         for (TheoryMetric metric : theoryMetrics) {
             evaluations.put(metric, metric.evaluate(inferredExamples, examples));
@@ -116,7 +116,7 @@ public class TheoryEvaluator implements Initializable {
      * @param retrain  if it is to retrain the parameters
      * @return the inferred examples
      */
-    protected Map<Example, Map<Atom, Double>> inferExamples(Examples examples, boolean retrain) {
+    protected Map<Example, Map<Atom, Double>> inferExamples(Collection<? extends Example> examples, boolean retrain) {
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (retrain) {
             evaluationResult = learningSystem.inferExampleTrainingParameters(examples);
@@ -135,7 +135,7 @@ public class TheoryEvaluator implements Initializable {
      * @param examples the {@link Examples}
      * @return the evaluation value
      */
-    public double evaluateTheory(TheoryMetric metric, Examples examples) {
+    public double evaluateTheory(TheoryMetric metric, Collection<? extends Example> examples) {
         return metric.evaluate(inferExamples(examples, metric.parametersRetrainedBeforeEvaluate), examples);
     }
 
@@ -170,7 +170,8 @@ public class TheoryEvaluator implements Initializable {
      * @param appendClauses new {@link HornClause}s to append to the theory.
      * @return the evaluation value
      */
-    public double evaluateTheory(TheoryMetric metric, Examples examples, HornClause... appendClauses) {
+    public double evaluateTheoryAppendingClauses(TheoryMetric metric, Collection<? extends Example> examples,
+                                                 HornClause... appendClauses) {
         Iterable<HornClause> iterable = Arrays.asList(appendClauses);
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (metric.parametersRetrainedBeforeEvaluate) {

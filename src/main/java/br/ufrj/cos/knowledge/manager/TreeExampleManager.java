@@ -225,6 +225,7 @@ public class TreeExampleManager extends IncomingExampleManager {
                 Set<Example> target = treeTheory.getExampleFromLeaf(entry.getKey(), leaf);
                 if (target != null && !target.isEmpty()) {
                     try {
+                        //FIXME: create the RevisionExample on the TheoryTree
                         RevisionExamples examples = new RevisionExamples(learningSystem, sampleSelector.copy());
                         examples.addExample(target);
                         targets.add(examples);

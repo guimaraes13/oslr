@@ -46,7 +46,7 @@ import java.util.LinkedHashSet;
 public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     @Override
-    public Theory performOperation(Iterable<? extends Example> targets) throws TheoryRevisionException {
+    public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
             Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
             if (revisionLeaf.isRoot()) {
