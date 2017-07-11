@@ -27,11 +27,9 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.TimeMeasure;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Class to keep the examples to be used on the revision.
@@ -45,6 +43,8 @@ public class RevisionExamples {
     protected final Collection<Example> incomingExamples;
     protected final Collection<Example> relevantSample;
     protected final Map<Example, Map<Atom, Double>> inferredExamples;
+    protected final Set<Example> notEvaluatedExamples;
+    protected long lastInference;
     protected LearningSystem learningSystem;
     protected RelevantSampleSelector sampleSelector;
 
@@ -61,6 +61,7 @@ public class RevisionExamples {
         this.incomingExamples = new HashSet<>();
         this.relevantSample = new HashSet<>();
         this.inferredExamples = new HashMap<>();
+        this.notEvaluatedExamples = new HashSet<>();
     }
 
     /**
@@ -128,6 +129,7 @@ public class RevisionExamples {
         incomingExamples.add(example);
         if (sampleSelector.isRelevant(example)) {
             relevantSample.add(example);
+            notEvaluatedExamples.add(example);
         }
     }
 
@@ -138,8 +140,11 @@ public class RevisionExamples {
      * @param inferred the inferred values of the examples
      */
     public void addExample(Example example, Map<Atom, Double> inferred) {
-        addExample(example);
-        inferredExamples.put(example, inferred);
+        incomingExamples.add(example);
+        if (sampleSelector.isRelevant(example)) {
+            relevantSample.add(example);
+            inferredExamples.put(example, inferred);
+        }
     }
 
     /**
@@ -167,12 +172,31 @@ public class RevisionExamples {
     }
 
     /**
-     * Gets the inferred examples.
+     * Gets the inferred examples. If the inferred examples were based on an older version of the theory, it is
+     * re-inferred.
      *
+     * @param theoryLastChange the time of the last change on the theory
      * @return the inferred examples
+     * @see TimeMeasure
      */
-    public Map<Example, Map<Atom, Double>> getInferredExamples() {
+    public Map<Example, Map<Atom, Double>> getInferredExamples(long theoryLastChange) {
+        if (theoryLastChange - lastInference < 0) {
+            clearInferredExamples();
+        }
+        if (!notEvaluatedExamples.isEmpty()) {
+            inferredExamples.putAll(learningSystem.inferExamples(notEvaluatedExamples));
+            notEvaluatedExamples.clear();
+            lastInference = TimeMeasure.getNanoTime();
+        }
         return inferredExamples;
+    }
+
+    /**
+     * Clears the cached inference values.
+     */
+    public void clearInferredExamples() {
+        inferredExamples.clear();
+        notEvaluatedExamples.addAll(relevantSample);
     }
 
     /**

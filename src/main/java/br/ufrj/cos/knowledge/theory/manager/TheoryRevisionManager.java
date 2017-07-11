@@ -36,7 +36,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -66,7 +65,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     @SuppressWarnings("CanBeFinal")
     public boolean trainUsingAllExamples = true;
-    protected boolean theoryChanged = false;
+    protected long theoryLastChange = TimeMeasure.getNanoTime();
     protected double theoryEvaluation;
 
     protected LearningSystem learningSystem;
@@ -117,7 +116,6 @@ public class TheoryRevisionManager implements Initializable {
      * @param revisionPoints the target {@link Example}s
      */
     public void revise(List<? extends RevisionExamples> revisionPoints) {
-        theoryChanged = true;
         revisionManager.reviseTheory(revisionPoints, trainUsingAllExamples);
     }
 
@@ -132,7 +130,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     public boolean applyRevision(RevisionOperatorSelector operatorSelector,
                                  RevisionExamples examples) throws TheoryRevisionException {
-        evaluateCurrentTheory(examples.getRelevantSample());
+        evaluateCurrentTheory(examples);
         logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
                      examples.getTrainingExamples(trainUsingAllExamples).size());
         RevisionOperatorEvaluator operatorEvaluator;
@@ -147,11 +145,10 @@ public class TheoryRevisionManager implements Initializable {
      *
      * @param examples the examples to be evaluated
      */
-    protected void evaluateCurrentTheory(Collection<? extends Example> examples) {
+    protected void evaluateCurrentTheory(RevisionExamples examples) {
         //FIXME: take a look at the evaluation. Use the cache and the sample
-        if (theoryChanged) {
-            theoryEvaluation = learningSystem.evaluateTheory(this.theoryMetric, examples);
-        }
+        theoryEvaluation = this.theoryMetric.evaluate(examples.getInferredExamples(theoryLastChange),
+                                                      examples.getRelevantSample());
     }
 
     /**
@@ -172,7 +169,7 @@ public class TheoryRevisionManager implements Initializable {
 
         double improve = theoryMetric.difference(revised, currentEvaluation);
         LogMessages logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
-        theoryChanged = false;
+        boolean theoryChanged = false;
         if (improve >= improvementThreshold) {
             Theory revisedTheory;
             revisedTheory = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
@@ -218,7 +215,6 @@ public class TheoryRevisionManager implements Initializable {
                                                    LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
-
     }
 
     /**
@@ -244,4 +240,5 @@ public class TheoryRevisionManager implements Initializable {
         }
         this.theoryMetric = theoryMetric;
     }
+
 }
