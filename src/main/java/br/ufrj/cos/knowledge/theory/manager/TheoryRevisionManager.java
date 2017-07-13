@@ -146,7 +146,6 @@ public class TheoryRevisionManager implements Initializable {
      * @param examples the examples to be evaluated
      */
     protected void evaluateCurrentTheory(RevisionExamples examples) {
-        //FIXME: take a look at the evaluation. Use the cache and the sample
         theoryEvaluation = this.theoryMetric.evaluate(examples.getInferredExamples(theoryLastChange),
                                                       examples.getRelevantSample());
     }

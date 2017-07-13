@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
@@ -53,7 +54,7 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
             HornClause initialClause = buildEmptyClause(targets);
             if (initialClause == null) { return theory; }
 
-            HornClause hornClause = buildExtendedHornClause(targets, initialClause, new HashSet<>());
+            HornClause hornClause = buildExtendedHornClause(targets, initialClause, new HashSet<>()).getHornClause();
             theory.add(hornClause);
             return theory;
         } catch (KnowledgeException e) {
@@ -92,9 +93,9 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
      * @throws TheoryRevisionException in an error occurs during the revision
      */
     @SuppressWarnings("RedundantThrows")
-    public abstract HornClause buildExtendedHornClause(Collection<? extends Example> examples,
-                                                       HornClause initialClause,
-                                                       Collection<? extends Literal> equivalentLiterals)
+    public abstract AsyncTheoryEvaluator buildExtendedHornClause(Collection<? extends Example> examples,
+                                                                 HornClause initialClause,
+                                                                 Collection<? extends Literal> equivalentLiterals)
             throws TheoryRevisionException;
 
 }

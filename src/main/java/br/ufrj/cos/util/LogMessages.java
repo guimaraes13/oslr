@@ -61,6 +61,7 @@ public enum LogMessages {
     //One additional parameters to format
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
+    RULE_PROPOSED_TO_THEORY("Rule proposed to be add to the theory:\t{}"),
 
     ERROR_PROVING_GOAL("Could not prove the goal:\t{}"),
     COMMAND_LINE_ARGUMENTS("Command line arguments:\t{}"),
@@ -82,6 +83,8 @@ public enum LogMessages {
     BUILDING_CLAUSE_FROM_EXAMPLE("Building clause from the example:\t{}"),
     BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
     REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
+    REFINING_RULE("Refining rule :\t{}"),
+    PROPOSED_REFINED_RULE("Proposed refined rule:\t{}"),
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
     TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),

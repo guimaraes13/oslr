@@ -106,8 +106,9 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
     }
 
     @Override
-    public HornClause buildExtendedHornClause(Collection<? extends Example> examples, HornClause initialClause,
-                                              Collection<? extends Literal> equivalentLiterals)
+    public AsyncTheoryEvaluator buildExtendedHornClause(Collection<? extends Example> examples,
+                                                        HornClause initialClause,
+                                                        Collection<? extends Literal> equivalentLiterals)
             throws TheoryRevisionException {
         try {
             HornClause substitutionClause = buildSubstitutionClause(initialClause);
@@ -120,8 +121,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
                                                                      inferredExamples, skipCandidates);
             if (literals.isEmpty()) { return null; }
             literalTransformer.setInitialClause(initialClause);
-            AsyncTheoryEvaluator bestCandidate = multithreading.getBestClausesFromCandidates(literals, examples);
-            return bestCandidate != null ? bestCandidate.getHornClause() : null;
+            return multithreading.getBestClausesFromCandidates(literals, examples);
         } catch (RuntimeException e) {
             logger.trace(ExceptionMessages.ERROR_APPENDING_LITERAL.toString(), e);
         }
@@ -190,6 +190,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
         for (Literal literal : initialClause.getBody()) {
             skipCandidate.add(new EquivalentAtom(literal, fixedTerms));
         }
+        if (equivalentLiterals == null) { return skipCandidate; }
         for (Literal literal : equivalentLiterals) {
             skipCandidate.add(new EquivalentAtom(literal, fixedTerms));
         }

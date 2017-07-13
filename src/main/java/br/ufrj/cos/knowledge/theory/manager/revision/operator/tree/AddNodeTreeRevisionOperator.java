@@ -26,14 +26,19 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.manager.Node;
 import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.LiteralAppendOperator;
+import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.LogMessages;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -46,6 +51,54 @@ import java.util.*;
  */
 public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    /**
+     * Represents a constant for no maximum side way movements.
+     */
+    public static final int NO_MAXIMUM_SIDE_WAY_MOVEMENTS = -1;
+
+    /**
+     * The default value for {@link #improvementThreshold}.
+     */
+    public static final double DEFAULT_IMPROVEMENT_THRESHOLD = 0.0;
+    /**
+     * Flag to specify if the rule must be refined or not.
+     */
+    public boolean refine = false;
+    /**
+     * Represents the maximum side way movements, i.e. the number of {@link Literal} that will be added to the body
+     * of the {@link HornClause} without improving the metric.
+     * <p>
+     * If the metric improves by adding a {@link Literal} to the body, it not counts as a side way movements.
+     * <p>
+     * If it is {@link #NO_MAXIMUM_SIDE_WAY_MOVEMENTS}, it means there is no maximum side way
+     * movements, it will be limited by the size of the bottom clause.
+     */
+    public int maximumSideWayMovements = NO_MAXIMUM_SIDE_WAY_MOVEMENTS;
+    /**
+     * The minimal necessary difference, between and current {@link HornClause} evaluation and a new candidate one,
+     * to be considered as improvement. If the threshold is not met, it is considered a side way movement.
+     * <p>
+     * Use a threshold of 0 and {@link #maximumSideWayMovements} of {@link #NO_MAXIMUM_SIDE_WAY_MOVEMENTS} to allow the
+     * search to test all possible {@link HornClause}s.
+     * <p>
+     * Use a threshold of {@code e} and {@link #maximumSideWayMovements} of 0 to stop as soon as a {@link HornClause}
+     * does
+     * not improves more than {@code e}.
+     */
+    public double improvementThreshold = DEFAULT_IMPROVEMENT_THRESHOLD;
+    /**
+     * Flag to specify which {@link HornClause} will be returned in case of a tie in the evaluation metric.
+     * <p>
+     * If it is {@code true}, the most generic one will be returned (i.e. the smallest).
+     * <p>
+     * If it is {@code false}, the most specific one will be returned (i.e. the largest).
+     */
+    public boolean generic = true;
     protected HornClause revisedClause;
     protected LiteralAppendOperator appendOperator;
 
@@ -99,12 +152,35 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     public void theoryRevisionAccepted(Theory revised) {
         Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
         if (revisionLeaf.isDefaultChild()) { revisionLeaf = revisionLeaf.getParent(); }
+        Conjunction initialBody;
         if (revisionLeaf.isRoot() && TreeTheory.isDefaultTheory(revisionLeaf)) {
             // turns into true theory
             revisionLeaf.getElement().getBody().clear();
             revisionLeaf.getElement().getBody().add(Literal.TRUE_LITERAL);
+            initialBody = new Conjunction();
+        } else {
+            initialBody = revisionLeaf.getElement().getBody();
         }
-        TreeTheory.addNodeToTree(revisionLeaf, revisedClause);
+        addNodesToTree(revisionLeaf, initialBody);
+    }
+
+    /**
+     * Adds the nodes from the modified clause to the tree.
+     *
+     * @param revisionLeaf the revised leaf
+     * @param initialBody  the initial body
+     */
+    protected void addNodesToTree(Node<HornClause> revisionLeaf, Conjunction initialBody) {
+        Atom head = revisionLeaf.getElement().getHead();
+        Conjunction currentBody;
+        Node<HornClause> node = revisionLeaf;
+        for (Literal literal : revisedClause.getBody()) {
+            if (initialBody.contains(literal)) { continue; }
+            currentBody = new Conjunction(initialBody.size() + 1);
+            currentBody.addAll(initialBody);
+            currentBody.add(literal);
+            node = TreeTheory.addNodeToTree(node, new HornClause(head, currentBody));
+        }
     }
 
     /**
@@ -151,18 +227,74 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                                         boolean removeOld) throws KnowledgeException {
         HornClause element = node.isRoot() ? new HornClause(node.getElement().getHead(), new Conjunction()) :
                 node.getElement();
-        HornClause hornClause = appendOperator.buildExtendedHornClause(examples, element,
-                                                                       buildRedundantLiterals(node));
+        AsyncTheoryEvaluator hornClause = appendOperator.buildExtendedHornClause(examples, element,
+                                                                                 buildRedundantLiterals(node));
+        if (refine) {
+            hornClause = refineClause(hornClause, examples);
+        }
         if (hornClause == null) { return null; }
-        revisedClause = hornClause;
+        revisedClause = hornClause.getHornClause();
+        logger.debug(LogMessages.RULE_PROPOSED_TO_THEORY.toString(), revisedClause);
         Theory theory = learningSystem.getTheory().copy();
+        theory.add(revisedClause);
         if (removeOld) { theory.remove(node.getElement()); }
-        theory.add(hornClause);
 
         List<HornClause> clauses = new ArrayList<>(theory);
         clauses.sort(Comparator.comparing(LanguageUtils::formatHornClause));
 
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
+    }
+
+    /**
+     * Refines the clause. It starts from the initialClause and adds a {@link Literal} at time into its body.
+     * At each time, getting the best possible {@link HornClause}. It finishes when one of the following criteria is
+     * met:
+     * <p>
+     * 1) The addition of another {@link Literal} does not improves the {@link HornClause} in
+     * {@link #maximumSideWayMovements} times;
+     * <br>
+     * 2) There is no more possible addition to make;
+     * <p>
+     * After it finishes, it return the best {@link HornClause} found, based on the {@link #generic} criteria.
+     *
+     * @param initialClause the initial candidate clause
+     * @param examples      the examples
+     * @return a {@link AsyncTheoryEvaluator} containing the best {@link HornClause} found
+     * @throws TheoryRevisionException in case of error during the append of new literals
+     */
+    protected AsyncTheoryEvaluator refineClause(AsyncTheoryEvaluator initialClause,
+                                                Collection<? extends Example> examples) throws TheoryRevisionException {
+        logger.debug(LogMessages.REFINING_RULE.toString(), initialClause);
+        int sideWayMovements = 0;
+        AsyncTheoryEvaluator best = initialClause;
+        AsyncTheoryEvaluator current = initialClause;
+        while (!isToStopBySideWayMovements(sideWayMovements)) {
+            current = appendOperator.buildExtendedHornClause(examples, current.getHornClause(), null);
+            if (current == null) {
+                break;
+            }
+            logger.trace(LogMessages.PROPOSED_REFINED_RULE.toString(), current);
+            if (theoryMetric.difference(current.getEvaluation(), best.getEvaluation()) > improvementThreshold) {
+                best = current;
+                sideWayMovements = 0;
+            } else {
+                sideWayMovements++;
+                if (theoryMetric.difference(current.getEvaluation(), best.getEvaluation()) >= 0.0 && !generic) {
+                    best = current;
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Checks if is to stop due to much iterations without improvements.
+     *
+     * @param sideWayMovements the number of iterations without improvements
+     * @return {@code true} if it is to stop, {@code false} if it is to continue
+     */
+    protected boolean isToStopBySideWayMovements(int sideWayMovements) {
+        return maximumSideWayMovements > NO_MAXIMUM_SIDE_WAY_MOVEMENTS && sideWayMovements > maximumSideWayMovements;
     }
 
     /**

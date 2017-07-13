@@ -188,4 +188,10 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     public void setSubstitutionMap(Map<Term, Term> substitutionMap) {
         this.substitutionMap = substitutionMap;
     }
+
+    @Override
+    public String toString() {
+        return hornClause.toString();
+    }
+    
 }
