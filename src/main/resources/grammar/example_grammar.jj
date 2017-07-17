@@ -29,11 +29,13 @@ PARSER_BEGIN(ExampleParser)
 
 package br.ufrj.cos.logic.parser.example;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
-import br.ufrj.cos.knowledge.example.Example;
-import br.ufrj.cos.knowledge.example.ProPprExampleSet;
+import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.*;
 
 /**
@@ -45,6 +47,8 @@ public class ExampleParser {
 
 	protected List probLogFormatExamples;
 	protected List proPprFormatExamples;
+
+//	public Map constantMap = new HashMap();
 
 	public List getProbLogFormatExamples() {
 		return probLogFormatExamples;
@@ -134,7 +138,7 @@ void readProbLogExample(List examples) :
 		{positive = false;}
 	)
 	<CLOSE_PREDICATE_ARGUMENT> <END_OF_LINE_CHARACTER>
-	{examples.add(new Example(atom, positive));}
+	{examples.add(new AtomExample(atom, positive));}
 }
 
 void readProPprExample(List proPprExamples) :
@@ -155,9 +159,9 @@ void readProPprExample(List proPprExamples) :
 			{positive = false;}
 		)
 		example = readAtom()
-		{examples.add(new Example(example, positive));}
+		{examples.add(new AtomExample(example, positive));}
 	)+
-	{proPprExamples.add(new ProPprExampleSet(goal, examples));}
+	{proPprExamples.add(new ProPprExample(goal, examples));}
 }
 
 Atom readAtom() :
@@ -208,7 +212,16 @@ Term readConstant() :
 		// removing surrounding quotes
 		{token.image = token.image.substring(1, token.image.length() - 1);}
 	)
-	{return new Constant(token.image);}
+	{
+//	    Object logicConstant = constantMap.get(token.image);
+//     	if (logicConstant == null) {
+//            logicConstant = new Constant(token.image);
+//            constantMap.put(token.image, logicConstant);
+//        }
+//
+//        return (Constant) logicConstant;
+        return new Constant(token.image);
+    }
 }
 
 Term readVariable() :

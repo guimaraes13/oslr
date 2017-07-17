@@ -31,10 +31,10 @@ package br.ufrj.cos.logic.parser.knowledge;
 
 import br.ufrj.cos.logic.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Created on 15/04/17.
@@ -42,6 +42,8 @@ import java.util.Map;
  * @author Victor Guimarães
  */
 public class KnowledgeParser {
+
+    public Map constantMap = new HashMap();
 
 }
 
@@ -151,7 +153,8 @@ void readKnowledgeLine(List clauses) :
 				{
 					features = new ArrayList();
 				}
-				[readFeature(features, variableMap) (<LIST_SEPARATOR> readFeature(features, variableMap))*]
+				[readFeature(features, variableMap)
+				(<LIST_SEPARATOR> readFeature(features, variableMap))*]
 				<CLOSE_FEATURES>
 			]
 			// end of line character, it is a Horn clause, with a possibly empty body, returns it
@@ -187,7 +190,8 @@ Atom readAtom(Map variableMap) :
 }
 {
 	predicate = readPredicate()
-	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms, variableMap) (<LIST_SEPARATOR> readTerm(terms, variableMap))*  <CLOSE_PREDICATE_ARGUMENT>]
+	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms, variableMap)
+	(<LIST_SEPARATOR> readTerm(terms, variableMap))*  <CLOSE_PREDICATE_ARGUMENT>]
 	{
 		return new Atom(predicate, terms);
 	}
@@ -245,7 +249,15 @@ Term readConstant() :
 		// removing surrounding quotes
 		{token.image = token.image.substring(1, token.image.length() - 1);}
 	)
-	{return new Constant(token.image);}
+	{
+	    Object logicConstant = constantMap.get(token.image);
+	    if (logicConstant == null) {
+	        logicConstant = new Constant(token.image);
+	        constantMap.put(token.image, logicConstant);
+	    }
+
+	    return (Constant) logicConstant;
+	}
 }
 
 Term readVariable(Map variableMap) :
