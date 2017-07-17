@@ -21,13 +21,11 @@
 
 package br.ufrj.cos.cli;
 
-import br.ufrj.cos.util.Initializable;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.*;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.commons.cli.*;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,9 +37,10 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Represents classes that implements the main method and so have input options
@@ -114,40 +113,74 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static final String[] EMPTY_STRING = new String[0];
     /**
+     * The output arguments file name.
+     */
+    public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
+    /**
+     * The output configuration file name.
+     */
+    public static final String CONFIG_FILE_NAME = "configuration.yaml";
+    /**
+     * The name of the file that logs the output.
+     */
+    public static final String STDOUT_LOG_FILE_NAME = "output.txt";
+    /**
+     * The build properties file
+     */
+    public static final String BUILD_PROPERTIES_FILE = "src/main/resources/build.properties";
+    /**
+     * The default value for boolean properties
+     */
+    public static final String DEFAULT_BOOLEAN_VALUE = "false";
+    /**
+     * The has tag property name
+     */
+    public static final String HAS_TAG_PROPERTY = "hasTag";
+    /**
+     * The tag property name
+     */
+    public static final String TAG_PROPERTY = "tag";
+    /**
+     * The files property name
+     */
+    public static final String FILES_PROPERTY = "files";
+    /**
+     * The change files property name
+     */
+    public static final String CHANGED_FILES_PROPERTY = "changedFiles";
+    /**
+     * The has untracked files property name
+     */
+    public static final String HAS_UNTRACKED_FILES_PROPERTY = "hasUntrackedFiles";
+    /**
+     * The untracked files property name
+     */
+    public static final String UNTRACKED_FILES_PROPERTY = "untrackedFiles";
+    /**
+     * The default value for the untracked files property
+     */
+    public static final String UNTRACKED_FILES_DEFAULT_VALUE = "untracked files";
+    /**
+     * The revision property name
+     */
+    public static final String COMMIT_PROPERTY = "commit";
+    /**
      * The configuration file path.
      */
     public String configurationFilePath;
-
+    /**
+     * The output directory to save the files in.
+     */
+    public String outputDirectoryPath;
     protected Options options;
     /**
      * The command line arguments.
      */
     protected String[] cliArguments;
-
     /**
-     * Adds a file appender to the output file name.
-     *
-     * @param outputFileName the file name.
+     * The output directory to save the files in.
      */
-    @SuppressWarnings({"unchecked", "deprecation"})
-    protected static void addAppender(final String outputFileName) {
-        final LoggerContext context = LoggerContext.getContext(false);
-        final Configuration config = context.getConfiguration();
-        final Layout layout = PatternLayout.createLayout(PATTERN_LAYOUT, null, config, null,
-                                                         null, true, true,
-                                                         null, null);
-        final Appender appender = FileAppender.createAppender(outputFileName, APPEND_LOG_FILE, LOCKING_LOG_FILE,
-                                                              FILE_APPENDER_NAME, IMMEDIATE_FLUSH_LOG_FILE,
-                                                              IGNORE_EXCEPTIONS_LOG_FILE, BUFFERED_IO_LOG_FILE,
-                                                              BUFFER_SIZE_LOG_FILE, layout, null,
-                                                              ADVERTISE_LOG_FILE, null, config);
-        appender.start();
-        config.addAppender(appender);
-        final Level level = null;
-        final Filter filter = null;
-        config.getRootLogger().addAppender(appender, level, filter);
-        config.getRootLogger().addAppender(appender, level, filter);
-    }
+    protected File outputDirectory;
 
     /**
      * Runs the main program
@@ -183,6 +216,8 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         File yamlFile;
         if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
             yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
+        } else if (defaultConfigurationFile == null) {
+            throw new FileNotFoundException(ExceptionMessages.ERROR_NO_YAML_FILE.toString());
         } else {
             yamlFile = new File(defaultConfigurationFile);
         }
@@ -209,6 +244,120 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     }
 
     /**
+     * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
+     *
+     * @param commandLine the parsed command line
+     * @param optionName  the {@link Option} to get the parsed {@link String}s.
+     * @return the {@link File}s
+     */
+    protected static String[] getFilesFromOption(CommandLine commandLine, String optionName) {
+        if (commandLine.hasOption(optionName)) {
+            return commandLine.getOptionValues(optionName);
+        }
+
+        return EMPTY_STRING;
+    }
+
+    /**
+     * Logs the configurations from the configuration file.
+     *
+     * @throws InitializationException if an error occurs with the file
+     */
+    protected void saveConfigurations() throws InitializationException {
+        try {
+            String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
+            buildOutputDirectory(configFileContent);
+            addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
+            logCommittedVersion();
+            File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
+            String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
+                                                                    configurationFile.getCanonicalPath());
+            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
+            LanguageUtils.writeStringToFile(configFileContent, configurationFile);
+
+            logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
+                        Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
+            logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
+        } catch (IOException e) {
+            throw new InitializationException(e);
+        }
+    }
+
+    /**
+     * Builds the output directory.
+     *
+     * @param configFileContent the configuration file content
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    protected void buildOutputDirectory(String configFileContent) {
+        if (this.outputDirectoryPath != null) {
+            outputDirectory = new File(this.outputDirectoryPath);
+        } else {
+            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
+            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
+        }
+        outputDirectory.mkdirs();
+    }
+
+    /**
+     * Adds a file appender to the output file name.
+     *
+     * @param outputFileName the file name.
+     */
+    @SuppressWarnings({"unchecked", "deprecation"})
+    protected static void addAppender(final String outputFileName) {
+        final LoggerContext context = LoggerContext.getContext(false);
+        final Configuration config = context.getConfiguration();
+        final Layout layout = PatternLayout.createLayout(PATTERN_LAYOUT, null, config, null,
+                                                         null, true, true,
+                                                         null, null);
+        final Appender appender = FileAppender.createAppender(outputFileName, APPEND_LOG_FILE, LOCKING_LOG_FILE,
+                                                              FILE_APPENDER_NAME, IMMEDIATE_FLUSH_LOG_FILE,
+                                                              IGNORE_EXCEPTIONS_LOG_FILE, BUFFERED_IO_LOG_FILE,
+                                                              BUFFER_SIZE_LOG_FILE, layout, null,
+                                                              ADVERTISE_LOG_FILE, null, config);
+        appender.start();
+        config.addAppender(appender);
+        final Level level = null;
+        final Filter filter = null;
+        config.getRootLogger().addAppender(appender, level, filter);
+        config.getRootLogger().addAppender(appender, level, filter);
+    }
+
+    /**
+     * Logs the committed version.
+     */
+    protected static void logCommittedVersion() {
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            input = new FileInputStream(BUILD_PROPERTIES_FILE);
+            prop.load(input);
+            logCommit(prop);
+            boolean changed;
+            changed = isLoggedChangedFiles(prop.getProperty(CHANGED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
+                                           prop.getProperty(FILES_PROPERTY, FILES_PROPERTY),
+                                           LogMessages.UNCOMMITTED_FILE.toString());
+            changed |= isLoggedChangedFiles(prop.getProperty(HAS_UNTRACKED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
+                                            prop.getProperty(UNTRACKED_FILES_PROPERTY, UNTRACKED_FILES_DEFAULT_VALUE),
+                                            LogMessages.UNTRACKED_FILE.toString());
+            if (!changed) {
+                logger.info(LogMessages.ALL_FILES_COMMITTED.toString());
+            }
+        } catch (IOException e) {
+            logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+                }
+            }
+        }
+    }
+
+    /**
      * Formats an array of command line arguments appending a configuration file at the end.
      *
      * @param arguments    the input arguments
@@ -226,6 +375,39 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
         for (String optionValue : optionValues) { stringBuilder.append(optionValue); }
         return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Logs the commit
+     *
+     * @param prop the properties
+     */
+    protected static void logCommit(Properties prop) {
+        String commit = prop.getProperty(COMMIT_PROPERTY);
+        boolean hasTag = Boolean.parseBoolean(prop.getProperty(HAS_TAG_PROPERTY, DEFAULT_BOOLEAN_VALUE));
+        if (hasTag) {
+            logger.info(LogMessages.COMMITTED_VERSION_WITH_TAG.toString(),
+                        prop.getProperty(TAG_PROPERTY, TAG_PROPERTY), commit);
+        } else {
+            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit);
+        }
+    }
+
+    /**
+     * Logs the changed files
+     *
+     * @param hasProperty the has property value
+     * @param property    the property value
+     * @param message     the message
+     * @return {@code true} if there was(were) changed files.
+     */
+    protected static boolean isLoggedChangedFiles(String hasProperty, String property, String message) {
+        boolean changedFiles = Boolean.parseBoolean(hasProperty);
+        if (changedFiles) {
+            logger.warn(message, property);
+        }
+
+        return changedFiles;
     }
 
     /**
@@ -252,21 +434,6 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
                 i++;
             }
         }
-    }
-
-    /**
-     * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
-     *
-     * @param commandLine the parsed command line
-     * @param optionName  the {@link Option} to get the parsed {@link String}s.
-     * @return the {@link File}s
-     */
-    protected static String[] getFilesFromOption(CommandLine commandLine, String optionName) {
-        if (commandLine.hasOption(optionName)) {
-            return commandLine.getOptionValues(optionName);
-        }
-
-        return EMPTY_STRING;
     }
 
     /**

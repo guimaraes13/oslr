@@ -321,6 +321,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
                                                program, factsPlugin);
         this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
+        //IMPROVE: set srw random seed
         this.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
         this.trainer = new Trainer(srw, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
         this.savedParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,

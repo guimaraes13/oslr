@@ -100,7 +100,7 @@ public enum LogMessages {
     ANSWERING_QUERY("Answering query:\t{}"),
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
 
-    ERROR_READING_FILE("Error when reading file {}, reason:"),
+    ERROR_READING_FILE("Error when reading file, reason: {}"),
     ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:"),
 
     //Two additional parameters to format
@@ -108,7 +108,7 @@ public enum LogMessages {
     COMMITTED_VERSION_WITH_TAG("This run is based on the commit of tag {} and hash {}."),
     ALL_FILES_COMMITTED("There is no file uncommitted or untracked during this running."),
     UNCOMMITTED_FILE("The following file(s) was(were) not committed during this running:\t{}"),
-    UNTRACKED_FILE("The following file(s) was(were) not tracked during this running:\t\t{}"),
+    UNTRACKED_FILE("The following file(s) was(were) not tracked during this running:\t{}"),
     EVALUATED_TIMEOUT_PROPORTION("{}% out of {} rules has finished the evaluation within the timeout."),
     EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),

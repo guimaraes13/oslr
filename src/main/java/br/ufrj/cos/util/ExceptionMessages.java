@@ -48,6 +48,7 @@ public enum ExceptionMessages {
 
     //Two additional parameters to format
     ERROR_APPENDING_LITERAL("Error when appending literal to initial clause, reason:\t{}"),
+    ERROR_NO_YAML_FILE("Yaml configuration file is not setted."),
     FILE_NOT_EXISTS("File {} for {} does not exists.");
 
     protected final String message;

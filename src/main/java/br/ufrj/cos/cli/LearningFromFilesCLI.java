@@ -61,14 +61,12 @@ import br.ufrj.cos.util.*;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A Command Line Interface which allows experiments of learning from files.
@@ -85,49 +83,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public static final Logger logger = LogManager.getLogger();
     /**
-     * The build properties file
-     */
-    public static final String BUILD_PROPERTIES_FILE = "src/main/resources/build.properties";
-    /**
-     * The default value for boolean properties
-     */
-    public static final String DEFAULT_BOOLEAN_VALUE = "false";
-    /**
-     * The has tag property name
-     */
-    public static final String HAS_TAG_PROPERTY = "hasTag";
-    /**
-     * The tag property name
-     */
-    public static final String TAG_PROPERTY = "tag";
-    /**
-     * The files property name
-     */
-    public static final String FILES_PROPERTY = "files";
-    /**
-     * The change files property name
-     */
-    public static final String CHANGED_FILES_PROPERTY = "changedFiles";
-    /**
-     * The has untracked files property name
-     */
-    public static final String HAS_UNTRACKED_FILES_PROPERTY = "hasUntrackedFiles";
-    /**
-     * The untracked files property name
-     */
-    public static final String UNTRACKED_FILES_PROPERTY = "untrackedFiles";
-    /**
-     * The default value for the untracked files property
-     */
-    public static final String UNTRACKED_FILES_DEFAULT_VALUE = "untracked files";
-    /**
      * The default yaml configuration file.
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
-    /**
-     * The revision property name
-     */
-    public static final String COMMIT_PROPERTY = "commit";
     /**
      * The timestamp format
      */
@@ -136,18 +94,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The name of the saved theory file.
      */
     public static final String THEORY_FILE_NAME = "theory.pl";
-    /**
-     * The output configuration file name.
-     */
-    public static final String CONFIG_FILE_NAME = "configuration.yaml";
-    /**
-     * The output arguments file name.
-     */
-    public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
-    /**
-     * The name of the file that logs the output.
-     */
-    public static final String STDOUT_LOG_FILE_NAME = "output.txt";
     /**
      * The knowledge base collection class name.
      */
@@ -192,10 +138,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Input example files.
      */
     public String[] exampleFilePaths;
-    /**
-     * The output directory to save the files in.
-     */
-    public String outputDirectoryPath;
     /**
      * The evaluation metrics for the {@link TheoryEvaluator}.
      */
@@ -279,10 +221,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The learning system.
      */
     protected LearningSystem learningSystem;
-    /**
-     * The output directory to save the files in.
-     */
-    protected File outputDirectory;
 
     /**
      * The main method
@@ -317,7 +255,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             parser = new KnowledgeParser(reader);
             parser.parseKnowledgeAppend(clauses);
         } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
-            logger.error(LogMessages.ERROR_READING_FILE.toString(), file.getAbsoluteFile(), e);
+            logger.error(LogMessages.ERROR_READING_FILE.toString(), e);
         }
     }
 
@@ -340,7 +278,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             parser.parseExamplesAppend(atomExamples, proPprExamples);
         } catch (UnsupportedEncodingException | FileNotFoundException | br.ufrj.cos.logic.parser.example
                 .ParseException e) {
-            logger.error(LogMessages.ERROR_READING_FILE.toString(), file.getAbsoluteFile(), e);
+            logger.error(LogMessages.ERROR_READING_FILE.toString(), e);
         }
     }
 
@@ -447,113 +385,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         } catch (ClassNotFoundException e) {
             throw new InitializationException(ExceptionMessages.ERROR_GETTING_CLASS_BY_NAME.toString(), e);
         }
-    }
-
-    /**
-     * Logs the configurations from the configuration file.
-     *
-     * @throws InitializationException if an error occurs with the file
-     */
-    public void saveConfigurations() throws InitializationException {
-        try {
-            String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
-            buildOutputDirectory(configFileContent);
-            addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
-            logCommittedVersion();
-            File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
-            String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
-                                                                    configurationFile.getCanonicalPath());
-            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
-            LanguageUtils.writeStringToFile(configFileContent, configurationFile);
-
-            logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
-                        Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
-            logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
-        } catch (IOException e) {
-            throw new InitializationException(e);
-        }
-    }
-
-    /**
-     * Builds the output directory.
-     *
-     * @param configFileContent the configuration file content
-     */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    protected void buildOutputDirectory(String configFileContent) {
-        if (outputDirectoryPath != null) {
-            outputDirectory = new File(outputDirectoryPath);
-        } else {
-            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
-            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
-        }
-        outputDirectory.mkdirs();
-    }
-
-    /**
-     * Logs the committed version.
-     */
-    protected static void logCommittedVersion() {
-        Properties prop = new Properties();
-        InputStream input = null;
-        try {
-            input = new FileInputStream(BUILD_PROPERTIES_FILE);
-            prop.load(input);
-            logCommit(prop);
-            boolean changed;
-            changed = isLoggedChangedFiles(prop.getProperty(CHANGED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
-                                           prop.getProperty(FILES_PROPERTY, FILES_PROPERTY),
-                                           LogMessages.UNCOMMITTED_FILE.toString());
-            changed |= isLoggedChangedFiles(prop.getProperty(HAS_UNTRACKED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
-                                            prop.getProperty(UNTRACKED_FILES_PROPERTY, UNTRACKED_FILES_DEFAULT_VALUE),
-                                            LogMessages.UNTRACKED_FILE.toString());
-            if (!changed) {
-                logger.info(LogMessages.ALL_FILES_COMMITTED.toString());
-            }
-        } catch (IOException e) {
-            logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Logs the commit
-     *
-     * @param prop the properties
-     */
-    protected static void logCommit(Properties prop) {
-        String commit = prop.getProperty(COMMIT_PROPERTY);
-        boolean hasTag = Boolean.parseBoolean(prop.getProperty(HAS_TAG_PROPERTY, DEFAULT_BOOLEAN_VALUE));
-        if (hasTag) {
-            logger.info(LogMessages.COMMITTED_VERSION_WITH_TAG.toString(),
-                        prop.getProperty(TAG_PROPERTY, TAG_PROPERTY), commit);
-        } else {
-            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit);
-        }
-    }
-
-    /**
-     * Logs the changed files
-     *
-     * @param hasProperty the has property value
-     * @param property    the property value
-     * @param message     the message
-     * @return {@code true} if there was(were) changed files.
-     */
-    protected static boolean isLoggedChangedFiles(String hasProperty, String property, String message) {
-        boolean changedFiles = Boolean.parseBoolean(hasProperty);
-        if (changedFiles) {
-            logger.warn(message, property);
-        }
-
-        return changedFiles;
     }
 
     @Override
