@@ -146,15 +146,19 @@ public final class LanguageUtils {
     /**
      * The true argument to simulate the true boolean value.
      */
-    public static final String TRUE_PREDICATE = TRUE_ARGUMENT;
+    public static final Predicate TRUE_PREDICATE = new Predicate(TRUE_ARGUMENT, 1);
     /**
-     * The false predicate to simulate the false boolean value.
+     * The arity of the true and false predicates.
      */
-    public static final String FALSE_PREDICATE = "false";
+    public static final int PREDICATE_ARITY = 1;
     /**
      * The false argument to simulate the false boolean value.
      */
     private static final String FALSE_ARGUMENT = "false";
+    /**
+     * The false predicate to simulate the false boolean value.
+     */
+    public static final Predicate FALSE_PREDICATE = new Predicate(FALSE_ARGUMENT, PREDICATE_ARITY);
 
     private LanguageUtils() {
     }
@@ -302,7 +306,7 @@ public final class LanguageUtils {
             }
         }
 
-        return new Atom(atom.getName(), terms);
+        return new Atom(atom.getPredicate(), terms);
     }
 
     /**
@@ -327,7 +331,7 @@ public final class LanguageUtils {
             }
         }
 
-        return new Literal(atom.getName(), terms);
+        return new Literal(atom.getPredicate(), terms);
     }
 
     /**
@@ -337,24 +341,23 @@ public final class LanguageUtils {
      * @return the {@link Atom}
      */
     public static Atom toVariableAtom(Atom atom) {
-        return toVariableAtom(atom.getName(), atom.getArity());
+        return toVariableAtom(atom.getPredicate());
     }
 
     /**
      * Creates an {@link Atom} to be the root of a new tree.
      *
-     * @param name  the {@link Atom}'s name
-     * @param arity the {@link Atom}'s arity
+     * @param predicate the {@link Atom}'s predicate
      * @return the {@link Atom}
      */
-    public static Atom toVariableAtom(String name, int arity) {
-        List<Term> terms = new ArrayList<>(arity);
+    public static Atom toVariableAtom(Predicate predicate) {
+        List<Term> terms = new ArrayList<>(predicate.getArity());
         VariableGenerator variableGenerator = new VariableGenerator();
-        for (int i = 0; i < arity; i++) {
+        for (int i = 0; i < predicate.getArity(); i++) {
             terms.add(variableGenerator.next());
         }
 
-        return new Atom(name, terms);
+        return new Atom(predicate, terms);
     }
 
     /**
@@ -478,7 +481,7 @@ public final class LanguageUtils {
             terms.add(substitution.getOrDefault(term, term));
         }
 
-        return new Literal(literal.getName(), terms, literal.isNegated());
+        return new Literal(literal.getPredicate(), terms, literal.isNegated());
     }
 
     /**
@@ -624,13 +627,14 @@ public final class LanguageUtils {
     }
 
     /**
-     * Gets the predicate from the {@link Atom} in the form p/n where p is the name of the predicate and n is the arity.
+     * Gets the formatted predicate in the form p/n where p is the name of the predicate and n is the arity.
      *
-     * @param atom the {@link Atom}
+     * @param name  the name
+     * @param arity the arity
      * @return the predicate
      */
-    public static String getPredicateFromAtom(Atom atom) {
-        return atom.getName() + PREDICATE_ARITY_SEPARATOR + atom.getArity();
+    public static String formatPredicate(String name, int arity) {
+        return name + PREDICATE_ARITY_SEPARATOR + arity;
     }
 
     /**

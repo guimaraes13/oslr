@@ -51,8 +51,7 @@ public class RevisionOperatorEvaluator implements Initializable {
     protected RevisionOperator revisionOperator;
 
     protected Theory updatedTheory;
-    protected boolean isEvaluated;
-    protected double evaluationValue;
+    protected boolean isRevised;
 
     /**
      * Constructs a {@link RevisionOperatorEvaluator} with its fields.
@@ -84,14 +83,12 @@ public class RevisionOperatorEvaluator implements Initializable {
      */
     public double evaluateOperator(Collection<? extends Example> targets,
                                    TheoryMetric metric) throws TheoryRevisionException {
-        if (!isEvaluated) {
+        if (!isRevised) {
             updatedTheory = revisionOperator.performOperation(targets);
-            isEvaluated = true;
-            if (updatedTheory == null) { return metric.getDefaultValue(); }
-            evaluationValue = revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory, targets);
+            isRevised = true;
         }
-
-        return evaluationValue;
+        if (updatedTheory == null) { return metric.getDefaultValue(); }
+        return revisionOperator.getTheoryEvaluator().evaluateTheory(metric, updatedTheory, targets);
     }
 
     /**
@@ -106,8 +103,8 @@ public class RevisionOperatorEvaluator implements Initializable {
      * @throws TheoryRevisionException in case an error occurs on the revision
      */
     public Theory getRevisedTheory(Collection<? extends Example> targets) throws TheoryRevisionException {
-        if (isEvaluated) {
-            isEvaluated = false;
+        if (isRevised) {
+            isRevised = false;
             return updatedTheory;
         }
         return revisionOperator.performOperation(targets);
@@ -151,7 +148,7 @@ public class RevisionOperatorEvaluator implements Initializable {
      * Clears the revised theory.
      */
     public void clearCachedTheory() {
-        isEvaluated = false;
+        isRevised = false;
     }
 
     /**

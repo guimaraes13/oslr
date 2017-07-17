@@ -75,15 +75,15 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     public boolean applyRevision(RevisionOperatorSelector operatorSelector,
                                  RevisionExamples examples) throws TheoryRevisionException {
         double epsilon = calculateHoeffdingBound(theoryMetric.getRange(), examples.getRelevantSample().size());
-        evaluateCurrentTheory(examples);
+        theoryEvaluation = evaluateCurrentTheory(examples);
         double bestPossibleImprovement = theoryMetric.bestPossibleImprovement(theoryEvaluation);
         // tests if the best possible improvement is enough to pass the Hoeffding's threshold
         if (bestPossibleImprovement >= epsilon) {
-            Collection<? extends Example> sample = examples.getTrainingExamples(trainUsingAllExamples);
+            Collection<? extends Example> targets = examples.getTrainingExamples(trainUsingAllExamples);
             // calls the revision on the right threshold
             logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
                          examples.getTrainingExamples(trainUsingAllExamples).size());
-            RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(sample, theoryMetric);
+            RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
             if (operatorEvaluator == null) { return false; }
             return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
         }

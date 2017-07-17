@@ -26,6 +26,7 @@
 package br.ufrj.cos.logic.parser.knowledge;
 
 import br.ufrj.cos.logic.*;
+import br.ufrj.cos.util.LanguageUtils;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -51,7 +52,8 @@ public class KnowledgeParser implements KnowledgeParserConstants {
     private final int[] jj_la1 = new int[15];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
-    public Map constantMap = new HashMap();
+    public Map<String, Constant> constantMap = new HashMap();
+    public Map<String, Predicate> predicateMap = new HashMap();
     /**
      * Generated Token Manager.
      */
@@ -301,7 +303,13 @@ public class KnowledgeParser implements KnowledgeParserConstants {
             default:
                 jj_la1[10] = jj_gen;
         }
-        {if ("" != null) { return new Atom(predicate, terms); }}
+        String key = LanguageUtils.formatPredicate(predicate, terms.size());
+        Predicate value = predicateMap.get(key);
+        if (value == null) {
+            value = new Predicate(predicate, terms.size());
+            predicateMap.put(key, value);
+        }
+        {if ("" != null) { return new Atom(value, terms); }}
         throw new Error("Missing return statement in function");
     }
 
@@ -371,13 +379,13 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 jj_consume_token(-1);
                 throw new ParseException();
         }
-        Object logicConstant = constantMap.get(token.image);
+        Constant logicConstant = constantMap.get(token.image);
         if (logicConstant == null) {
             logicConstant = new Constant(token.image);
             constantMap.put(token.image, logicConstant);
         }
 
-        {if ("" != null) { return (Constant) logicConstant; }}
+        {if ("" != null) { return logicConstant; }}
         throw new Error("Missing return statement in function");
     }
 

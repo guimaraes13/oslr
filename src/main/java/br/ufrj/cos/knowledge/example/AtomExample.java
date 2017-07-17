@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.LanguageUtils;
 
@@ -44,24 +45,24 @@ public class AtomExample extends Atom implements Example {
     /**
      * Constructs a positive {@link AtomExample}
      *
-     * @param name  the {@link Atom}'s predicate name
-     * @param terms the {@link Atom}'s {@link Term}s
+     * @param predicate the {@link Atom}'s predicate
+     * @param terms     the {@link Atom}'s {@link Term}s
      */
     @SuppressWarnings("SameParameterValue")
-    public AtomExample(String name, List<Term> terms) {
-        this(name, terms, true);
+    public AtomExample(Predicate predicate, List<Term> terms) {
+        this(predicate, terms, true);
     }
 
     /**
      * Constructs an {@link AtomExample}
      *
-     * @param name     the predicate name
-     * @param terms    the {@link Atom}'s {@link Term}s
-     * @param positive the value of the example, true for positive; false for negative
+     * @param predicate the {@link Atom}'s predicate
+     * @param terms     the {@link Atom}'s {@link Term}s
+     * @param positive  the value of the example, true for positive; false for negative
      */
     @SuppressWarnings("ThisEscapedInObjectConstruction")
-    public AtomExample(String name, List<Term> terms, boolean positive) {
-        super(name, terms);
+    public AtomExample(Predicate predicate, List<Term> terms, boolean positive) {
+        super(predicate, terms);
         this.positive = positive;
         this.atom = new Atom(this);
     }
@@ -69,21 +70,21 @@ public class AtomExample extends Atom implements Example {
     /**
      * Constructs a positive proposition like {@link AtomExample}
      *
-     * @param name the proposition name
+     * @param predicate the proposition predicate
      */
-    public AtomExample(String name) {
-        this(name, true);
+    public AtomExample(Predicate predicate) {
+        this(predicate, true);
     }
 
     /**
      * Constructs a proposition like {@link AtomExample}
      *
-     * @param name     the proposition name
-     * @param positive the value of the example, true for positive; false for negative
+     * @param predicate the {@link Atom}'s predicate
+     * @param positive  the value of the example, true for positive; false for negative
      */
     @SuppressWarnings("SameParameterValue")
-    public AtomExample(String name, boolean positive) {
-        this(name, null, positive);
+    public AtomExample(Predicate predicate, boolean positive) {
+        this(predicate, null, positive);
     }
 
     /**
@@ -93,7 +94,7 @@ public class AtomExample extends Atom implements Example {
      * @param positive the value of the example, true for positive; false for negative
      */
     public AtomExample(Atom atom, boolean positive) {
-        this(atom.getName(), atom.getTerms(), positive);
+        this(atom.getPredicate(), atom.getTerms(), positive);
     }
 
     /**

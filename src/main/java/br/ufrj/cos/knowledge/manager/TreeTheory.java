@@ -157,8 +157,7 @@ public class TreeTheory implements Initializable {
     public Node<HornClause> getTreeForExample(Example example, String predicate) {
         Node<HornClause> root = treeMap.get(predicate);
         if (root == null) {
-            Atom head = LanguageUtils.toVariableAtom(example.getGoalQuery().getName(), example.getGoalQuery()
-                    .getArity());
+            Atom head = LanguageUtils.toVariableAtom(example.getGoalQuery().getPredicate());
             root = Node.newTree(buildDefaultTheory(head), buildDefaultTheory(head));
             treeMap.put(predicate, root);
         }

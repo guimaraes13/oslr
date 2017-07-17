@@ -39,20 +39,20 @@ public class WeightedAtom extends Atom {
     /**
      * Constructs a {@link WeightedAtom} by its fields with default {@link #weight}.
      *
-     * @param name  the predicate name
-     * @param terms the {@link Term}s
+     * @param predicate the predicate
+     * @param terms     the {@link Term}s
      */
-    public WeightedAtom(String name, List<Term> terms) {
-        super(name, terms);
+    public WeightedAtom(Predicate predicate, List<Term> terms) {
+        super(predicate, terms);
     }
 
     /**
      * Constructs a proposition representation of {@link WeightedAtom} with default {@link #weight}.
      *
-     * @param name the predicate name
+     * @param predicate the predicate
      */
-    public WeightedAtom(String name) {
-        super(name);
+    public WeightedAtom(Predicate predicate) {
+        super(predicate);
     }
 
     /**
@@ -62,7 +62,7 @@ public class WeightedAtom extends Atom {
      * @param atom   the {@link Atom}
      */
     public WeightedAtom(double weight, Atom atom) {
-        super(atom.getName(), atom.getTerms());
+        super(atom.getPredicate(), atom.getTerms());
         this.weight = weight;
     }
 
@@ -70,11 +70,11 @@ public class WeightedAtom extends Atom {
      * Constructs a {@link WeightedAtom} by its fields.
      *
      * @param weight the weight
-     * @param name   the predicate name
+     * @param predicate   the predicate
      * @param terms  the {@link Term}s
      */
-    public WeightedAtom(double weight, String name, List<Term> terms) {
-        super(name, terms);
+    public WeightedAtom(double weight, Predicate predicate, List<Term> terms) {
+        super(predicate, terms);
         this.weight = weight;
     }
 
@@ -82,10 +82,10 @@ public class WeightedAtom extends Atom {
      * Constructs a proposition representation of {@link WeightedAtom} with {@link #weight}.
      *
      * @param weight the weight
-     * @param name   the predicate name
+     * @param predicate   the predicate
      */
-    public WeightedAtom(double weight, String name) {
-        super(name);
+    public WeightedAtom(double weight, Predicate predicate) {
+        super(predicate);
         this.weight = weight;
     }
 

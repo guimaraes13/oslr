@@ -36,6 +36,8 @@ import java.util.HashMap;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
+
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.logic.*;
 
 /**
@@ -48,7 +50,8 @@ public class ExampleParser {
 	protected List probLogFormatExamples;
 	protected List proPprFormatExamples;
 
-//	public Map constantMap = new HashMap();
+//	public Map<String, Constant> constantMap = new HashMap();
+	public Map<String, Predicate> predicateMap = new HashMap();
 
 	public List getProbLogFormatExamples() {
 		return probLogFormatExamples;
@@ -173,7 +176,13 @@ Atom readAtom() :
 	predicate = readPredicate()
 	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms) (<LIST_SEPARATOR> readTerm(terms))*  <CLOSE_PREDICATE_ARGUMENT>]
 	{
-		return new Atom(predicate, terms);
+	    String key = LanguageUtils.formatPredicate(predicate, terms.size());
+        Predicate value = predicateMap.get(key);
+        if (value == null) {
+            value = new Predicate(predicate, terms.size());
+            predicateMap.put(key, value);
+        }
+		return new Atom(value, terms);
 	}
 }
 
@@ -213,13 +222,13 @@ Term readConstant() :
 		{token.image = token.image.substring(1, token.image.length() - 1);}
 	)
 	{
-//	    Object logicConstant = constantMap.get(token.image);
+//	    Constant logicConstant = constantMap.get(token.image);
 //     	if (logicConstant == null) {
 //            logicConstant = new Constant(token.image);
 //            constantMap.put(token.image, logicConstant);
 //        }
 //
-//        return (Constant) logicConstant;
+//      return logicConstant;
         return new Constant(token.image);
     }
 }

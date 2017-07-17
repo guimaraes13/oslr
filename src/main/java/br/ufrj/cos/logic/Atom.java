@@ -33,15 +33,21 @@ import static br.ufrj.cos.util.LanguageUtils.formatAtomToString;
 public class Atom extends Clause {
 
     /**
+     * The true proposition.
+     */
+    public static final String TRUE_PROPOSITION = "true";
+    /**
+     * The false proposition.
+     */
+    public static final String FALSE_PROPOSITION = "false";
+    /**
      * Constant that represents a true logic value
      */
-    public static final String TRUE_VALUE = "true";
-
+    public static final Predicate TRUE_VALUE = new Predicate(TRUE_PROPOSITION);
     /**
      * Constant that represents a false logic value
      */
-    public static final String FALSE_VALUE = "false";
-
+    public static final Predicate FALSE_VALUE = new Predicate(FALSE_PROPOSITION);
     /**
      * {@link Atom} that represents the true logic value
      */
@@ -54,7 +60,7 @@ public class Atom extends Clause {
     @SuppressWarnings("unused")
     public static final Atom FALSE_ATOM = new Atom(FALSE_VALUE);
 
-    protected final String name;
+    protected final Predicate predicate;
     protected final List<Term> terms;
 
     /**
@@ -63,28 +69,28 @@ public class Atom extends Clause {
      * @param atom the other {@link Atom}
      */
     public Atom(Atom atom) {
-        this.name = atom.name;
+        this.predicate = atom.predicate;
         this.terms = atom.terms;
     }
 
     /**
      * Constructs a new {@link Atom}
      *
-     * @param name  the {@link Atom}'s predicate name
-     * @param terms the {@link Atom}'s {@link Term}s
+     * @param predicate the {@link Atom}'s predicate
+     * @param terms     the {@link Atom}'s {@link Term}s
      */
-    public Atom(String name, List<Term> terms) {
-        this.name = name;
+    public Atom(Predicate predicate, List<Term> terms) {
+        this.predicate = predicate;
         this.terms = terms;
     }
 
     /**
      * Constructs a proposition form of an {@link Atom}
      *
-     * @param name the proposition name
+     * @param predicate the proposition
      */
-    public Atom(String name) {
-        this.name = name;
+    public Atom(Predicate predicate) {
+        this.predicate = predicate;
         this.terms = null;
     }
 
@@ -94,7 +100,7 @@ public class Atom extends Clause {
      * @return the name
      */
     public String getName() {
-        return name;
+        return predicate.getName();
     }
 
     /**
@@ -125,7 +131,7 @@ public class Atom extends Clause {
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
+        int result = predicate.hashCode();
         result = 31 * result + (terms != null ? terms.hashCode() : 0);
         return result;
     }
@@ -141,7 +147,7 @@ public class Atom extends Clause {
 
         Atom atom = (Atom) o;
 
-        return name.equals(atom.name) && (terms != null ? terms.equals(atom.terms) : atom.terms == null);
+        return predicate.equals(atom.predicate) && (terms != null ? terms.equals(atom.terms) : atom.terms == null);
     }
 
     @Override
@@ -156,6 +162,15 @@ public class Atom extends Clause {
      */
     public int getArity() {
         return terms != null ? terms.size() : 0;
+    }
+
+    /**
+     * Gets the predicate.
+     *
+     * @return the predicate
+     */
+    public Predicate getPredicate() {
+        return predicate;
     }
 
 }

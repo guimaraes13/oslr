@@ -68,6 +68,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     /**
      * Flag to specify if the rule must be refined or not.
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean refine = false;
     /**
      * Represents the maximum side way movements, i.e. the number of {@link Literal} that will be added to the body
@@ -78,6 +79,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * If it is {@link #NO_MAXIMUM_SIDE_WAY_MOVEMENTS}, it means there is no maximum side way
      * movements, it will be limited by the size of the bottom clause.
      */
+    @SuppressWarnings("CanBeFinal")
     public int maximumSideWayMovements = NO_MAXIMUM_SIDE_WAY_MOVEMENTS;
     /**
      * The minimal necessary difference, between and current {@link HornClause} evaluation and a new candidate one,
@@ -90,6 +92,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * does
      * not improves more than {@code e}.
      */
+    @SuppressWarnings("CanBeFinal")
     public double improvementThreshold = DEFAULT_IMPROVEMENT_THRESHOLD;
     /**
      * Flag to specify which {@link HornClause} will be returned in case of a tie in the evaluation metric.
@@ -98,6 +101,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      * <p>
      * If it is {@code false}, the most specific one will be returned (i.e. the largest).
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean generic = true;
     protected HornClause revisedClause;
     protected LiteralAppendOperator appendOperator;
@@ -229,10 +233,10 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                 node.getElement();
         AsyncTheoryEvaluator hornClause = appendOperator.buildExtendedHornClause(examples, element,
                                                                                  buildRedundantLiterals(node));
+        if (hornClause == null) { return null; }
         if (refine) {
             hornClause = refineClause(hornClause, examples);
         }
-        if (hornClause == null) { return null; }
         revisedClause = hornClause.getHornClause();
         logger.debug(LogMessages.RULE_PROPOSED_TO_THEORY.toString(), revisedClause);
         Theory theory = learningSystem.getTheory().copy();

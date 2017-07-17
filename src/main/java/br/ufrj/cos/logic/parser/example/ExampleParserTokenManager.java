@@ -83,7 +83,7 @@ public class ExampleParserTokenManager implements ExampleParserConstants {
     public PrintStream debugStream = System.out;
     protected SimpleCharStream input_stream;
     protected int curChar;
-    int curLexState = 0;
+int curLexState = 0;
 int defaultLexState = 0;
 int jjnewStateCnt;
 int jjround;

@@ -173,7 +173,7 @@ public class TreeExampleManager extends IncomingExampleManager {
         Node<HornClause> root;
         Pair<ProPprExample, ProPprExample> split;
 
-        predicate = LanguageUtils.getPredicateFromAtom(example.getGoalQuery());
+        predicate = example.getGoalQuery().getPredicate().toString();
         Set<Node<HornClause>> modifiedLeaves = modifiedLeavesMap.computeIfAbsent(predicate, e -> new HashSet<>());
         Map<Node<HornClause>, RevisionExamples> leafExamples = treeTheory.getLeafExampleMapFromTree(predicate);
         root = treeTheory.getTreeForExample(example, predicate);

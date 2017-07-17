@@ -29,6 +29,7 @@ PARSER_BEGIN(KnowledgeParser)
 
 package br.ufrj.cos.logic.parser.knowledge;
 
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.logic.*;
 
 import java.util.List;
@@ -43,7 +44,8 @@ import java.util.HashMap;
  */
 public class KnowledgeParser {
 
-    public Map constantMap = new HashMap();
+    public Map<String, Constant> constantMap = new HashMap();
+    public Map<String, Predicate> predicateMap = new HashMap();
 
 }
 
@@ -193,7 +195,13 @@ Atom readAtom(Map variableMap) :
 	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms, variableMap)
 	(<LIST_SEPARATOR> readTerm(terms, variableMap))*  <CLOSE_PREDICATE_ARGUMENT>]
 	{
-		return new Atom(predicate, terms);
+	    String key = LanguageUtils.formatPredicate(predicate, terms.size());
+        Predicate value = predicateMap.get(key);
+        if (value == null) {
+            value = new Predicate(predicate, terms.size());
+            predicateMap.put(key, value);
+        }
+		return new Atom(value, terms);
 	}
 }
 
@@ -250,13 +258,13 @@ Term readConstant() :
 		{token.image = token.image.substring(1, token.image.length() - 1);}
 	)
 	{
-	    Object logicConstant = constantMap.get(token.image);
+	    Constant logicConstant = constantMap.get(token.image);
 	    if (logicConstant == null) {
 	        logicConstant = new Constant(token.image);
 	        constantMap.put(token.image, logicConstant);
 	    }
 
-	    return (Constant) logicConstant;
+	    return logicConstant;
 	}
 }
 

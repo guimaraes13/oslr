@@ -27,10 +27,8 @@ package br.ufrj.cos.logic.parser.example;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
-import br.ufrj.cos.logic.Atom;
-import br.ufrj.cos.logic.Constant;
-import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.logic.Variable;
+import br.ufrj.cos.logic.*;
+import br.ufrj.cos.util.LanguageUtils;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -56,7 +54,8 @@ public class ExampleParser implements ExampleParserConstants {
     private final int[] jj_la1 = new int[11];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
-    public Map constantMap = new HashMap();
+    //	public Map<String, Constant> constantMap = new HashMap();
+    public Map<String, Predicate> predicateMap = new HashMap();
     /**
      * Generated Token Manager.
      */
@@ -290,7 +289,13 @@ public class ExampleParser implements ExampleParserConstants {
             default:
                 jj_la1[8] = jj_gen;
         }
-        {if ("" != null) { return new Atom(predicate, terms); }}
+        String key = LanguageUtils.formatPredicate(predicate, terms.size());
+        Predicate value = predicateMap.get(key);
+        if (value == null) {
+            value = new Predicate(predicate, terms.size());
+            predicateMap.put(key, value);
+        }
+        {if ("" != null) { return new Atom(value, terms); }}
         throw new Error("Missing return statement in function");
     }
 
@@ -339,13 +344,13 @@ public class ExampleParser implements ExampleParserConstants {
                 jj_consume_token(-1);
                 throw new ParseException();
         }
-        Object logicConstant = constantMap.get(token.image);
-        if (logicConstant == null) {
-            logicConstant = new Constant(token.image);
-            constantMap.put(token.image, logicConstant);
-        }
-
-        {if ("" != null) { return (Constant) logicConstant; }}
+//	    Constant logicConstant = constantMap.get(token.image);
+//     	if (logicConstant == null) {
+//            logicConstant = new Constant(token.image);
+//            constantMap.put(token.image, logicConstant);
+//        }
+//
+//      return logicConstant;
         {if ("" != null) { return new Constant(token.image); }}
         throw new Error("Missing return statement in function");
     }

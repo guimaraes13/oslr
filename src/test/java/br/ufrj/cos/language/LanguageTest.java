@@ -66,7 +66,7 @@ public class LanguageTest {
 
     @Test
     public void ATOM_TEST() {
-        Atom atom = new Atom(ATOM_NAME, terms);
+        Atom atom = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
         String atomString = getFormattedAtom(ATOM_NAME, terms);
         Assert.assertEquals(atomString, atom.toString());
     }
@@ -81,7 +81,7 @@ public class LanguageTest {
 
     @Test
     public void PROPOSITION_ATOM_TEST() {
-        Atom atom = new Atom(ATOM_NAME);
+        Atom atom = new Atom(new Predicate(ATOM_NAME));
         String atomString = getFormattedProposition(ATOM_NAME);
         Assert.assertEquals(atomString, atom.toString());
     }
@@ -93,7 +93,7 @@ public class LanguageTest {
     @Test
     public void WEIGHTED_ATOM_TEST() {
         double weight = 0.8;
-        Atom atom = new WeightedAtom(weight, ATOM_NAME, terms);
+        Atom atom = new WeightedAtom(weight, new Predicate(ATOM_NAME, terms.size()), terms);
         String atomString = getWeightPrefix(weight) + getFormattedAtom(ATOM_NAME, terms);
         Assert.assertEquals(atomString, atom.toString());
     }
@@ -105,30 +105,30 @@ public class LanguageTest {
     @Test
     public void WEIGHTED_PROPOSITION_ATOM_TEST() {
         double weight = 0.8;
-        Atom atom = new WeightedAtom(weight, ATOM_NAME);
+        Atom atom = new WeightedAtom(weight, new Predicate(ATOM_NAME));
         String atomString = getWeightPrefix(weight) + getFormattedProposition(ATOM_NAME);
         Assert.assertEquals(atomString, atom.toString());
     }
 
     @Test
     public void LITERAL_TEST() {
-        Literal literal = new Literal(ATOM_NAME, terms, true);
+        Literal literal = new Literal(new Predicate(ATOM_NAME, terms.size()), terms, true);
         String literalString = LanguageUtils.NEGATION_PREFIX + " " + getFormattedAtom(ATOM_NAME, terms);
         Assert.assertEquals(literalString, literal.toString());
     }
 
     @Test
     public void PROPOSITION_LITERAL_TEST() {
-        Literal literal = new Literal(ATOM_NAME, true);
+        Literal literal = new Literal(new Predicate(ATOM_NAME), true);
         String literalString = LanguageUtils.NEGATION_PREFIX + " " + getFormattedProposition(ATOM_NAME);
         Assert.assertEquals(literalString, literal.toString());
     }
 
     @Test
     public void HORN_CLAUSE_TEST() {
-        Atom head = new Atom(ATOM_NAME, terms);
-        Literal literal1 = new Literal(ATOM_NAME, terms, true);
-        Literal literal2 = new Literal(ATOM_NAME, terms, false);
+        Atom head = new Atom(new Predicate(ATOM_NAME), terms);
+        Literal literal1 = new Literal(new Predicate(ATOM_NAME, terms.size()), terms, true);
+        Literal literal2 = new Literal(new Predicate(ATOM_NAME, terms.size()), terms, false);
         Conjunction body = new Conjunction(literal1, literal2);
         HornClause hornClause = new HornClause(head, body);
 
@@ -139,12 +139,12 @@ public class LanguageTest {
 
     protected String getFormattedHornClause(Atom head, Literal... body) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(head.toString());
+        stringBuilder.append(head);
         stringBuilder.append(" ");
         stringBuilder.append(LanguageUtils.IMPLICATION_SIGN);
         stringBuilder.append(" ");
         for (Literal literal : body) {
-            stringBuilder.append(literal.toString());
+            stringBuilder.append(literal);
             stringBuilder.append(LanguageUtils.LIST_ARGUMENTS_SEPARATOR);
         }
         stringBuilder.delete(stringBuilder.length() - LanguageUtils.LIST_ARGUMENTS_SEPARATOR.length(),
@@ -156,7 +156,7 @@ public class LanguageTest {
 
     @Test
     public void POSITIVE_EXAMPLE_TEST() {
-        Atom atom = new Atom(ATOM_NAME, terms);
+        Atom atom = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
         String atomString = LanguageUtils.POSITIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
         AtomExample atomExample = new AtomExample(atom, true);
         Assert.assertEquals(atomString, atomExample.toString());
@@ -164,7 +164,7 @@ public class LanguageTest {
 
     @Test
     public void NEGATIVE_EXAMPLE_TEST() {
-        Atom atom = new Atom(ATOM_NAME, terms);
+        Atom atom = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
         String atomString = LanguageUtils.NEGATIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
         AtomExample atomExample = new AtomExample(atom, false);
         Assert.assertEquals(atomString, atomExample.toString());
@@ -173,9 +173,9 @@ public class LanguageTest {
     @Test
     public void WEIGHTED_HORN_CLAUSE_TEST() {
         double weight = 0.8;
-        Atom head = new Atom(ATOM_NAME, terms);
-        Literal literal1 = new Literal(ATOM_NAME, terms, true);
-        Literal literal2 = new Literal(ATOM_NAME, terms, false);
+        Atom head = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
+        Literal literal1 = new Literal(new Predicate(ATOM_NAME, terms.size()), terms, true);
+        Literal literal2 = new Literal(new Predicate(ATOM_NAME, terms.size()), terms, false);
         Conjunction body = new Conjunction(literal1, literal2);
         HornClause hornClause = new WeightedClause(weight, head, body);
 

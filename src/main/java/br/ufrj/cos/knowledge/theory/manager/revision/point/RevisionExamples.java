@@ -180,7 +180,7 @@ public class RevisionExamples {
      * @see TimeMeasure
      */
     public Map<Example, Map<Atom, Double>> getInferredExamples(long theoryLastChange) {
-        if (theoryLastChange - lastInference < 0) {
+        if (lastInference - theoryLastChange < 0) {
             clearInferredExamples();
         }
         if (!notEvaluatedExamples.isEmpty()) {

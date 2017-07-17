@@ -53,9 +53,13 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
     public static final Logger logger = LogManager.getLogger();
 
     /**
+     * The substitution predicate name
+     */
+    public static final String SUBSTITUTION_NAME = "sub_";
+    /**
      * The predicate of the query to find the substitution of the variables.
      */
-    public static final String SUBSTITUTION_PREDICATE = "sub_";
+    public static final Predicate SUBSTITUTION_PREDICATE = new Predicate(SUBSTITUTION_NAME, Predicate.VAR_ARGS_ARITY);
     /**
      * The maximum number of threads this class is allowed to create.
      */
@@ -114,6 +118,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             HornClause substitutionClause = buildSubstitutionClause(initialClause);
             Set<Example> querySet = buildQueriesFromExamples(examples, initialClause.getHead(),
                                                              substitutionClause.getHead());
+            if (querySet.isEmpty()) { return null; }
             Map<Example, Map<Atom, Double>> inferredExamples =
                     learningSystem.inferExamples(Collections.singleton(substitutionClause), querySet);
             Set<EquivalentAtom> skipCandidates = buildSkipCandidates(initialClause, equivalentLiterals);

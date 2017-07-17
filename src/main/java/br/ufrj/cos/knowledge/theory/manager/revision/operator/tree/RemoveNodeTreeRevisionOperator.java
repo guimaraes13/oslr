@@ -48,6 +48,7 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
     @Override
     public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
+            //FIXME: this operator does not change the theory
             Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
             if (revisionLeaf.isRoot()) {
                 // this is the root node

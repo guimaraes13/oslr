@@ -75,7 +75,7 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
             return null;
         }
         Atom atom = iterator.next().getAtom();
-        Atom head = LanguageUtils.toVariableAtom(atom.getName(), atom.getArity());
+        Atom head = LanguageUtils.toVariableAtom(atom.getPredicate());
         return new HornClause(head, new Conjunction());
     }
 

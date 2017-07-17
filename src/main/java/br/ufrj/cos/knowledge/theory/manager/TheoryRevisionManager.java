@@ -130,7 +130,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     public boolean applyRevision(RevisionOperatorSelector operatorSelector,
                                  RevisionExamples examples) throws TheoryRevisionException {
-        evaluateCurrentTheory(examples);
+        theoryEvaluation = evaluateCurrentTheory(examples);
         logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
                      examples.getTrainingExamples(trainUsingAllExamples).size());
         RevisionOperatorEvaluator operatorEvaluator;
@@ -144,10 +144,11 @@ public class TheoryRevisionManager implements Initializable {
      * Evaluates the current theory, if necessary.
      *
      * @param examples the examples to be evaluated
+     * @return the theory evaluation
      */
-    protected void evaluateCurrentTheory(RevisionExamples examples) {
-        theoryEvaluation = this.theoryMetric.evaluate(examples.getInferredExamples(theoryLastChange),
-                                                      examples.getRelevantSample());
+    protected double evaluateCurrentTheory(RevisionExamples examples) {
+        return this.theoryMetric.evaluate(examples.getInferredExamples(theoryLastChange),
+                                          examples.getRelevantSample());
     }
 
     /**
@@ -164,7 +165,9 @@ public class TheoryRevisionManager implements Initializable {
     protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, RevisionExamples examples,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
-        double revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
+        double revised;
+//        revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
+        revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
 
         double improve = theoryMetric.difference(revised, currentEvaluation);
         LogMessages logMessage = LogMessages.THEORY_MODIFICATION_SKIPPED;
@@ -178,6 +181,7 @@ public class TheoryRevisionManager implements Initializable {
                 learningSystem.saveTrainedParameters();
                 operatorEvaluator.theoryRevisionAccepted(revisedTheory);
                 logMessage = LogMessages.THEORY_MODIFICATION_ACCEPTED;
+                theoryLastChange = TimeMeasure.getNanoTime();
                 theoryChanged = true;
             }
         }

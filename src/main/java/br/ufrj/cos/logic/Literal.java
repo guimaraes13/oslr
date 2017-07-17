@@ -49,44 +49,44 @@ public class Literal extends Atom {
     /**
      * Constructs a {@link Literal} by with fields.
      *
-     * @param name    the predicate name
+     * @param predicate    the predicate
      * @param terms   the {@link Term}s
      * @param negated if it is negated
      */
-    public Literal(String name, List<Term> terms, boolean negated) {
-        super(name, terms);
+    public Literal(Predicate predicate, List<Term> terms, boolean negated) {
+        super(predicate, terms);
         this.negated = negated;
     }
 
     /**
      * Constructs a propositional version of a {@link Literal}
      *
-     * @param name    the proposition name
+     * @param predicate the proposition
      * @param negated if it is negated
      */
-    public Literal(String name, boolean negated) {
-        super(name);
+    public Literal(Predicate predicate, boolean negated) {
+        super(predicate);
         this.negated = negated;
     }
 
     /**
      * Constructs a positive literal, by omitting the {@link #negated} field.
      *
-     * @param name  the name
+     * @param predicate the predicate
      * @param terms the {@link Term}s
      */
-    public Literal(String name, List<Term> terms) {
-        super(name, terms);
+    public Literal(Predicate predicate, List<Term> terms) {
+        super(predicate, terms);
         negated = false;
     }
 
     /**
      * Constructs a positive propositional form of a {@link Literal}
      *
-     * @param name the proposition name
+     * @param predicate the proposition predicate
      */
-    public Literal(String name) {
-        super(name);
+    public Literal(Predicate predicate) {
+        super(predicate);
         negated = false;
     }
 
@@ -97,7 +97,7 @@ public class Literal extends Atom {
      * @param negated if it is negated
      */
     public Literal(Atom atom, boolean negated) {
-        super(atom.getName(), atom.getTerms());
+        super(atom.getPredicate(), atom.getTerms());
         this.negated = negated;
     }
 

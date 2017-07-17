@@ -95,27 +95,27 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * The default empty query array.
      */
     public static final Query[] EMPTY_QUERY = new Query[0];
-
+    /**
+     * The map of predicates by the string on the form p/n, where p is the name of the predicate and n is its arity.
+     */
+    @SuppressWarnings("PublicStaticCollectionField")
+    public static final Map<String, Predicate> PREDICATE_MAP = new HashMap<>();
     /**
      * If is to use ternay index, makes an more efficient cache for predicates with arity.
      */
     public boolean useTernayIndex = false;
-
     /**
      * The number of training epochs per training.
      */
     public int numberOfTrainingEpochs = 5;
-
     /**
      * The number of threads this class is allowed to use.
      */
     public int numberOfThreads = 1;
-
     /**
      * If it is to normalizeAnswers.
      */
     public boolean normalizeAnswers = true;
-
     /**
      * The {@link APROptions}.
      */
@@ -382,7 +382,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return {@code true} if the goal of the clause has been already covered by another clause
      */
     protected static boolean isToSkipClause(Atom goal, Map<String, Set<Atom>> coveredGoals) {
-        String label = LanguageUtils.getPredicateFromAtom(goal);
+        String label = goal.getPredicate().toString();
         Set<Atom> atoms = coveredGoals.get(label);
         if (atoms == null) {
             atoms = new HashSet<>();
@@ -476,7 +476,9 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
                 terms.add(new Variable(argument.getName()));
             }
         }
-        return new Atom(goal.getFunctor(), terms);
+        Predicate value = PREDICATE_MAP.computeIfAbsent(LanguageUtils.formatPredicate(goal.getFunctor(), terms.size()),
+                                                        k -> new Predicate(goal.getFunctor(), terms.size()));
+        return new Atom(value, terms);
     }
 
     @Override
@@ -650,9 +652,9 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param factsPlugin the {@link FactsPlugin}
      */
     protected static void addTrueFalseFacts(FactsPlugin factsPlugin) {
-        factsPlugin.addFact(LanguageUtils.TRUE_PREDICATE, LanguageUtils.TRUE_ARGUMENT);
+        factsPlugin.addFact(LanguageUtils.TRUE_PREDICATE.getName(), LanguageUtils.TRUE_ARGUMENT);
         // the false argument should be true so the false(false) can not be proved.
-        factsPlugin.addFact(LanguageUtils.FALSE_PREDICATE, LanguageUtils.TRUE_ARGUMENT);
+        factsPlugin.addFact(LanguageUtils.FALSE_PREDICATE.getName(), LanguageUtils.TRUE_ARGUMENT);
     }
 
     /**
