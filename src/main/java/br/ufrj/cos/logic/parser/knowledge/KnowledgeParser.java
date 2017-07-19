@@ -26,7 +26,7 @@
 package br.ufrj.cos.logic.parser.knowledge;
 
 import br.ufrj.cos.logic.*;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.AtomFactory;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -52,8 +52,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
     private final int[] jj_la1 = new int[15];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
-    public Map<String, Constant> constantMap = new HashMap();
-    public Map<String, Predicate> predicateMap = new HashMap();
+    public AtomFactory factory = new AtomFactory();
     /**
      * Generated Token Manager.
      */
@@ -162,7 +161,8 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         throw new Error("Missing return statement in function");
     }
 
-    public final void readKnowledgeLine(List clauses) throws ParseException {Clause clause = null;
+    public final void readKnowledgeLine(List clauses) throws ParseException {
+        Clause clause = null;
 
         boolean weighted = false;
         double weight = -1;
@@ -303,12 +303,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
             default:
                 jj_la1[10] = jj_gen;
         }
-        String key = LanguageUtils.formatPredicate(predicate, terms.size());
-        Predicate value = predicateMap.get(key);
-        if (value == null) {
-            value = new Predicate(predicate, terms.size());
-            predicateMap.put(key, value);
-        }
+        Predicate value = factory.getPredicate(predicate, terms.size());
         {if ("" != null) { return new Atom(value, terms); }}
         throw new Error("Missing return statement in function");
     }
@@ -379,13 +374,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 jj_consume_token(-1);
                 throw new ParseException();
         }
-        Constant logicConstant = constantMap.get(token.image);
-        if (logicConstant == null) {
-            logicConstant = new Constant(token.image);
-            constantMap.put(token.image, logicConstant);
-        }
-
-        {if ("" != null) { return logicConstant; }}
+        {if ("" != null) { return factory.getConstant(token.image); }}
         throw new Error("Missing return statement in function");
     }
 
@@ -416,7 +405,9 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         literals.add(new Literal(atom, negated));
     }
 
-    /** Reinitialise. */
+    /**
+     * Reinitialise.
+     */
     public void ReInit(InputStream stream) {
         ReInit(stream, null);
     }
@@ -541,12 +532,16 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         return new ParseException(token, exptokseq, tokenImage);
     }
 
-    /** Trace enabled. */
+    /**
+     * Trace enabled.
+     */
     public final boolean trace_enabled() {
         return trace_enabled;
     }
 
-    /** Enable tracing. */
+    /**
+     * Enable tracing.
+     */
     public final void enable_tracing() {
     }
 

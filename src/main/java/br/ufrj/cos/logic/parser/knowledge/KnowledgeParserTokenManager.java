@@ -80,7 +80,7 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
      * Debug output.
      */
     public PrintStream debugStream = System.out;
-    protected SimpleCharStream input_stream;
+    protected SimpleCharStream  input_stream;
     protected int curChar;
 int curLexState = 0;
 int defaultLexState = 0;
@@ -108,7 +108,9 @@ int jjmatchedKind;
         SwitchTo(lexState);
     }
 
-    /** Reinitialise parser. */
+    /**
+     * Reinitialise parser.
+     */
 
     public void ReInit(SimpleCharStream stream) {
 
@@ -145,7 +147,9 @@ int jjmatchedKind;
         }
     }
 
-    /** Set debug output. */
+    /**
+     * Set debug output.
+     */
     public void setDebugStream(PrintStream ds) {
         debugStream = ds;
     }
@@ -171,7 +175,7 @@ int jjmatchedKind;
         }
     }
 
-    private final int jjStartNfa_0(int pos, long active0){
+    private final int jjStartNfa_0(int pos, long active0) {
         return jjMoveNfa_0(jjStopStringLiteralDfa_0(pos, active0), pos + 1);
     }
 
@@ -243,7 +247,7 @@ int jjmatchedKind;
     private int jjStartNfaWithStates_0(int pos, int kind, int state) {
         jjmatchedKind = kind;
         jjmatchedPos = pos;
-        try { curChar = input_stream.readChar(); } catch(IOException e) { return pos + 1; }
+        try { curChar = input_stream.readChar(); } catch (IOException e) { return pos + 1; }
         return jjMoveNfa_0(state, pos + 1);
     }
 
@@ -419,7 +423,9 @@ int jjmatchedKind;
         return t;
     }
 
-    /** Get the next Token. */
+    /**
+     * Get the next Token.
+     */
     public Token getNextToken() {
         Token matchedToken;
         int curPos = 0;
@@ -520,7 +526,9 @@ int jjmatchedKind;
         } while (start++ != end);
     }
 
-    /** Reinitialise parser. */
+    /**
+     * Reinitialise parser.
+     */
     public void ReInit(SimpleCharStream stream, int lexState)
 
     {

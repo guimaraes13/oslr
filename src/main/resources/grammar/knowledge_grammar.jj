@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import br.ufrj.cos.util.AtomFactory;
 
 /**
  * Created on 15/04/17.
@@ -44,8 +45,7 @@ import java.util.HashMap;
  */
 public class KnowledgeParser {
 
-    public Map<String, Constant> constantMap = new HashMap();
-    public Map<String, Predicate> predicateMap = new HashMap();
+    public AtomFactory factory = new AtomFactory();
 
 }
 
@@ -195,12 +195,7 @@ Atom readAtom(Map variableMap) :
 	[<OPEN_PREDICATE_ARGUMENT> readTerm(terms, variableMap)
 	(<LIST_SEPARATOR> readTerm(terms, variableMap))*  <CLOSE_PREDICATE_ARGUMENT>]
 	{
-	    String key = LanguageUtils.formatPredicate(predicate, terms.size());
-        Predicate value = predicateMap.get(key);
-        if (value == null) {
-            value = new Predicate(predicate, terms.size());
-            predicateMap.put(key, value);
-        }
+	    Predicate value = factory.getPredicate(predicate, terms.size());
 		return new Atom(value, terms);
 	}
 }
@@ -258,13 +253,7 @@ Term readConstant() :
 		{token.image = token.image.substring(1, token.image.length() - 1);}
 	)
 	{
-	    Constant logicConstant = constantMap.get(token.image);
-	    if (logicConstant == null) {
-	        logicConstant = new Constant(token.image);
-	        constantMap.put(token.image, logicConstant);
-	    }
-
-	    return logicConstant;
+	    return factory.getConstant(token.image);
 	}
 }
 

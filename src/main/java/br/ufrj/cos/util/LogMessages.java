@@ -116,7 +116,11 @@ public enum LogMessages {
     //    SAMPLING_FROM_TARGETS("Sampled {} examples out of {} targets."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
                                         "threshold of {}."),
-    THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}.");
+    FOUND_INDEX("Found index for {}:{}{}"),
+    THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}."),
+    FILE_NORMAL_HASH("{} Hash (Normal):\t{}"),
+    FILE_ZIPPED_HASH("{} Hash (Zipped):\t{}"),
+    FILE_CONTAINS_LINES("File:\t{}\tContains {} lines");
 
     protected final String message;
 

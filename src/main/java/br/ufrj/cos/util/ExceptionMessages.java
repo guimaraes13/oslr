@@ -49,8 +49,12 @@ public enum ExceptionMessages {
     //Two additional parameters to format
     ERROR_APPENDING_LITERAL("Error when appending literal to initial clause, reason:\t{}"),
     ERROR_NO_YAML_FILE("Yaml configuration file is not setted."),
-    FILE_NOT_EXISTS("File {} for {} does not exists.");
+    FILE_NOT_EXISTS("File {} for {} does not exists."),
 
+    INDEXES_NOT_FOUND("Indexes {} was(were) not found in the file {}.");
+
+    public static final String LAST_FIELD_SEPARATOR = " and ";
+    public static final String FIELD_SEPARATOR = ", ";
     protected final String message;
 
     ExceptionMessages(String message) {
@@ -64,12 +68,31 @@ public enum ExceptionMessages {
             message.append(fields.get(i));
         }
         if (fields.size() > 1) {
-            message.append(" and ");
+            message.append(LAST_FIELD_SEPARATOR);
         }
         message.append(fields.get(i));
         message.append(", at class ");
         message.append(clazz.getClass().getSimpleName());
         message.append(", must be set prior initialize.");
+        return message.toString();
+    }
+
+    public static String formatList(List list) {
+        if (list.isEmpty()) { return ""; }
+        if (list.size() == 1) {
+            return list.get(0).toString();
+        } else if (list.size() == 2) {
+            return list.get(0) + LAST_FIELD_SEPARATOR + list.get(1);
+        }
+
+        StringBuilder message = new StringBuilder();
+        int i;
+        for (i = 0; i < list.size() - 1; i++) {
+            message.append(list.get(i));
+            message.append(FIELD_SEPARATOR);
+        }
+        message.append(LAST_FIELD_SEPARATOR);
+        message.append(list.get(i));
         return message.toString();
     }
 
