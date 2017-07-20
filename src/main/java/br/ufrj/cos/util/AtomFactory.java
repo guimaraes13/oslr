@@ -46,8 +46,8 @@ public class AtomFactory {
      * The arity of a proposition.
      */
     public static final int PROPOSITION_ARITY = 0;
-    protected Map<String, Constant> constantMap = new HashMap();
-    protected Map<String, Predicate> predicateMap = new HashMap();
+    protected final Map<String, Constant> constantMap = new HashMap();
+    protected final Map<String, Predicate> predicateMap = new HashMap();
 
     /**
      * Creates an Atom with the predicate and the terms.

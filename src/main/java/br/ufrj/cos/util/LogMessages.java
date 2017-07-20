@@ -58,6 +58,16 @@ public enum LogMessages {
     BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation of {} candidates."),
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
 
+    FILE_HASH_HEADER("-------------------- FILE HASH --------------------"),
+    FILE_HASH_FOOTER("-------------------- FILE HASH --------------------"),
+    HASH_DISCLAIMER("\n\nThe logic data set must be the same for two runs, except by the case of hash collision,\n" +
+                            "if the all of the following conditions are true:\n\n" +
+                            "\t1) The commit hash of both runs are the same;\n" +
+                            "\t2) There is no uncommitted/untracked files in both runs;\n" +
+                            "\t3) The output and configuration hash of both runs are the same.\n\n" +
+                            "It is possible that the output data set is equal for two runs, even if the input are " +
+                            "not,\nbecause repeated atoms are ignored in the input.\n"),
+
     //One additional parameters to format
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
@@ -101,9 +111,21 @@ public enum LogMessages {
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
 
     ERROR_READING_FILE("Error when reading file, reason: {}"),
+    ERROR_WRITING_FILE("Error when writing file, reason: {}"),
     ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:"),
+    ITERATION_TOTAL_HASH("The iteration total hash:\t{}"),
+    CONFIGURATION_TOTAL_HASH("The total hash of the configuration:\t\t{}"),
+    TOTAL_NUMBER_PREDICATES("Total number of predicates:\t{}"),
+
+    FILE_HASH("{}  {}"),
+    OUTPUT_TOTAL_HASH("The total of the output:\t\t\t\t\t{}"),
+    TOTAL_HASH("The total of the output and configuration:\t{}"),
+    TOTAL_NUMBER_EXAMPLES("Total number of examples:\t\t{}"),
+    FILE_SAVE("File\t{} saved at\t{}")
 
     //Two additional parameters to format
+    , TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}\t{}%"),
+    TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}\t{}%"),
     COMMITTED_VERSION("This run is based on the commit of hash {}."),
     COMMITTED_VERSION_WITH_TAG("This run is based on the commit of tag {} and hash {}."),
     ALL_FILES_COMMITTED("There is no file uncommitted or untracked during this running."),
@@ -118,6 +140,7 @@ public enum LogMessages {
                                         "threshold of {}."),
     FOUND_INDEX("Found index for {}:{}{}"),
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}."),
+    FILE_HASH_AND_SIZE("Hash of file\t{}{} is {}\tNumber of facts:\t{}"),
     FILE_NORMAL_HASH("{} Hash (Normal):\t{}"),
     FILE_ZIPPED_HASH("{} Hash (Zipped):\t{}"),
     FILE_CONTAINS_LINES("File:\t{}\tContains {} lines");

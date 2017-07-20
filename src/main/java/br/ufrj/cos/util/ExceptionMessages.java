@@ -33,6 +33,7 @@ import java.util.List;
 @SuppressWarnings({"JavaDoc", "HardCodedStringLiteral"})
 public enum ExceptionMessages {
     //No additional parameters to format
+    GENERAL_ERROR("Error:\t{}"),
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),
@@ -45,6 +46,7 @@ public enum ExceptionMessages {
     ERROR_GETTING_VARIABLE_GENERATOR_CLASS("Error when getting the variable generator class by its name:\t{}"),
     //    ERROR_CREATING_DIRECTORY("Error creating directory(is):\t{}"),
     ERROR_UNBOUNDED_RANGE_METRIC("Error the unbounded range metric {} is not by the class {}."),
+    ERROR_CREATING_DIRECTORY("Error creating the directory:\t{}"),
 
     //Two additional parameters to format
     ERROR_APPENDING_LITERAL("Error when appending literal to initial clause, reason:\t{}"),
