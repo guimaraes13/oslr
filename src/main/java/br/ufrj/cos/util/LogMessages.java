@@ -121,12 +121,14 @@ public enum LogMessages {
     OUTPUT_TOTAL_HASH("The total of the output:\t\t\t\t\t{}"),
     TOTAL_HASH("The total of the output and configuration:\t{}"),
     TOTAL_NUMBER_EXAMPLES("Total added examples:\t\t{}"),
-    PREVIOUSLY_ADDED_EXAMPLES("Total skipped examples:\t{}"),
-    FILE_SAVE("File\t{} saved at\t{}")
+    TOTAL_SKIPPED_EXAMPLES("Total skipped examples:\t\t{}"),
+    TOTAL_REMOVED_EXAMPLES("Total removed examples:\t\t{}. This examples were removed because contradict future ones."),
+    FILE_SAVE("File\t{} saved at\t{}"),
 
     //Two additional parameters to format
-    , TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}\t{}%"),
-    TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}\t{}%"),
+    FILTERING_ITERATION("Removing examples of iteration {}\tfound in iteration {}."),
+    TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}{}%"),
+    TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}{}%"),
     COMMITTED_VERSION("This run is based on the commit of hash {}."),
     COMMITTED_VERSION_WITH_TAG("This run is based on the commit of tag {} and hash {}."),
     ALL_FILES_COMMITTED("There is no file uncommitted or untracked during this running."),
@@ -144,7 +146,10 @@ public enum LogMessages {
     FILE_HASH_AND_SIZE("Hash of file\t{}{} is {}\tNumber of facts:\t{}"),
     FILE_NORMAL_HASH("{} Hash (Normal):\t{}"),
     FILE_ZIPPED_HASH("{} Hash (Zipped):\t{}"),
-    FILE_CONTAINS_LINES("File:\t{}\tContains {} lines");
+    FILE_CONTAINS_LINES("File:\t{}\tContains {} lines"),
+    ITERATION_SAVING("Saving iteration {} to directory:\t{}"),
+    ITERATION_SAVED("Iteration {} successfully saved to directory:\t{}"),
+    PROCESSING_FILE_HEADER("\nProcessing file:\t{}\nHeader:\t{}");
 
     protected final String message;
 

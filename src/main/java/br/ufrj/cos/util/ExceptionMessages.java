@@ -33,7 +33,7 @@ import java.util.List;
 @SuppressWarnings({"JavaDoc", "HardCodedStringLiteral"})
 public enum ExceptionMessages {
     //No additional parameters to format
-    GENERAL_ERROR("Error:\t{}"),
+    GENERAL_ERROR("Error:\t"),
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),

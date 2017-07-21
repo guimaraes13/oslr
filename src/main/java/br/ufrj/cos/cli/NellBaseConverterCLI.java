@@ -24,13 +24,17 @@ package br.ufrj.cos.cli;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.nell.converter.AddAtomProcessor;
+import br.ufrj.cos.util.nell.converter.AtomProcessor;
+import br.ufrj.cos.util.nell.converter.FilterAtomProcessor;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -73,10 +77,6 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * Zip long suffix.
      */
     public static final String ZIP_SUFFIX = ".zip";
-    /**
-     * The tabulation size.
-     */
-    public static final int TABULATION_SIZE = 4;
     /**
      * Default hash algorithm.
      */
@@ -200,14 +200,15 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     public String[] nellInputFilePaths = null;
 
     protected int maxNameSize = confidenceName.length();
-    protected int subjectIndex = -1;
-    protected int objectIndex = -1;
-    protected int predicateIndex = -1;
-    protected int confidenceIndex = -1;
-    protected int currentIndex = -1;
+    protected int[] subjectIndexes;
+    protected int[] objectIndexes;
+    protected int[] predicateIndexes;
+    protected int[] confidenceIndexes;
 
-    protected Map<Predicate, Set<Atom>>[] positiveAtoms;
-    protected Map<Predicate, Set<Atom>>[] negativeAtoms;
+    protected Pair<Map<Predicate, Set<Atom>>, Map<Predicate, Set<Atom>>> previousAtoms;
+    protected Pair<Map<Predicate, Set<Atom>>, Map<Predicate, Set<Atom>>> currentAtoms;
+    protected MessageDigest normalDigest;
+    protected MessageDigest zippedDigest;
     protected String[] inputHash;
     protected String[] inputZippedHash;
     protected Map<Predicate, String>[] outputPositiveHash;
@@ -215,7 +216,10 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     protected AtomFactory atomFactory = new AtomFactory();
     protected File outputDataDirectory;
     protected final NumberFormat numberFormat;
-    protected int[] previousAppearance;
+    protected int[] previousSkippedAtoms;
+    protected int[] removedAtoms;
+    protected int[] positiveOutputSize;
+    protected int[] negativeOutputSize;
 
     /**
      * Default constructor.
@@ -235,6 +239,28 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         skipPredicate = new HashSet<>();
         //noinspection HardCodedStringLiteral
         skipPredicate.add("generalizations");
+    }
+
+    /**
+     * Gets the negative part of the pair.
+     *
+     * @param pair the pair
+     * @param <V>  the type of the negative part
+     * @return the negative part of the pair
+     */
+    public static <V> V getNegatives(Pair<V, ?> pair) {
+        return pair.getLeft();
+    }
+
+    /**
+     * Gets the positive part of the pair.
+     *
+     * @param pair the pair
+     * @param <V>  the type of the positive part
+     * @return the positive part of the pair
+     */
+    public static <V> V getPositives(Pair<?, V> pair) {
+        return pair.getRight();
     }
 
     /**
@@ -301,6 +327,104 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     }
 
     /**
+     * Builds a pair of maps.
+     *
+     * @param <K> the key of the map
+     * @param <V> the value of the map
+     * @return the pair of maps
+     */
+    protected static <K, V> ImmutablePair<Map<K, V>, Map<K, V>> buildMapPair() {
+        Map<K, V> left = new HashMap<>();
+        Map<K, V> right = new HashMap<>();
+        return new ImmutablePair<>(left, right);
+    }
+
+    /**
+     * Initializes the fields.
+     */
+    protected void initializeFields() {
+        final int inputFiles = nellInputFilePaths.length;
+
+        inputHash = new String[inputFiles];
+        inputZippedHash = new String[inputFiles];
+
+        outputPositiveHash = new HashMap[inputFiles];
+        outputNegativeHash = new HashMap[inputFiles];
+
+        outputDataDirectory = new File(outputDirectory, dataDirectoryName);
+        deleteDataDirectory(outputDataDirectory);
+
+        previousSkippedAtoms = new int[inputFiles];
+        removedAtoms = new int[inputFiles];
+        positiveOutputSize = new int[inputFiles];
+        negativeOutputSize = new int[inputFiles];
+
+        initializeHeaderIndexes(inputFiles);
+    }
+
+    /**
+     * Initializes the arrays to hold the header indexes for each input file
+     *
+     * @param inputFiles the number of input files
+     */
+    protected void initializeHeaderIndexes(int inputFiles) {
+        subjectIndexes = new int[inputFiles];
+        objectIndexes = new int[inputFiles];
+        predicateIndexes = new int[inputFiles];
+        confidenceIndexes = new int[inputFiles];
+
+        for (int i = 0; i < inputFiles; i++) {
+            subjectIndexes[i] = -1;
+            objectIndexes[i] = -1;
+            predicateIndexes[i] = -1;
+            confidenceIndexes[i] = -1;
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            if (nellInputFilePaths.length == 0) { return; }
+            long begin = TimeMeasure.getNanoTime();
+            initializeFields();
+
+            processFiles();
+            saveDescriptionFile();
+
+            long end = TimeMeasure.getNanoTime();
+            logger.info(HASH_DISCLAIMER);
+            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+        } catch (Exception e) {
+            logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);
+        }
+    }
+
+    /**
+     * Process the input files.
+     *
+     * @throws IOException              if an I/O error has occurred
+     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
+     *                                  algorithm.
+     */
+    protected void processFiles() throws IOException, NoSuchAlgorithmException {
+        previousAtoms = buildMapPair();
+        // read the first file to current
+        readFile(0);
+
+        int i;
+        for (i = 1; i < nellInputFilePaths.length; i++) {
+            previousAtoms = currentAtoms;       // makes the previous the current
+            readFile(i);                        // read the next file to current, filtering it by the current
+            filterPreviousAtoms(i - 1);     // filter the previous by already added files
+            saveIteration(i - 1);           // saves the previous to files
+            atomFactory.clearConstantMap();
+        }
+        previousAtoms = currentAtoms;       // makes the previous the current
+        filterPreviousAtoms(i - 1);     // filter the previous by already added files
+        saveIteration(i - 1);           // saves the previous to files
+    }
+
+    /**
      * Formats the name based on the replaceMap. Each occurrence of a key, from the replaceMap, in the name will be
      * replaced by its correspondent value.
      *
@@ -327,83 +451,34 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         return average.isPresent() ? average.getAsDouble() : 0.0;
     }
 
-    @Override
-    public void run() {
-        try {
-            long begin = TimeMeasure.getNanoTime();
-            initializeFields();
-            readFiles();
-            saveIterations();
-            saveDescriptionFile();
-            long end = TimeMeasure.getNanoTime();
-            logger.info(HASH_DISCLAIMER);
-            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
-        } catch (Exception e) {
-            logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);
-        }
-    }
-
     /**
-     * Initializes the fields.
-     */
-    protected void initializeFields() {
-        final int inputFiles = nellInputFilePaths.length;
-        positiveAtoms = new HashMap[inputFiles];
-        negativeAtoms = new HashMap[inputFiles];
-
-        inputHash = new String[inputFiles];
-        inputZippedHash = new String[inputFiles];
-
-        outputPositiveHash = new HashMap[inputFiles];
-        outputNegativeHash = new HashMap[inputFiles];
-
-        outputDataDirectory = new File(outputDirectory, dataDirectoryName);
-        deleteDataDirectory(outputDataDirectory);
-
-        previousAppearance = new int[inputFiles];
-    }
-
-    /**
-     * Reads the files to memory.
+     * Filters the atoms from the previous iteration removing the atom that already appears on older iterations.
      *
-     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
-     *                                  algorithm.
-     * @throws IOException              if an I/O error has occurred
+     * @param index the index of the previous iteration
+     * @throws IOException if an I/O error has occurred
      */
-    protected void readFiles() throws NoSuchAlgorithmException, IOException {
-        for (int i = 0; i < nellInputFilePaths.length; i++) {
-            currentIndex = i;
-            positiveAtoms[i] = new HashMap<>();
-            negativeAtoms[i] = new HashMap<>();
-            readFile();
+    protected void filterPreviousAtoms(int index) throws IOException {
+        FilterAtomProcessor atomProcessor = new FilterAtomProcessor(previousAtoms);
+        InputStream stream;
+        for (int i = 0; i < index - 1; i++) {
+            logger.debug(LogMessages.FILTERING_ITERATION.toString(), index, i);
+            stream = createStream(i);
+            processInputFile(stream, i, atomProcessor, false);
         }
-    }
-
-    /**
-     * Saves the iterations to files.
-     *
-     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
-     *                                  algorithm.
-     * @throws IOException              if an I/O error has occurred
-     */
-    protected void saveIterations() throws IOException, NoSuchAlgorithmException {
-        for (int i = 0; i < nellInputFilePaths.length; i++) {
-            currentIndex = i;
-            outputPositiveHash[currentIndex] = new HashMap<>();
-            outputNegativeHash[currentIndex] = new HashMap<>();
-            saveIteration();
-        }
+        previousSkippedAtoms[index] += atomProcessor.getNumberOfFilteredAtoms();
     }
 
     /**
      * Saves the iteration to file.
      *
+     * @param index the index of the iteration
      * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
      *                                  algorithm.
      * @throws IOException              if an I/O error has occurred
      */
-    protected void saveIteration() throws IOException, NoSuchAlgorithmException {
-        File iterationDirectory = getIterationDirectory(currentIndex);
+    protected void saveIteration(int index) throws IOException, NoSuchAlgorithmException {
+        File iterationDirectory = getIterationDirectory(index);
+        logger.debug(LogMessages.ITERATION_SAVING.toString(), index, iterationDirectory);
         if (!iterationDirectory.exists()) {
             if (!iterationDirectory.mkdirs()) {
                 throw new IOException(
@@ -411,27 +486,44 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                                                        iterationDirectory));
             }
         }
+        outputPositiveHash[index] = new HashMap<>();
+        outputNegativeHash[index] = new HashMap<>();
 
         Set<Predicate> predicates = new HashSet<>();
-        Map<Predicate, Set<Atom>> positiveMap = positiveAtoms[currentIndex];
+        Map<Predicate, Set<Atom>> positiveMap = getPositives(previousAtoms);
         predicates.addAll(positiveMap.keySet());
-        Map<Predicate, Set<Atom>> negativeMap = negativeAtoms[currentIndex];
+        Map<Predicate, Set<Atom>> negativeMap = getNegatives(previousAtoms);
         predicates.addAll(negativeMap.keySet());
 
-        File outputFile;
-        String hash;
+        Set<Atom> outputAtoms;
         for (Predicate predicate : predicates) {
-            outputFile = new File(iterationDirectory, predicate.getName() + positiveOutputExtension);
-            hash = saveIterationPredicate(positiveMap.computeIfAbsent(predicate, k -> new HashSet<>()), outputFile);
-            outputPositiveHash[currentIndex].put(predicate, hash);
-            outputFile = new File(iterationDirectory, predicate.getName() + negativeOutputExtension);
-            hash = saveIterationPredicate(negativeMap.computeIfAbsent(predicate, k -> new HashSet<>()), outputFile);
-            outputNegativeHash[currentIndex].put(predicate, hash);
+            outputAtoms = positiveMap.computeIfAbsent(predicate, k -> new HashSet<>());
+            writePredicateToFile(index, predicate, outputAtoms, true);
+            outputAtoms = negativeMap.computeIfAbsent(predicate, k -> new HashSet<>());
+            writePredicateToFile(index, predicate, outputAtoms, false);
         }
+        logger.info(LogMessages.ITERATION_SAVED.toString(), index, iterationDirectory);
     }
 
-    private File getIterationDirectory(int index) {
-        return new File(outputDataDirectory, iterationPrefix + index);
+    /**
+     * Writes the predicate to file.
+     *
+     * @param index       the index of the iteration
+     * @param predicate   the predicate
+     * @param outputAtoms the output atoms
+     * @param positive    if the atoms are positive or negative
+     * @throws IOException              if an I/O error has occurred
+     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
+     *                                  algorithm.
+     */
+    protected void writePredicateToFile(int index, Predicate predicate, Set<Atom> outputAtoms, boolean positive)
+            throws IOException, NoSuchAlgorithmException {
+        File iterationDirectory = getIterationDirectory(index);
+        final String outputExtension = positive ? this.positiveOutputExtension : this.negativeOutputExtension;
+        File outputFile = new File(iterationDirectory, predicate.getName() + outputExtension);
+        String hash = saveIterationPredicate(outputAtoms, outputFile);
+        (positive ? positiveOutputSize : negativeOutputSize)[index] += outputAtoms.size();
+        (positive ? outputPositiveHash : outputNegativeHash)[index].put(predicate, hash);
     }
 
     /**
@@ -464,17 +556,102 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     }
 
     /**
+     * Gets the directory to save the iteration.
+     *
+     * @param index the index of the input file
+     * @return the output directory
+     */
+    protected File getIterationDirectory(int index) {
+        return new File(outputDataDirectory, iterationPrefix + index);
+    }
+
+    /**
      * Reads the file to the memory, also calculating the hash of the file.
      *
+     * @param index the index of the file
      * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
      *                                  algorithm.
      * @throws IOException              if an I/O error has occurred
      */
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
-    protected void readFile() throws NoSuchAlgorithmException, IOException {
-        String filePath = nellInputFilePaths[currentIndex];
+    protected void readFile(int index) throws NoSuchAlgorithmException, IOException {
+        currentAtoms = buildMapPair();
+        InputStream stream = createDigestStream(index);
+        AddAtomProcessor atomProcessor = new AddAtomProcessor(previousAtoms, currentAtoms);
+        processInputFile(stream, index, atomProcessor, true); //TODO: add skipped atoms
+        previousSkippedAtoms[index] += atomProcessor.getNumberOfSkippedAtoms();
+        if (index > 0) { removedAtoms[index - 1] = atomProcessor.getNumberOfRemovedAtoms(); }
+    }
+
+    /**
+     * Process the input file reading the line and applying and {@link AtomProcessor} for each read atom.
+     *
+     * @param stream        the stream
+     * @param index         the index of the input file
+     * @param atomProcessor the {@link AtomProcessor}
+     * @param logHash       if it is to log the hash
+     * @throws UnsupportedEncodingException if the encode is not supported
+     */
+    @SuppressWarnings("OverlyLongMethod")
+    protected void processInputFile(InputStream stream, int index, AtomProcessor atomProcessor, boolean logHash) throws
+            UnsupportedEncodingException {
+        InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
+        Pair<Atom, Boolean> pair;
+        try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            String line;
+            line = bufferedReader.readLine();
+            int count = 1;
+            if (logHash) {
+                logger.trace(LogMessages.PROCESSING_FILE_HEADER.toString(), nellInputFilePaths[index],
+                             StringEscapeUtils.escapeJava(line));
+            }
+            readHeader(index, line);
+            line = bufferedReader.readLine();
+            while (line != null) {
+                count++;
+                if (line.isEmpty() || line.startsWith(commentCharacter)) { continue; }
+                pair = readLine(line, index);
+                if (pair != null) { atomProcessor.isAtomProcessed(pair); }
+                line = bufferedReader.readLine();
+            }
+            if (logHash) { logHash(index, count); }
+        } catch (IOException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        }
+    }
+
+    /**
+     * Logs the hash(es) of the input file.
+     *
+     * @param index the index of the {@link #nellInputFilePaths}
+     * @param lines the number of read lines
+     */
+    protected void logHash(int index, int lines) {
+        logger.info(FILE_CONTAINS_LINES.toString(), nellInputFilePaths[index], numberFormat.format(lines));
+        String hash = Hex.encodeHexString(normalDigest.digest());
+        inputHash[index] = hash;
+        logger.info(FILE_NORMAL_HASH.toString(), hashAlgorithm, hash);
+        if (zippedDigest != null) {
+            String zippedHash = Hex.encodeHexString(zippedDigest.digest());
+            inputZippedHash[index] = zippedHash;
+            logger.info(FILE_ZIPPED_HASH.toString(), hashAlgorithm, zippedHash);
+        }
+    }
+
+    /**
+     * Creates the stream of the input file with the correspondent digest and saves it at the {@link #normalDigest}.
+     * <p>
+     * If the file is zipped (.gz, .gzip or .zip), the zipped digest is saved at the {@link #zippedDigest}.
+     *
+     * @param index the index of the {@link #nellInputFilePaths}
+     * @return the {@link InputStream}
+     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
+     *                                  algorithm.
+     * @throws IOException              if an I/O error has occurred
+     */
+    protected InputStream createDigestStream(int index) throws NoSuchAlgorithmException, IOException {
+        String filePath = nellInputFilePaths[index];
         InputStream stream = new FileInputStream(filePath);
-        MessageDigest zippedDigest = null;
+        zippedDigest = null;
         if (filePath.endsWith(GZIP_SHORT_SUFFIX) || filePath.endsWith(GZIP_LONG_SUFFIX)) {
             zippedDigest = MessageDigest.getInstance(hashAlgorithm);
             stream = new DigestInputStream(stream, zippedDigest);
@@ -482,81 +659,76 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         } else if (filePath.endsWith(ZIP_SUFFIX)) {
             zippedDigest = MessageDigest.getInstance(hashAlgorithm);
             stream = new DigestInputStream(stream, zippedDigest);
-            @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
+            //noinspection resource,IOResourceOpenedButNotSafelyClosed
             ZipInputStream zipInputStream = new ZipInputStream(stream);
             zipInputStream.getNextEntry();
             stream = zipInputStream;
         }
-        MessageDigest digest = MessageDigest.getInstance(hashAlgorithm);
-        stream = new DigestInputStream(stream, digest);
-        InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
+        normalDigest = MessageDigest.getInstance(hashAlgorithm);
+        stream = new DigestInputStream(stream, normalDigest);
+        return stream;
+    }
 
-        try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-            String line;
-            line = bufferedReader.readLine();
-            int count = 1;
-            readHeader(line, filePath);
-            line = bufferedReader.readLine();
-            while (line != null) {
-                count++;
-                if (line.isEmpty() || line.startsWith(commentCharacter)) {
-                    continue;
-                }
-                readLine(line);
-                line = bufferedReader.readLine();
-            }
-
-            logger.debug(FILE_CONTAINS_LINES.toString(), filePath, numberFormat.format(count));
-            String hash = Hex.encodeHexString(digest.digest());
-            inputHash[currentIndex] = hash;
-            logger.debug(FILE_NORMAL_HASH.toString(), hashAlgorithm, hash);
-            if (zippedDigest != null) {
-                String zippedHash = Hex.encodeHexString(zippedDigest.digest());
-                inputZippedHash[currentIndex] = zippedHash;
-                logger.debug(FILE_ZIPPED_HASH.toString(), hashAlgorithm, zippedHash);
-            }
-        } catch (IOException e) {
-            logger.error(ERROR_READING_FILE.toString(), e);
+    /**
+     * Creates the stream of the input file with the zip stream if needed.
+     *
+     * @param index the index of the {@link #nellInputFilePaths}
+     * @return the {@link InputStream}
+     * @throws IOException if an I/O error has occurred
+     */
+    protected InputStream createStream(int index) throws IOException {
+        String filePath = nellInputFilePaths[index];
+        InputStream stream = new FileInputStream(filePath);
+        if (filePath.endsWith(GZIP_SHORT_SUFFIX) || filePath.endsWith(GZIP_LONG_SUFFIX)) {
+            stream = new GZIPInputStream(stream);
+        } else if (filePath.endsWith(ZIP_SUFFIX)) {
+            stream = new DigestInputStream(stream, zippedDigest);
+            //noinspection resource,IOResourceOpenedButNotSafelyClosed
+            ZipInputStream zipInputStream = new ZipInputStream(stream);
+            zipInputStream.getNextEntry();
+            stream = zipInputStream;
         }
+        return stream;
     }
 
     /**
      * Reads the header from the file and load the fields' indexes
      *
-     * @param header   the header
-     * @param filePath the file path
+     * @param header the header
+     * @param index  the index of the {@link #nellInputFilePaths}
      * @throws IOException if one or more indexes can not be found
      */
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
-    protected void readHeader(String header, String filePath) throws IOException {
+    protected void readHeader(int index, String header) throws IOException {
+        String filePath = nellInputFilePaths[index];
         String[] fields = header.toLowerCase().split(valueSeparator);
         for (int i = 0; i < fields.length; i++) {
-            if (subjectIndex < 0 && fields[i].contains(subjectName)) {
-                subjectIndex = i;
-                logIndexFound(subjectName, subjectIndex);
+            if (subjectIndexes[index] < 0 && fields[i].contains(subjectName)) {
+                subjectIndexes[index] = i;
+                logIndexFound(subjectName, subjectIndexes[index]);
                 continue;
             }
-            if (objectIndex < 0 && fields[i].contains(objectName)) {
-                objectIndex = i;
-                logIndexFound(objectName, objectIndex);
+            if (objectIndexes[index] < 0 && fields[i].contains(objectName)) {
+                objectIndexes[index] = i;
+                logIndexFound(objectName, objectIndexes[index]);
                 continue;
             }
-            if (predicateIndex < 0 && fields[i].contains(predicateName)) {
-                predicateIndex = i;
-                logIndexFound(predicateName, predicateIndex);
+            if (predicateIndexes[index] < 0 && fields[i].contains(predicateName)) {
+                predicateIndexes[index] = i;
+                logIndexFound(predicateName, predicateIndexes[index]);
                 continue;
             }
-            if (confidenceIndex < 0 && fields[i].contains(confidenceName)) {
-                confidenceIndex = i;
-                logIndexFound(confidenceName, confidenceIndex);
+            if (confidenceIndexes[index] < 0 && fields[i].contains(confidenceName)) {
+                confidenceIndexes[index] = i;
+                logIndexFound(confidenceName, confidenceIndexes[index]);
             }
         }
 
         List<String> list = new ArrayList<>();
-        if (subjectIndex < 0) { list.add(subjectName); }
-        if (objectIndex < 0) { list.add(objectName); }
-        if (predicateIndex < 0) { list.add(predicateName); }
-        if (confidenceIndex < 0) { list.add(confidenceName); }
+        if (subjectIndexes[index] < 0) { list.add(subjectName); }
+        if (objectIndexes[index] < 0) { list.add(objectName); }
+        if (predicateIndexes[index] < 0) { list.add(predicateName); }
+        if (confidenceIndexes[index] < 0) { list.add(confidenceName); }
 
         if (!list.isEmpty()) {
             throw new IOException(LanguageUtils.formatLogMessage(ExceptionMessages.INDEXES_NOT_FOUND.toString(),
@@ -567,20 +739,21 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     /**
      * Reads the line into a literal.
      *
-     * @param line the line
-     * @return the literal
+     * @param line  the line
+     * @param index the index of the current input file
+     * @return the atom and if its label
      */
-    @SuppressWarnings({"BooleanMethodNameMustStartWithQuestion", "OverlyLongMethod"})
-    protected boolean readLine(String line) {
+    @SuppressWarnings({"OverlyLongMethod"})
+    protected Pair<Atom, Boolean> readLine(String line, int index) {
         String[] fields = line.split(valueSeparator);
         String[] confidences;
-        String predicate = fields[predicateIndex].trim();
+        String predicate = fields[predicateIndexes[index]].trim();
         predicate = formatName(predicate, predicateReplaceMap);
-        if (skipPredicate.contains(predicate)) { return false; }
-        String confidenceString = fields[confidenceIndex].trim();
+        if (skipPredicate.contains(predicate)) { return null; }
+        String confidenceString = fields[confidenceIndexes[index]].trim();
         double confidence;
         if (confidenceString.isEmpty()) {
-            return false;
+            return null;
         }
         if (confidenceString.startsWith(CONFIDENCE_OPEN_ARRAY)) {
             try {
@@ -590,60 +763,16 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 confidences = confidenceString.split(CONFIDENCE_VALUE_SEPARATOR);
                 confidence = averageProbability(confidences);
             } catch (NumberFormatException ignore) {
-                return false;
+                return null;
             }
         } else {
             confidence = Double.parseDouble(confidenceString);
         }
-        String subject = formatName(fields[subjectIndex].trim(), entityReplaceMap);
-        String object = formatName(fields[objectIndex].trim(), entityReplaceMap);
+        String subject = formatName(fields[subjectIndexes[index]].trim(), entityReplaceMap);
+        String object = formatName(fields[objectIndexes[index]].trim(), entityReplaceMap);
         Atom atom = atomFactory.createAtom(predicate, subject, object);
 
-        return addAtom(atom, confidence >= confidenceThreshold);
-    }
-
-    /**
-     * Adds the atom to the set of the current iteration.
-     * <p>
-     * If the atom already appears in this iteration, ignores it.
-     * <p>
-     * If the atom appears if same label in a previous iteration, ignores it.
-     * <p>
-     * if the atom appears if the opposite label on the iteration immediately before that, removes it from the
-     * previous iteration.
-     *
-     * @param atom     the atom
-     * @param positive if the atom is positive
-     * @return {@code true} if the atom was added, {@code false} otherwise.
-     */
-    @SuppressWarnings("OverlyComplexMethod")
-    protected boolean addAtom(Atom atom, boolean positive) {
-        Map<Predicate, Set<Atom>>[] thisList = positive ? positiveAtoms : negativeAtoms;
-        Map<Predicate, Set<Atom>>[] thatList = positive ? negativeAtoms : positiveAtoms;
-
-        Set<Atom> atomSet;
-        // if atom appears with another label in this iteration, ignore it.
-        atomSet = thatList[currentIndex].get(atom.getPredicate());
-        if (atomSet != null && atomSet.contains(atom)) { return false; }
-
-        // looking at the older generations
-        for (int i = 0; i < currentIndex; i++) {
-            atomSet = thisList[i].get(atom.getPredicate());
-            if (atomSet != null && atomSet.contains(atom)) {
-                previousAppearance[currentIndex]++;
-                return false;
-            }
-        }
-
-        // look at the previous generation
-        if (currentIndex > 0) {
-            atomSet = thatList[currentIndex - 1].get(atom.getPredicate());
-            // if atom appears if another label on previous iteration, removes it.
-            if (atomSet != null) { atomSet.remove(atom); }
-        }
-
-        // adding the atom to this list
-        return thisList[currentIndex].computeIfAbsent(atom.getPredicate(), p -> new LinkedHashSet<>()).add(atom);
+        return new ImmutablePair<>(atom, confidence >= confidenceThreshold);
     }
 
     /**
@@ -661,8 +790,6 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         List<Predicate> predicates;
         File outputFile;
         int maxSize = 1;
-        int positiveSize;
-        int negativeSize;
         DecimalFormat format = new DecimalFormat("0.00");
         MessageDigest digest;
         String positiveHash;
@@ -673,15 +800,13 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         String negativeExamples;
         for (int i = 0; i < nellInputFilePaths.length; i++) {
             digest = MessageDigest.getInstance(hashAlgorithm);
-            int positiveTotal = 0;
-            int negativeTotal = 0;
             iterationDirectory = getIterationDirectory(i);
             logger.info("");
             logger.info(FILE_SAVE.toString(), nellInputFilePaths[i], iterationDirectory.getAbsolutePath());
             hash = inputHash[i];
             logger.info(FILE_NORMAL_HASH.toString(), hashAlgorithm, hash);
             hash = inputZippedHash[i];
-            if (hash != null) { logger.debug(FILE_ZIPPED_HASH.toString(), hashAlgorithm, hash); }
+            if (hash != null) { logger.info(FILE_ZIPPED_HASH.toString(), hashAlgorithm, hash); }
             predicates = new ArrayList<>(outputPositiveHash[i].keySet());
             predicates.sort(Comparator.comparing(Predicate::getName));
             if (logger.isTraceEnabled()) {
@@ -691,43 +816,42 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             }
             for (Predicate key : predicates) {
                 outputFile = new File(iterationDirectory, key.getName() + positiveOutputExtension);
-                positiveSize = positiveAtoms[i].get(key).size();
                 positiveHash = outputPositiveHash[i].get(key);
                 logger.trace(FILE_HASH_AND_SIZE.toString(), outputFile.getName(),
-                             getTab(outputFile.getName(), maxSize),
-                             positiveHash, positiveSize);
+                             LanguageUtils.getTabulation(outputFile.getName(), maxSize),
+                             positiveHash, positiveOutputSize[i]);
                 outputFile = new File(iterationDirectory, key.getName() + negativeOutputExtension);
-                negativeSize = negativeAtoms[i].get(key).size();
                 negativeHash = outputNegativeHash[i].get(key);
                 logger.trace(FILE_HASH_AND_SIZE.toString(), outputFile.getName(),
-                             getTab(outputFile.getName(), maxSize),
-                             negativeHash, negativeSize);
-                positiveTotal += positiveSize;
-                negativeTotal += negativeSize;
+                             LanguageUtils.getTabulation(outputFile.getName(), maxSize),
+                             negativeHash, negativeOutputSize[i]);
                 digest.update(positiveHash.getBytes(fileEncode));
                 digest.update(negativeHash.getBytes(fileEncode));
                 totalHash.update(positiveHash.getBytes(fileEncode));
                 totalHash.update(negativeHash.getBytes(fileEncode));
             }
-            if (positiveTotal + negativeTotal == 0) {
+            if (positiveOutputSize[i] + negativeOutputSize[i] == 0) {
                 positiveRate = "-";
                 negativeRate = "-";
             } else {
-                positiveRate = format.format((float) positiveTotal / (positiveTotal + negativeTotal) * PERCENT_FACTOR);
-                negativeRate = format.format((float) negativeTotal / (positiveTotal + negativeTotal) * PERCENT_FACTOR);
+                positiveRate = format.format((float) positiveOutputSize[i] / (positiveOutputSize[i] +
+                        negativeOutputSize[i]) * PERCENT_FACTOR);
+                negativeRate = format.format((float) negativeOutputSize[i] / (positiveOutputSize[i] +
+                        negativeOutputSize[i]) * PERCENT_FACTOR);
             }
-            String totalExamples = numberFormat.format(positiveTotal + negativeTotal);
-            positiveExamples = numberFormat.format(positiveTotal);
-            positiveExamples = positiveExamples + getTab(positiveExamples, totalExamples.length());
-            negativeExamples = numberFormat.format(negativeTotal);
-            negativeExamples = negativeExamples + getTab(negativeExamples, totalExamples.length());
+            String totalExamples = numberFormat.format(positiveOutputSize[i] + negativeOutputSize[i]);
+            positiveExamples = numberFormat.format(positiveOutputSize[i]);
+            positiveExamples = positiveExamples + LanguageUtils.getTabulation(positiveExamples, totalExamples.length());
+            negativeExamples = numberFormat.format(negativeOutputSize[i]);
+            negativeExamples = negativeExamples + LanguageUtils.getTabulation(negativeExamples, totalExamples.length());
 
             logger.info("");
-            logger.debug(TOTAL_NUMBER_PREDICATES.toString(), predicates.size());
+            logger.info(TOTAL_NUMBER_PREDICATES.toString(), predicates.size());
             logger.info(TOTAL_NUMBER_POSITIVES.toString(), positiveExamples, positiveRate);
             logger.info(TOTAL_NUMBER_NEGATIVES.toString(), negativeExamples, negativeRate);
             logger.info(TOTAL_NUMBER_EXAMPLES.toString(), totalExamples);
-            logger.info(PREVIOUSLY_ADDED_EXAMPLES.toString(), numberFormat.format(previousAppearance[i]));
+            logger.info(TOTAL_SKIPPED_EXAMPLES.toString(), numberFormat.format(previousSkippedAtoms[i]));
+            logger.info(TOTAL_REMOVED_EXAMPLES.toString(), numberFormat.format(removedAtoms[i]));
 
             logger.info(ITERATION_TOTAL_HASH.toString(), Hex.encodeHexString(digest.digest()));
             logger.info("");
@@ -752,11 +876,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * @param index the index
      */
     protected void logIndexFound(String name, int index) {
-        logger.debug(FOUND_INDEX.toString(), name, getTab(name, maxNameSize), index);
-    }
-
-    private static String getTab(String name, int maxNameSize) {
-        return StringUtils.repeat("\t", Math.round((float) (maxNameSize - name.length() + 1) / TABULATION_SIZE) + 1);
+        logger.info(FOUND_INDEX.toString(), name, LanguageUtils.getTabulation(name, maxNameSize), index);
     }
 
     /**
@@ -863,7 +983,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         updateMaxNameSize(confidenceName);
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+    @SuppressWarnings("OverlyComplexMethod")
     @Override
     public int hashCode() {
         int result;
@@ -896,11 +1016,6 @@ public class NellBaseConverterCLI extends CommandLineInterface {
 
         if (Double.compare(that.confidenceThreshold, confidenceThreshold) != 0) { return false; }
         if (maxNameSize != that.maxNameSize) { return false; }
-        if (subjectIndex != that.subjectIndex) { return false; }
-        if (objectIndex != that.objectIndex) { return false; }
-        if (predicateIndex != that.predicateIndex) { return false; }
-        if (confidenceIndex != that.confidenceIndex) { return false; }
-        if (currentIndex != that.currentIndex) { return false; }
         if (commentCharacter != null ? !commentCharacter.equals(that.commentCharacter) : that.commentCharacter !=
                 null) {
             return false;
@@ -949,18 +1064,9 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             return false;
         }
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(positiveAtoms, that.positiveAtoms)) { return false; }
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(negativeAtoms, that.negativeAtoms)) { return false; }
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(inputHash, that.inputHash)) { return false; }
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(inputZippedHash, that.inputZippedHash)) { return false; }
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(outputPositiveHash, that.outputPositiveHash)) { return false; }
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(outputNegativeHash, that.outputNegativeHash)) { return false; }
-        if (atomFactory != null ? !atomFactory.equals(that.atomFactory) : that.atomFactory != null) { return false; }
         return outputDataDirectory != null ? outputDataDirectory.equals(that.outputDataDirectory) : that
                 .outputDataDirectory == null;
     }
@@ -1005,6 +1111,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         }
 
         description.append("\n").append("\t").append("Output directory path:\t").append(outputDirectoryPath);
-        return description.toString().trim();
+        description.append("\n");
+        return description.toString();
     }
+
 }

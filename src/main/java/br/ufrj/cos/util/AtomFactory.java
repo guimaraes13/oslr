@@ -46,7 +46,7 @@ public class AtomFactory {
      * The arity of a proposition.
      */
     public static final int PROPOSITION_ARITY = 0;
-    protected final Map<String, Constant> constantMap = new HashMap();
+    protected Map<String, Constant> constantMap = new HashMap();
     protected final Map<String, Predicate> predicateMap = new HashMap();
 
     /**
@@ -108,6 +108,13 @@ public class AtomFactory {
      */
     public Constant getConstant(String name) {
         return constantMap.computeIfAbsent(name, Constant::new);
+    }
+
+    /**
+     * Clears the constant map.
+     */
+    public void clearConstantMap() {
+        this.constantMap = new HashMap<>();
     }
 
 }

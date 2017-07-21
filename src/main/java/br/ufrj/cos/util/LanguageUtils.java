@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.*;
@@ -151,6 +152,10 @@ public final class LanguageUtils {
      * The arity of the true and false predicates.
      */
     public static final int PREDICATE_ARITY = 1;
+    /**
+     * The tabulation size.
+     */
+    public static final int TABULATION_SIZE = 4;
     /**
      * The false argument to simulate the false boolean value.
      */
@@ -665,6 +670,17 @@ public final class LanguageUtils {
         List<Term> terms = new ArrayList<>(1);
         terms.add(new Constant(FALSE_ARGUMENT));
         return new Literal(FALSE_PREDICATE, terms);
+    }
+
+    /**
+     * Gets the right number of tabulations to format the log message
+     *
+     * @param name        the name to be in the log
+     * @param maxNameSize the size of the longest name to be in the log
+     * @return the right tabulations to be after the name
+     */
+    public static String getTabulation(String name, int maxNameSize) {
+        return StringUtils.repeat("\t", Math.round((float) (maxNameSize - name.length() + 1) / TABULATION_SIZE) + 1);
     }
 
 }
