@@ -120,7 +120,8 @@ public enum LogMessages {
     FILE_HASH("{}  {}"),
     OUTPUT_TOTAL_HASH("The total of the output:\t\t\t\t\t{}"),
     TOTAL_HASH("The total of the output and configuration:\t{}"),
-    TOTAL_NUMBER_EXAMPLES("Total number of examples:\t\t{}"),
+    TOTAL_NUMBER_EXAMPLES("Total added examples:\t\t{}"),
+    PREVIOUSLY_ADDED_EXAMPLES("Total skipped examples:\t{}"),
     FILE_SAVE("File\t{} saved at\t{}")
 
     //Two additional parameters to format

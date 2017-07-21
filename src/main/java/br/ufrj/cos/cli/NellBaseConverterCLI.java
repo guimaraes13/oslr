@@ -29,6 +29,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,6 +40,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -212,11 +214,14 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     protected Map<Predicate, String>[] outputNegativeHash;
     protected AtomFactory atomFactory = new AtomFactory();
     protected File outputDataDirectory;
+    protected final NumberFormat numberFormat;
+    protected int[] previousAppearance;
 
     /**
      * Default constructor.
      */
     public NellBaseConverterCLI() {
+        numberFormat = NumberFormat.getIntegerInstance();
         entityReplaceMap = new HashMap<>();
         entityReplaceMap.put("\"", "");
         entityReplaceMap.put("\'", "");
@@ -342,17 +347,20 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * Initializes the fields.
      */
     protected void initializeFields() {
-        positiveAtoms = new HashMap[nellInputFilePaths.length];
-        negativeAtoms = new HashMap[nellInputFilePaths.length];
+        final int inputFiles = nellInputFilePaths.length;
+        positiveAtoms = new HashMap[inputFiles];
+        negativeAtoms = new HashMap[inputFiles];
 
-        inputHash = new String[nellInputFilePaths.length];
-        inputZippedHash = new String[nellInputFilePaths.length];
+        inputHash = new String[inputFiles];
+        inputZippedHash = new String[inputFiles];
 
-        outputPositiveHash = new HashMap[nellInputFilePaths.length];
-        outputNegativeHash = new HashMap[nellInputFilePaths.length];
+        outputPositiveHash = new HashMap[inputFiles];
+        outputNegativeHash = new HashMap[inputFiles];
 
         outputDataDirectory = new File(outputDirectory, dataDirectoryName);
         deleteDataDirectory(outputDataDirectory);
+
+        previousAppearance = new int[inputFiles];
     }
 
     /**
@@ -498,7 +506,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 line = bufferedReader.readLine();
             }
 
-            logger.debug(FILE_CONTAINS_LINES.toString(), filePath, count);
+            logger.debug(FILE_CONTAINS_LINES.toString(), filePath, numberFormat.format(count));
             String hash = Hex.encodeHexString(digest.digest());
             inputHash[currentIndex] = hash;
             logger.debug(FILE_NORMAL_HASH.toString(), hashAlgorithm, hash);
@@ -557,15 +565,96 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     }
 
     /**
+     * Reads the line into a literal.
+     *
+     * @param line the line
+     * @return the literal
+     */
+    @SuppressWarnings({"BooleanMethodNameMustStartWithQuestion", "OverlyLongMethod"})
+    protected boolean readLine(String line) {
+        String[] fields = line.split(valueSeparator);
+        String[] confidences;
+        String predicate = fields[predicateIndex].trim();
+        predicate = formatName(predicate, predicateReplaceMap);
+        if (skipPredicate.contains(predicate)) { return false; }
+        String confidenceString = fields[confidenceIndex].trim();
+        double confidence;
+        if (confidenceString.isEmpty()) {
+            return false;
+        }
+        if (confidenceString.startsWith(CONFIDENCE_OPEN_ARRAY)) {
+            try {
+                confidenceString = confidenceString.substring(CONFIDENCE_OPEN_ARRAY.length(),
+                                                              confidenceString.length() -
+                                                                      CONFIDENCE_OPEN_ARRAY.length());
+                confidences = confidenceString.split(CONFIDENCE_VALUE_SEPARATOR);
+                confidence = averageProbability(confidences);
+            } catch (NumberFormatException ignore) {
+                return false;
+            }
+        } else {
+            confidence = Double.parseDouble(confidenceString);
+        }
+        String subject = formatName(fields[subjectIndex].trim(), entityReplaceMap);
+        String object = formatName(fields[objectIndex].trim(), entityReplaceMap);
+        Atom atom = atomFactory.createAtom(predicate, subject, object);
+
+        return addAtom(atom, confidence >= confidenceThreshold);
+    }
+
+    /**
+     * Adds the atom to the set of the current iteration.
+     * <p>
+     * If the atom already appears in this iteration, ignores it.
+     * <p>
+     * If the atom appears if same label in a previous iteration, ignores it.
+     * <p>
+     * if the atom appears if the opposite label on the iteration immediately before that, removes it from the
+     * previous iteration.
+     *
+     * @param atom     the atom
+     * @param positive if the atom is positive
+     * @return {@code true} if the atom was added, {@code false} otherwise.
+     */
+    @SuppressWarnings("OverlyComplexMethod")
+    protected boolean addAtom(Atom atom, boolean positive) {
+        Map<Predicate, Set<Atom>>[] thisList = positive ? positiveAtoms : negativeAtoms;
+        Map<Predicate, Set<Atom>>[] thatList = positive ? negativeAtoms : positiveAtoms;
+
+        Set<Atom> atomSet;
+        // if atom appears with another label in this iteration, ignore it.
+        atomSet = thatList[currentIndex].get(atom.getPredicate());
+        if (atomSet != null && atomSet.contains(atom)) { return false; }
+
+        // looking at the older generations
+        for (int i = 0; i < currentIndex; i++) {
+            atomSet = thisList[i].get(atom.getPredicate());
+            if (atomSet != null && atomSet.contains(atom)) {
+                previousAppearance[currentIndex]++;
+                return false;
+            }
+        }
+
+        // look at the previous generation
+        if (currentIndex > 0) {
+            atomSet = thatList[currentIndex - 1].get(atom.getPredicate());
+            // if atom appears if another label on previous iteration, removes it.
+            if (atomSet != null) { atomSet.remove(atom); }
+        }
+
+        // adding the atom to this list
+        return thisList[currentIndex].computeIfAbsent(atom.getPredicate(), p -> new LinkedHashSet<>()).add(atom);
+    }
+
+    /**
      * Saves the description files with all the information to reproduce the data.
      *
      * @throws UnsupportedEncodingException if the encoding is not supported
      * @throws NoSuchAlgorithmException     if no Provider supports a MessageDigestSpi implementation for the specified
      *                                      algorithm.
      */
-    @SuppressWarnings("OverlyLongMethod")
+    @SuppressWarnings({"OverlyLongMethod", "NonConstantStringShouldBeStringBuffer"})
     protected void saveDescriptionFile() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        //TODO: implement method
         MessageDigest totalHash = MessageDigest.getInstance(hashAlgorithm);
         String hash;
         File iterationDirectory;
@@ -580,6 +669,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         String negativeHash;
         String positiveRate;
         String negativeRate;
+        String positiveExamples;
+        String negativeExamples;
         for (int i = 0; i < nellInputFilePaths.length; i++) {
             digest = MessageDigest.getInstance(hashAlgorithm);
             int positiveTotal = 0;
@@ -625,11 +716,18 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 positiveRate = format.format((float) positiveTotal / (positiveTotal + negativeTotal) * PERCENT_FACTOR);
                 negativeRate = format.format((float) negativeTotal / (positiveTotal + negativeTotal) * PERCENT_FACTOR);
             }
+            String totalExamples = numberFormat.format(positiveTotal + negativeTotal);
+            positiveExamples = numberFormat.format(positiveTotal);
+            positiveExamples = positiveExamples + getTab(positiveExamples, totalExamples.length());
+            negativeExamples = numberFormat.format(negativeTotal);
+            negativeExamples = negativeExamples + getTab(negativeExamples, totalExamples.length());
+
             logger.info("");
             logger.debug(TOTAL_NUMBER_PREDICATES.toString(), predicates.size());
-            logger.info(TOTAL_NUMBER_POSITIVES.toString(), positiveTotal, positiveRate);
-            logger.info(TOTAL_NUMBER_NEGATIVES.toString(), negativeTotal, negativeRate);
-            logger.info(TOTAL_NUMBER_EXAMPLES.toString(), positiveTotal + negativeTotal);
+            logger.info(TOTAL_NUMBER_POSITIVES.toString(), positiveExamples, positiveRate);
+            logger.info(TOTAL_NUMBER_NEGATIVES.toString(), negativeExamples, negativeRate);
+            logger.info(TOTAL_NUMBER_EXAMPLES.toString(), totalExamples);
+            logger.info(PREVIOUSLY_ADDED_EXAMPLES.toString(), numberFormat.format(previousAppearance[i]));
 
             logger.info(ITERATION_TOTAL_HASH.toString(), Hex.encodeHexString(digest.digest()));
             logger.info("");
@@ -648,6 +746,20 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     }
 
     /**
+     * Logs the found index.
+     *
+     * @param name  the name
+     * @param index the index
+     */
+    protected void logIndexFound(String name, int index) {
+        logger.debug(FOUND_INDEX.toString(), name, getTab(name, maxNameSize), index);
+    }
+
+    private static String getTab(String name, int maxNameSize) {
+        return StringUtils.repeat("\t", Math.round((float) (maxNameSize - name.length() + 1) / TABULATION_SIZE) + 1);
+    }
+
+    /**
      * Saves the input hash.
      */
     protected void saveInputHash() {
@@ -660,103 +772,10 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             } else {
                 hash = inputHash[i];
             }
-            logger.info(FILE_HASH.toString(), hash, nellInputFilePaths[i]);
+            logger.info(FILE_HASH.toString(), hash, new File(nellInputFilePaths[i]).getName());
         }
         logger.info(FILE_HASH_FOOTER.toString());
         logger.info("");
-    }
-
-    /**
-     * Reads the line into a literal.
-     *
-     * @param line the line
-     * @return the literal
-     */
-    @SuppressWarnings({"BooleanMethodNameMustStartWithQuestion", "OverlyLongMethod"})
-    protected boolean readLine(String line) {
-        String[] fields = line.split(valueSeparator);
-        String[] confidences;
-        String predicate = fields[predicateIndex].trim();
-        if (skipPredicate.contains(predicate)) { return false; }
-        predicate = formatName(predicate, predicateReplaceMap);
-        String confidenceString = fields[confidenceIndex].trim();
-        double confidence;
-        if (confidenceString.isEmpty()) {
-            return false;
-        }
-        if (confidenceString.startsWith(CONFIDENCE_OPEN_ARRAY)) {
-            try {
-                confidenceString = confidenceString.substring(CONFIDENCE_OPEN_ARRAY.length(),
-                                                              confidenceString.length() -
-                                                                      CONFIDENCE_OPEN_ARRAY.length());
-                confidences = confidenceString.split(CONFIDENCE_VALUE_SEPARATOR);
-                confidence = averageProbability(confidences);
-            } catch (NumberFormatException ignore) {
-                return false;
-            }
-        } else {
-            confidence = Double.parseDouble(confidenceString);
-        }
-        String subject = formatName(fields[subjectIndex].trim(), entityReplaceMap);
-        String object = formatName(fields[objectIndex].trim(), entityReplaceMap);
-        Atom atom = atomFactory.createAtom(predicate, subject, object);
-
-        return addAtom(atom, confidence >= confidenceThreshold);
-    }
-
-    /**
-     * Logs the found index.
-     *
-     * @param name  the name
-     * @param index the index
-     */
-    protected void logIndexFound(String name, int index) {
-        logger.debug(FOUND_INDEX.toString(), name, getTab(name, maxNameSize), index);
-    }
-
-    private static String getTab(String name, int maxNameSize) {
-        return StringUtils.repeat("\t", Math.round((float) (maxNameSize - name.length()) / TABULATION_SIZE) + 1);
-    }
-
-    /**
-     * Adds the atom to the set of the current iteration.
-     * <p>
-     * If the atom already appears in this iteration, ignores it.
-     * <p>
-     * If the atom appears if same label in a previous iteration, ignores it.
-     * <p>
-     * if the atom appears if the opposite label on the iteration immediately before that, removes it from the
-     * previous iteration.
-     *
-     * @param atom     the atom
-     * @param positive if the atom is positive
-     * @return {@code true} if the atom was added, {@code false} otherwise.
-     */
-    @SuppressWarnings("OverlyComplexMethod")
-    protected boolean addAtom(Atom atom, boolean positive) {
-        Map<Predicate, Set<Atom>>[] thisList = positive ? positiveAtoms : negativeAtoms;
-        Map<Predicate, Set<Atom>>[] thatList = positive ? negativeAtoms : positiveAtoms;
-
-        Set<Atom> atomSet;
-        // if atom appears with another label in this iteration, ignore it.
-        atomSet = thatList[currentIndex].get(atom.getPredicate());
-        if (atomSet != null && atomSet.contains(atom)) { return false; }
-
-        // looking at the older generations
-        for (int i = 0; i < currentIndex; i++) {
-            atomSet = thisList[i].get(atom.getPredicate());
-            if (atomSet != null && atomSet.contains(atom)) { return false; }
-        }
-
-        // look at the previous generation
-        if (currentIndex > 0) {
-            atomSet = thatList[currentIndex - 1].get(atom.getPredicate());
-            // if atom appears if another label on previous iteration, removes it.
-            if (atomSet != null) { atomSet.remove(atom); }
-        }
-
-        // adding the atom to this list
-        return thisList[currentIndex].computeIfAbsent(atom.getPredicate(), p -> new LinkedHashSet<>()).add(atom);
     }
 
     /**
@@ -860,27 +879,10 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         result = 31 * result + (positiveOutputExtension != null ? positiveOutputExtension.hashCode() : 0);
         result = 31 * result + (negativeOutputExtension != null ? negativeOutputExtension.hashCode() : 0);
         result = 31 * result + (hashAlgorithm != null ? hashAlgorithm.hashCode() : 0);
-//        result = 31 * result + Arrays.hashCode(nellInputFilePaths);
         result = 31 * result + (fileEncode != null ? fileEncode.hashCode() : 0);
         result = 31 * result + (entityReplaceMap != null ? entityReplaceMap.hashCode() : 0);
         result = 31 * result + (predicateReplaceMap != null ? predicateReplaceMap.hashCode() : 0);
         result = 31 * result + (skipPredicate != null ? skipPredicate.hashCode() : 0);
-//        result = 31 * result + (iterationPrefix != null ? iterationPrefix.hashCode() : 0);
-//        result = 31 * result + (dataDirectoryName != null ? dataDirectoryName.hashCode() : 0);
-//        result = 31 * result + maxNameSize;
-//        result = 31 * result + subjectIndex;
-//        result = 31 * result + objectIndex;
-//        result = 31 * result + predicateIndex;
-//        result = 31 * result + confidenceIndex;
-//        result = 31 * result + currentIndex;
-//        result = 31 * result + Arrays.hashCode(positiveAtoms);
-//        result = 31 * result + Arrays.hashCode(negativeAtoms);
-//        result = 31 * result + Arrays.hashCode(inputHash);
-//        result = 31 * result + Arrays.hashCode(inputZippedHash);
-//        result = 31 * result + Arrays.hashCode(outputPositiveHash);
-//        result = 31 * result + Arrays.hashCode(outputNegativeHash);
-//        result = 31 * result + (atomFactory != null ? atomFactory.hashCode() : 0);
-//        result = 31 * result + (outputDataDirectory != null ? outputDataDirectory.hashCode() : 0);
         return result;
     }
 
@@ -963,12 +965,30 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 .outputDataDirectory == null;
     }
 
+    @SuppressWarnings("OverlyLongMethod")
     @Override
     public String toString() {
         StringBuilder description = new StringBuilder();
         description.append("\t").append("Settings:");
-        description.append("\n").append("\t").append("Output directory path:\t").append(outputDirectoryPath);
-//        description.append("\n").append("\t").append("Config Hash:\t\t\t").append(configHash());
+
+        description.append("\n").append("\t").append("File encode:\t\t\t\t\"").append(fileEncode).append("\"");
+        description.append("\n").append("\t").append("Comment character:\t\t\t\"").append(commentCharacter)
+                .append("\"");
+        description.append("\n").append("\t").append("Value separator:\t\t\t\"")
+                .append(StringEscapeUtils.escapeJava(valueSeparator)).append("\"\n");
+        description.append("\n").append("\t").append("Subject name:\t\t\t\t\"").append(subjectName).append("\"");
+        description.append("\n").append("\t").append("Object name:\t\t\t\t\"").append(objectName).append("\"");
+        description.append("\n").append("\t").append("Predicate name:\t\t\t\t\"").append(predicateName).append("\"");
+        description.append("\n").append("\t").append("Confidence name:\t\t\t\"").append(confidenceName).append("\"");
+
+        description.append("\n\n").append("\t").append("Confidence Threshold:\t\t").append(confidenceThreshold);
+
+        description.append("\n\n").append("\t").append("Positive output extension:\t\"").append(positiveOutputExtension)
+                .append("\"").append("\n").append("\t").append("Negative output extension:\t\"")
+                .append(negativeOutputExtension).append("\"");
+
+        description.append("\n\n").append("\t").append("Hash algorithm:\t\t\t\t\"").append(hashAlgorithm).append("\"");
+
         description.append("\n").append("\t").append("Entity Replace Map:\n");
         for (Map.Entry<String, String> entry : entityReplaceMap.entrySet()) {
             description.append("\t\t\"").append(entry.getKey());
@@ -984,6 +1004,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             description.append("\t\t\"").append(entry).append("\"\n");
         }
 
+        description.append("\n").append("\t").append("Output directory path:\t").append(outputDirectoryPath);
         return description.toString().trim();
     }
 }
