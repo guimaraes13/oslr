@@ -198,6 +198,10 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * The array of nell's input files, sorted by iteration.
      */
     public String[] nellInputFilePaths = null;
+    /**
+     * The index of the iteration to start form. Useful to the job from another run.
+     */
+    public int startIndex = 0;
 
     protected int maxNameSize = confidenceName.length();
     protected int[] subjectIndexes;
@@ -352,7 +356,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         outputNegativeHash = new HashMap[inputFiles];
 
         outputDataDirectory = new File(outputDirectory, dataDirectoryName);
-        deleteDataDirectory(outputDataDirectory);
+//        deleteDataDirectory(outputDataDirectory);
 
         previousSkippedAtoms = new int[inputFiles];
         removedAtoms = new int[inputFiles];
@@ -408,11 +412,15 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      */
     protected void processFiles() throws IOException, NoSuchAlgorithmException {
         previousAtoms = buildMapPair();
+        if (startIndex > 0) {
+            readFile(startIndex - 1);
+            previousAtoms = currentAtoms;
+        }
         // read the first file to current
-        readFile(0);
+        readFile(startIndex);
 
         int i;
-        for (i = 1; i < nellInputFilePaths.length; i++) {
+        for (i = startIndex + 1; i < nellInputFilePaths.length; i++) {
             previousAtoms = currentAtoms;       // makes the previous the current
             readFile(i);                        // read the next file to current, filtering it by the current
             filterPreviousAtoms(i - 1);     // filter the previous by already added files
@@ -577,7 +585,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         currentAtoms = buildMapPair();
         InputStream stream = createDigestStream(index);
         AddAtomProcessor atomProcessor = new AddAtomProcessor(previousAtoms, currentAtoms);
-        processInputFile(stream, index, atomProcessor, true); //TODO: add skipped atoms
+        processInputFile(stream, index, atomProcessor, true);
         previousSkippedAtoms[index] += atomProcessor.getNumberOfSkippedAtoms();
         if (index > 0) { removedAtoms[index - 1] = atomProcessor.getNumberOfRemovedAtoms(); }
     }
@@ -597,6 +605,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
         Pair<Atom, Boolean> pair;
         try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            logger.info(LogMessages.PROCESSING_FILE.toString(), nellInputFilePaths[index]);
             String line;
             line = bufferedReader.readLine();
             int count = 1;
@@ -798,7 +807,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         String negativeRate;
         String positiveExamples;
         String negativeExamples;
-        for (int i = 0; i < nellInputFilePaths.length; i++) {
+        for (int i = startIndex; i < nellInputFilePaths.length; i++) {
             digest = MessageDigest.getInstance(hashAlgorithm);
             iterationDirectory = getIterationDirectory(i);
             logger.info("");

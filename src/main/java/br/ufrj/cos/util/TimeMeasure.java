@@ -21,6 +21,9 @@
 
 package br.ufrj.cos.util;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * Class to measure execution time of methods.
  * <p>
@@ -31,26 +34,33 @@ package br.ufrj.cos.util;
 public final class TimeMeasure {
 
     /**
-     * The format of the timestamp.
+     * The format of the elapsed time.
      */
     @SuppressWarnings("SpellCheckingInspection")
-    public static final String HOUR_DEFAULT_FORMATTER = "%dh%dmin%dsec";
-
+    public static final String ELAPSED_TIME_DEFAULT_FORMATTER = "%dh%dmin%ds";
+    /**
+     * The format of the timestamp.
+     *
+     * @see DateTimeFormatter
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    public static final String TIMESTAMP_DEFAULT_FORMATTER = "uuuu_MM_dd_HH'h'mm'min'ss's'";
+    /**
+     * The default date formatter.
+     */
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_DEFAULT_FORMATTER);
     /**
      * A constant to divide a number in nano seconds scale and get a number in seconds scale.
      */
     public static final long NANO_TO_SECONDS_DENOMINATOR = 1000000000L;
-
     /**
      * A constant to divide a number in seconds scale and get a number in minutes scale.
      */
     public static final int SECONDS_TO_MINUTES_DENOMINATOR = 60;
-
     /**
      * A constant to divide a number in minutes scale and get a number in hours scale.
      */
     public static final int MINUTES_TO_HOURS_DENOMINATOR = 60;
-
     /**
      * A constant to multiply a number in seconds scale and get a number in milliseconds scale.
      */
@@ -76,7 +86,7 @@ public final class TimeMeasure {
      * @return the formatted timestamp
      */
     public static String formatNanoDifference(long begin, long end) {
-        return formatNanoDifference(begin, end, HOUR_DEFAULT_FORMATTER);
+        return formatNanoDifference(begin, end, ELAPSED_TIME_DEFAULT_FORMATTER);
     }
 
     /**
@@ -118,7 +128,16 @@ public final class TimeMeasure {
      * @return the formatted timestamp
      */
     public static String formatNanoDifference(long elapsedTime) {
-        return formatNanoDifference(elapsedTime, HOUR_DEFAULT_FORMATTER);
+        return formatNanoDifference(elapsedTime, ELAPSED_TIME_DEFAULT_FORMATTER);
+    }
+
+    /**
+     * Gets the formatted current time.
+     *
+     * @return the formatted current time
+     */
+    public static String getCurrentTime() {
+        return LocalDateTime.now().format(DATE_FORMATTER);
     }
 
 }

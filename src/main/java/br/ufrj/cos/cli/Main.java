@@ -52,7 +52,7 @@ public class Main {
     public static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
-        test();
+        System.out.println(TimeMeasure.getCurrentTime());
         System.exit(0);
         logger.info("Begin Program!");
         Locale.setDefault(new Locale("en", "us"));

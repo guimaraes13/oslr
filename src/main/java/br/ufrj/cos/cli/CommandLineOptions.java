@@ -67,7 +67,31 @@ public enum CommandLineOptions {
                             .hasArgs(Option.UNLIMITED_VALUES)
                             .withDescription("the directory to read the files from. If not specified, the program " +
                                                      "will try to read it from a yaml configuration file.")
-                            .create("i"));
+                            .create("i")),
+    INPUT_DIRECTORIES(OptionBuilder.withArgName("input")
+                              .withLongOpt("inputDirectories")
+                              .hasArgs(2)
+                              .withDescription("the directories to read from.")
+                              .create("i")),
+    ITERATION_PREFIX(OptionBuilder.withArgName("prefix")
+                             .withLongOpt("iterationPrefix")
+                             .hasArg()
+                             .withDescription("the iteration prefix, default is (" +
+                                                      NellBaseConverterCLI.DEFAULT_ITERATION_PREFIX + ").")
+                             .create("p")),
+    POSITIVE_EXTENSION(OptionBuilder.withArgName("positive")
+                               .withLongOpt("positiveExtension")
+                               .hasArg()
+                               .withDescription("the positive relation extension, default is (" +
+                                                        NellBaseConverterCLI.DEFAULT_POSITIVE_EXTENSION + ").")
+                               .create("pos")),
+    NEGATIVE_EXTENSION(OptionBuilder.withArgName("negative")
+                               .withLongOpt("negativeExtension")
+                               .hasArg()
+                               .withDescription("the negative relation extension, default is (" +
+                                                        NellBaseConverterCLI.DEFAULT_NEGATIVE_EXTENSION + ").")
+                               .create("neg"));
+
     protected final Option option;
 
     CommandLineOptions(Option option) {

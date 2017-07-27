@@ -123,7 +123,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * The name of the file that logs the output.
      */
-    public static final String STDOUT_LOG_FILE_NAME = "output.txt";
+    public static final String STDOUT_LOG_FILE_NAME = "output_%s.txt";
     /**
      * The build properties file
      */
@@ -267,7 +267,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         try {
             String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
             buildOutputDirectory(configFileContent);
-            addAppender(new File(outputDirectory, STDOUT_LOG_FILE_NAME).getAbsolutePath());
+            addAppender(new File(outputDirectory, getOutputLogFileName()).getAbsolutePath());
             logCommittedVersion();
             File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
@@ -281,22 +281,6 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         } catch (IOException e) {
             throw new InitializationException(e);
         }
-    }
-
-    /**
-     * Builds the output directory.
-     *
-     * @param configFileContent the configuration file content
-     */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    protected void buildOutputDirectory(String configFileContent) {
-        if (this.outputDirectoryPath != null) {
-            outputDirectory = new File(this.outputDirectoryPath);
-        } else {
-            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
-            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
-        }
-        outputDirectory.mkdirs();
     }
 
     /**
@@ -322,6 +306,32 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         final Filter filter = null;
         config.getRootLogger().addAppender(appender, level, filter);
         config.getRootLogger().addAppender(appender, level, filter);
+        logger.info(LogMessages.SAVE_STANDARD_OUTPUT.toString(), outputFileName);
+    }
+
+    /**
+     * Builds the output directory.
+     *
+     * @param configFileContent the configuration file content
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    protected void buildOutputDirectory(String configFileContent) {
+        if (this.outputDirectoryPath != null) {
+            outputDirectory = new File(this.outputDirectoryPath);
+        } else {
+            String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
+            outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
+        }
+        outputDirectory.mkdirs();
+    }
+
+    /**
+     * Formats the name of the output std out file based on the current date and time.
+     *
+     * @return the name of the output std out file
+     */
+    protected static String getOutputLogFileName() {
+        return String.format(STDOUT_LOG_FILE_NAME, TimeMeasure.getCurrentTime());
     }
 
     /**

@@ -69,6 +69,8 @@ public enum LogMessages {
                             "not,\nbecause repeated atoms are ignored in the input.\n"),
 
     //One additional parameters to format
+    PROCESSING_FILE("Processing file:\t{}"),
+    SAVE_STANDARD_OUTPUT("Saving standard output to {}"),
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
     RULE_PROPOSED_TO_THEORY("Rule proposed to be add to the theory:\t{}"),
