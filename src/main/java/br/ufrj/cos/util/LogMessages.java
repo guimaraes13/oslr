@@ -69,6 +69,11 @@ public enum LogMessages {
                             "not,\nbecause repeated atoms are ignored in the input.\n"),
 
     //One additional parameters to format
+    DIRECTORY_1("Directory 1:\t{}"),
+    DIRECTORY_2("Directory 2:\t{}"),
+    ITERATION_PREFIX("Iteration prefix:\t{}"),
+    POSITIVE_EXTENSION("Positive extension:\t{}"),
+    NEGATIVE_EXTENSION("Negative extension:\t{}"),
     PROCESSING_FILE("Processing file:\t{}"),
     SAVE_STANDARD_OUTPUT("Saving standard output to {}"),
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
