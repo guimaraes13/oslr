@@ -114,6 +114,7 @@ public class NellCheckerCLI extends CommandLineInterface {
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "HardCodedStringLiteral", "ConstantConditions"})
     @Override
     public void run() {
+        logCommittedVersion();
         logger.info(LogMessages.DIRECTORY_1.toString(), directory1);
         logger.info(LogMessages.DIRECTORY_2.toString(), directory2);
         logger.info(LogMessages.ITERATION_PREFIX.toString(), iterationPrefix);

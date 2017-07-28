@@ -4,7 +4,7 @@
 *.log
 *.old*
 /src/main/java/br/ufrj/cos/cli/Main.java
-/src/main/resources/build.properties
+git.properties
 .DS_Store
 build.*
 .gitignore

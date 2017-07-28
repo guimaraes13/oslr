@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 HEADER="# Automatically created, do not modify."
 WORKING_DIRECTORY="$1"
-OUTPUT_FILE="src/main/resources/build.properties"
-
-OUTPUT_FILE="$WORKING_DIRECTORY/$OUTPUT_FILE"
+OUTPUT_FILE="$2"
 
 COMMIT_ID=HEAD
 

@@ -127,7 +127,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * The build properties file
      */
-    public static final String BUILD_PROPERTIES_FILE = "src/main/resources/build.properties";
+    public static final String BUILD_PROPERTIES_FILE = "git.properties";
     /**
      * The default value for boolean properties
      */
@@ -337,11 +337,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * Logs the committed version.
      */
-    protected static void logCommittedVersion() {
+    protected void logCommittedVersion() {
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream(BUILD_PROPERTIES_FILE);
+            input = getClass().getClassLoader().getResourceAsStream(BUILD_PROPERTIES_FILE);
             prop.load(input);
             logCommit(prop);
             boolean changed;
