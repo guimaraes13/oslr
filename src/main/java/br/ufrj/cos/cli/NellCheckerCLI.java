@@ -64,6 +64,7 @@ public class NellCheckerCLI extends CommandLineInterface {
     /**
      * The hash algorithm to be used
      */
+    @SuppressWarnings("CanBeFinal")
     public String hashAlgorithm = DEFAULT_HASH_ALGORITHM;
 
     /**

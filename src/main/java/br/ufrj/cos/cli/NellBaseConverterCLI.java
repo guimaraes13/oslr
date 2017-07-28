@@ -424,12 +424,24 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             previousAtoms = currentAtoms;       // makes the previous the current
             readFile(i);                        // read the next file to current, filtering it by the current
             filterPreviousAtoms(i - 1);     // filter the previous by already added files
+            initializeOutputHashMaps(i - 1);
             saveIteration(i - 1);           // saves the previous to files
             atomFactory.clearConstantMap();
         }
         previousAtoms = currentAtoms;       // makes the previous the current
         filterPreviousAtoms(i - 1);     // filter the previous by already added files
+        initializeOutputHashMaps(i - 1);
         saveIteration(i - 1);           // saves the previous to files
+    }
+
+    /**
+     * Initializes the output hash maps.
+     *
+     * @param index the index of the hash map
+     */
+    protected void initializeOutputHashMaps(int index) {
+        if (outputPositiveHash[index] == null) { outputPositiveHash[index] = new HashMap<>(); }
+        if (outputNegativeHash[index] == null) { outputNegativeHash[index] = new HashMap<>(); }
     }
 
     /**
@@ -494,8 +506,6 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                                                        iterationDirectory));
             }
         }
-        outputPositiveHash[index] = new HashMap<>();
-        outputNegativeHash[index] = new HashMap<>();
 
         Set<Predicate> predicates = new HashSet<>();
         Map<Predicate, Set<Atom>> positiveMap = getPositives(previousAtoms);
@@ -619,13 +629,23 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 count++;
                 if (line.isEmpty() || line.startsWith(commentCharacter)) { continue; }
                 pair = readLine(line, index);
-                if (pair != null) { atomProcessor.isAtomProcessed(pair); }
+                if (isToProcessAtom(pair)) { atomProcessor.isAtomProcessed(pair); }
                 line = bufferedReader.readLine();
             }
             if (logHash) { logHash(index, count); }
         } catch (IOException e) {
             logger.error(ERROR_READING_FILE.toString(), e);
         }
+    }
+
+    /**
+     * If it is to skip the current atom.
+     *
+     * @param pair the atom with the label
+     * @return {@code true} if it is to skip {@code false}, otherwise
+     */
+    protected boolean isToProcessAtom(Pair<Atom, Boolean> pair) {
+        return pair != null;
     }
 
     /**
