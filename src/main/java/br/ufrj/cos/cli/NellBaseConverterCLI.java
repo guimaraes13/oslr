@@ -58,7 +58,7 @@ import static br.ufrj.cos.util.LogMessages.*;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("CanBeFinal")
+@SuppressWarnings({"CanBeFinal", "OverlyComplexClass"})
 public class NellBaseConverterCLI extends CommandLineInterface {
 
     /**
