@@ -22,13 +22,17 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.Predicate;
+import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
+import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.LogMessages;
+import br.ufrj.cos.util.nell.converter.AtomProcessor;
+import br.ufrj.cos.util.nell.converter.FilterAtomProcessor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -76,6 +80,72 @@ public class NellBaseConverterRelationCLI extends NellBaseConverterCLI {
             logger.info(LogMessages.PROCESSING_RELATION.toString(), currentPredicate.getName());
             super.processFiles();
             logger.info(LogMessages.DONE_RELATION.toString(), currentPredicate.getName());
+        }
+    }
+
+    /**
+     * Filters the atoms from the previous iteration removing the atom that already appears on older iterations.
+     *
+     * @param index the index of the previous iteration
+     * @throws IOException if an I/O error has occurred
+     */
+    @Override
+    protected void filterPreviousAtoms(int index) throws IOException {
+        FilterAtomProcessor atomProcessor = new FilterAtomProcessor(previousAtoms);
+        InputStream stream;
+        for (int i = 0; i < index - 1; i++) {
+            logger.debug(LogMessages.FILTERING_ITERATION.toString(), index, i);
+            for (Predicate predicate : getPositives(previousAtoms).keySet()) {
+                stream = createStream(i, predicate, true);
+                processLogicFile(stream, atomProcessor, true);
+            }
+            for (Predicate predicate : getNegatives(previousAtoms).keySet()) {
+                stream = createStream(i, predicate, false);
+                processLogicFile(stream, atomProcessor, false);
+            }
+        }
+        previousSkippedAtoms[index] += atomProcessor.getNumberOfFilteredAtoms();
+    }
+
+    /**
+     * Creates the stream of the input file with the zip stream if needed.
+     *
+     * @param index     the index of the {@link #nellInputFilePaths}
+     * @param predicate the predicate
+     * @param positive  if is positive or negative
+     * @return the {@link InputStream}
+     * @throws IOException if an I/O error has occurred
+     */
+    protected InputStream createStream(int index, Predicate predicate, boolean positive) throws IOException {
+        File iterationDirectory = getIterationDirectory(index);
+        String extension = positive ? positiveOutputExtension : negativeOutputExtension;
+
+        return new FileInputStream(new File(iterationDirectory, predicate.getName() + extension));
+    }
+
+    /**
+     * Process the input file reading the line and applying and {@link AtomProcessor} for each read atom.
+     *
+     * @param stream        the stream
+     * @param atomProcessor the {@link AtomProcessor}
+     * @param positive      if the example is positive
+     * @throws UnsupportedEncodingException if the encode is not supported
+     */
+    protected void processLogicFile(InputStream stream, AtomProcessor atomProcessor, boolean positive)
+            throws IOException {
+        InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
+        Pair<Atom, Boolean> pair;
+        try {
+            KnowledgeParser parser = new KnowledgeParser(inputStreamReader);
+            List<Clause> clauses = parser.parseKnowledge();
+            for (Clause clause : clauses) {
+                pair = new ImmutablePair<>((Atom) clause, positive);
+                if (isToProcessAtom(pair)) { atomProcessor.isAtomProcessed(pair); }
+            }
+        } catch (ParseException | ClassCastException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        } finally {
+            stream.close();
         }
     }
 
