@@ -32,10 +32,7 @@ package br.ufrj.cos.logic.parser.knowledge;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.logic.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import br.ufrj.cos.util.AtomFactory;
 
 /**
@@ -99,7 +96,7 @@ List parseKnowledge() :
 	}
 }
 
-List parseKnowledgeAppend(List clauses) :
+List parseKnowledgeAppend(Collection clauses) :
 {
 
 }
@@ -111,7 +108,7 @@ List parseKnowledgeAppend(List clauses) :
 	}
 }
 
-void readKnowledgeLine(List clauses) :
+void readKnowledgeLine(Collection clauses) :
 {
 	Clause clause = null;
 

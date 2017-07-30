@@ -19,8 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli;
+package br.ufrj.cos.cli.nell;
 
+import br.ufrj.cos.cli.CommandLineInterface;
+import br.ufrj.cos.cli.CommandLineInterrogationException;
+import br.ufrj.cos.cli.CommandLineOptions;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -34,7 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Locale;
 
-import static br.ufrj.cos.cli.NellBaseConverterCLI.*;
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.*;
 import static br.ufrj.cos.util.LogMessages.ERROR_MAIN_PROGRAM;
 import static br.ufrj.cos.util.LogMessages.PROGRAM_END;
 

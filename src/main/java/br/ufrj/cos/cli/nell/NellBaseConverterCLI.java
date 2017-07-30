@@ -19,8 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli;
+package br.ufrj.cos.cli.nell;
 
+import br.ufrj.cos.cli.CommandLineInterface;
+import br.ufrj.cos.cli.CommandLineInterrogationException;
+import br.ufrj.cos.cli.CommandLineOptions;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.util.*;
@@ -534,7 +537,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
      *                                  algorithm.
      */
-    protected void writePredicateToFile(int index, Predicate predicate, Set<Atom> outputAtoms, boolean positive)
+    protected void writePredicateToFile(int index, Predicate predicate, Set outputAtoms, boolean positive)
             throws IOException, NoSuchAlgorithmException {
         File iterationDirectory = getIterationDirectory(index);
         final String outputExtension = positive ? this.positiveOutputExtension : this.negativeOutputExtension;
@@ -554,14 +557,14 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      *                                  algorithm.
      * @throws IOException              if an I/O error has occurred
      */
-    protected String saveIterationPredicate(Iterable<? extends Atom> atoms, File file)
+    protected String saveIterationPredicate(Iterable atoms, File file)
             throws IOException, NoSuchAlgorithmException {
         OutputStream stream = new FileOutputStream(file);
         MessageDigest digest = MessageDigest.getInstance(hashAlgorithm);
         stream = new DigestOutputStream(stream, digest);
         OutputStreamWriter writer = new OutputStreamWriter(stream, fileEncode);
         try (BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
-            for (Atom atom : atoms) {
+            for (Object atom : atoms) {
                 bufferedWriter.write(atom.toString());
                 bufferedWriter.write(LanguageUtils.CLAUSE_END_OF_LINE);
                 bufferedWriter.write("\n");

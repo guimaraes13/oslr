@@ -70,7 +70,7 @@ public enum LogMessages {
 
     //One additional parameters to format
     PROCESSING_RELATION("Processing relation:\t{}"),
-    DONE_RELATION("Done relation:\t\t{}"),
+    DONE_RELATION("Done relation:\t\t\t{}"),
     DIRECTORY_1("Directory 1:\t{}"),
     DIRECTORY_2("Directory 2:\t{}"),
     ITERATION_PREFIX("Iteration prefix:\t{}"),

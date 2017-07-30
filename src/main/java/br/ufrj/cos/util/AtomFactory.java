@@ -26,10 +26,7 @@ import br.ufrj.cos.logic.Constant;
 import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.Term;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A factory that creates Atom, keeping the same predicate and constants pointing out to the same object.
@@ -115,6 +112,15 @@ public class AtomFactory {
      */
     public void clearConstantMap() {
         this.constantMap = new HashMap<>();
+    }
+
+    /**
+     * Gets the predicated read by this factory.
+     *
+     * @return the predicated read by this factory
+     */
+    public Collection<Predicate> getPredicates() {
+        return predicateMap.values();
     }
 
 }

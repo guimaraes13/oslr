@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.cli;
 
+import br.ufrj.cos.cli.nell.NellBaseConverterCLI;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 

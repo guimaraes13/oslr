@@ -31,10 +31,7 @@ import br.ufrj.cos.util.AtomFactory;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created on 15/04/17.
@@ -142,7 +139,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         throw new Error("Missing return statement in function");
     }
 
-    public final List parseKnowledgeAppend(List clauses) throws ParseException {
+    public final Collection parseKnowledgeAppend(Collection clauses) throws ParseException {
         label_2:
         while (true) {
             switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
@@ -161,7 +158,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         throw new Error("Missing return statement in function");
     }
 
-    public final void readKnowledgeLine(List clauses) throws ParseException {
+    public final void readKnowledgeLine(Collection clauses) throws ParseException {
         Clause clause = null;
 
         boolean weighted = false;

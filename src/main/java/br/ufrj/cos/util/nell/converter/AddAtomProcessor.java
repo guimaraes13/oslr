@@ -29,8 +29,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static br.ufrj.cos.cli.NellBaseConverterCLI.getNegatives;
-import static br.ufrj.cos.cli.NellBaseConverterCLI.getPositives;
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.getNegatives;
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.getPositives;
 
 /**
  * Class to adds the read atoms to the current iteration maps.

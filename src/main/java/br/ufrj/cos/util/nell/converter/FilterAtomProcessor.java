@@ -28,8 +28,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.Map;
 import java.util.Set;
 
-import static br.ufrj.cos.cli.NellBaseConverterCLI.getNegatives;
-import static br.ufrj.cos.cli.NellBaseConverterCLI.getPositives;
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.getNegatives;
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.getPositives;
 
 /**
  * Class to filter the atom from the current iteration if it appears on older iterations.

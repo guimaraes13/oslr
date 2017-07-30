@@ -19,8 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli;
+package br.ufrj.cos.cli.nell;
 
+import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.Predicate;
