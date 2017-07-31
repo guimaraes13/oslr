@@ -65,7 +65,7 @@ public class Main {
 
     public static final Logger logger = LogManager.getLogger();
 
-    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException, ParseException {
+    public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
         long begin = TimeMeasure.getNanoTime();
         logger.info("Begin Program!");
@@ -73,8 +73,11 @@ public class Main {
 
         File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.190.cesv.pl");
 //        File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.1060.cesv.csv.pl");
-        List<Term> terms = new ArrayList<>(1);
-        terms.add(new Constant("concept_sport_baseball"));
+        YamlReader reader = new YamlReader(
+                LanguageUtils.readFileToString(new File("/Users/Victor/Desktop/relations/music_artist.yaml")));
+        List<String> consts = reader.read(List.class);
+        List<Term> terms = consts.stream().map(c -> new Constant(c)).collect(Collectors.toList());
+//        terms.add(new Constant("concept_sport_baseball"));
         processBase(file, terms, 0, 1);
 
         // ----------  Program End!  ----------
