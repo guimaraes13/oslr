@@ -175,12 +175,16 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
         File relationFile = new File(iterationDirectory, predicate.getName() + extension + TEMPORARY_EXTENSION);
         if (!relationFile.exists()) { return; }
         processLogicFile(new FileInputStream(relationFile), currentAtoms);
+        previousSkippedAtoms[index] = currentAtoms.size();
         for (int j = 0; j < index; j++) {
             filterAtoms(currentAtoms, predicate, j, extension);
         }
+        previousSkippedAtoms[index] -= currentAtoms.size();
         if (index < nellInputFilePaths.length - 1) {
             String oppositeExtension = positive ? negativeOutputExtension : positiveOutputExtension;
+            removedAtoms[index - 1] = currentAtoms.size();
             filterAtoms(currentAtoms, predicate, index + 1, oppositeExtension);
+            removedAtoms[index - 1] -= currentAtoms.size();
         }
         writePredicateToFile(index, predicate, currentAtoms, positive);
         deleteDataDirectory(relationFile);

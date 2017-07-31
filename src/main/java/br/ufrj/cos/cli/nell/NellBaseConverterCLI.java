@@ -25,7 +25,10 @@ import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.cli.CommandLineOptions;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.Predicate;
+import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
+import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.nell.converter.AddAtomProcessor;
 import br.ufrj.cos.util.nell.converter.AtomProcessor;
@@ -482,13 +485,61 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      */
     protected void filterPreviousAtoms(int index) throws IOException {
         FilterAtomProcessor atomProcessor = new FilterAtomProcessor(previousAtoms);
-        InputStream stream;
         for (int i = 0; i < index - 1; i++) {
             logger.debug(LogMessages.FILTERING_ITERATION.toString(), index, i);
-            stream = createStream(i);
-            processInputFile(stream, i, atomProcessor, false);
+            for (Predicate predicate : getPositives(previousAtoms).keySet()) {
+                filterPreviousAtoms(i, predicate, atomProcessor, true);
+            }
+            for (Predicate predicate : getNegatives(previousAtoms).keySet()) {
+                filterPreviousAtoms(i, predicate, atomProcessor, false);
+            }
         }
         previousSkippedAtoms[index] += atomProcessor.getNumberOfFilteredAtoms();
+    }
+
+    /**
+     * Creates the stream of the input file with the zip stream if needed.
+     *
+     * @param index         the index of the {@link #nellInputFilePaths}
+     * @param predicate     the predicate
+     * @param atomProcessor the {@link AtomProcessor}
+     * @param positive      if is positive or negative
+     * @throws IOException if an I/O error has occurred
+     */
+    protected void filterPreviousAtoms(int index, Predicate predicate, AtomProcessor atomProcessor,
+                                       boolean positive) throws IOException {
+        File iterationDirectory = getIterationDirectory(index);
+        String extension = positive ? positiveOutputExtension : negativeOutputExtension;
+        final File relationFile = new File(iterationDirectory, predicate.getName() + extension);
+        if (!relationFile.exists()) { return; }
+        InputStream stream = new FileInputStream(relationFile);
+        processLogicFile(stream, atomProcessor, positive);
+    }
+
+    /**
+     * Process the input file reading the line and applying and {@link AtomProcessor} for each read atom.
+     *
+     * @param stream        the stream
+     * @param atomProcessor the {@link AtomProcessor}
+     * @param positive      if the example is positive
+     * @throws UnsupportedEncodingException if the encode is not supported
+     */
+    protected void processLogicFile(InputStream stream, AtomProcessor atomProcessor, boolean positive)
+            throws IOException {
+        InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
+        Pair<Atom, Boolean> pair;
+        try {
+            KnowledgeParser parser = new KnowledgeParser(inputStreamReader);
+            List<Clause> clauses = parser.parseKnowledge();
+            for (Clause clause : clauses) {
+                pair = new ImmutablePair<>((Atom) clause, positive);
+                if (isToProcessAtom(pair)) { atomProcessor.isAtomProcessed(pair); }
+            }
+        } catch (ParseException | ClassCastException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        } finally {
+            stream.close();
+        }
     }
 
     /**
@@ -608,7 +659,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         currentAtoms = buildMapPair();
         InputStream stream = createDigestStream(index);
         AddAtomProcessor atomProcessor = new AddAtomProcessor(previousAtoms, currentAtoms);
-        processInputFile(stream, index, atomProcessor, true);
+        processInputFile(stream, index, atomProcessor);
         previousSkippedAtoms[index] += atomProcessor.getNumberOfSkippedAtoms();
         if (index > 0) { removedAtoms[index - 1] = atomProcessor.getNumberOfRemovedAtoms(); }
     }
@@ -619,11 +670,10 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * @param stream        the stream
      * @param index         the index of the input file
      * @param atomProcessor the {@link AtomProcessor}
-     * @param logHash       if it is to log the hash
      * @throws UnsupportedEncodingException if the encode is not supported
      */
     @SuppressWarnings("OverlyLongMethod")
-    protected void processInputFile(InputStream stream, int index, AtomProcessor atomProcessor, boolean logHash) throws
+    protected void processInputFile(InputStream stream, int index, AtomProcessor atomProcessor) throws
             UnsupportedEncodingException {
         InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
         Pair<Atom, Boolean> pair;
@@ -632,10 +682,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             String line;
             line = bufferedReader.readLine();
             int count = 1;
-            if (logHash) {
-                logger.trace(LogMessages.PROCESSING_FILE_HEADER.toString(), nellInputFilePaths[index],
-                             StringEscapeUtils.escapeJava(line));
-            }
+            logger.trace(LogMessages.PROCESSING_FILE_HEADER.toString(), nellInputFilePaths[index],
+                         StringEscapeUtils.escapeJava(line));
             readHeader(index, line);
             line = bufferedReader.readLine();
             while (line != null) {
@@ -645,7 +693,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
                 if (isToProcessAtom(pair)) { atomProcessor.isAtomProcessed(pair); }
                 line = bufferedReader.readLine();
             }
-            if (logHash) { logHash(index, count); }
+            logHash(index, count);
         } catch (IOException e) {
             logger.error(ERROR_READING_FILE.toString(), e);
         }
