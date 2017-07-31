@@ -135,6 +135,7 @@ public enum LogMessages {
     FILE_SAVE("File\t{} saved at\t{}"),
 
     //Two additional parameters to format
+    PROCESSING_RELATION_ITERATION("Processing relation:\t{} at iteration:\t{}"),
     FILTERING_ITERATION("Removing examples of iteration {}\tfound in iteration {}."),
     TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}{}%"),
     TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}{}%"),

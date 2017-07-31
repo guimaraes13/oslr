@@ -19,11 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli.nell;
+package br.ufrj.cos.cli.nell.check;
 
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.cli.CommandLineOptions;
+import br.ufrj.cos.cli.nell.NellBaseConverterCLI;
 import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -48,7 +49,7 @@ import static br.ufrj.cos.util.LogMessages.PROGRAM_END;
  *
  * @author Victor Guimarães
  */
-public class NellCheckerCLI extends CommandLineInterface {
+public class NellHashCheckerCLI extends CommandLineInterface {
 
     /**
      * The logger
@@ -78,7 +79,7 @@ public class NellCheckerCLI extends CommandLineInterface {
     public static void main(String[] args) {
         Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
         try {
-            CommandLineInterface main = new NellCheckerCLI();
+            CommandLineInterface main = new NellHashCheckerCLI();
             main = main.parseOptions(args);
             run(main, args);
         } catch (Exception e) {
@@ -149,24 +150,7 @@ public class NellCheckerCLI extends CommandLineInterface {
                     continue;
                 }
                 for (File relation1 : relations != null ? relations : FILES) {
-                    sha1 = calculateHash(relation1, hashAlgorithm);
-                    relation2 = new File(iteration2, relation1.getName());
-                    if (!relation2.exists()) {
-                        logger.debug("File {} exists in {} but does not in {}",
-                                     relation1.getName(), iteration1, iteration2);
-                        continue;
-                    }
-                    sha2 = calculateHash(relation2, hashAlgorithm);
-                    if (Arrays.equals(sha1, sha2)) {
-                        logger.trace("File {} is equal in the two directories with hash {}", relation1.getName(),
-                                     Hex.encodeHexString(sha1));
-                    } else {
-                        logger.debug("File {} in directory {} has hash {}", relation1.getName(), iteration1,
-                                     Hex.encodeHexString(sha1));
-                        logger.debug("File {} in directory {} has hash {}", relation2.getName(), iteration2,
-                                     Hex.encodeHexString(sha2));
-                        allEquals = false;
-                    }
+                    allEquals &= isEquals(iteration1, relation1, iteration2);
                 }
             }
 
@@ -184,6 +168,29 @@ public class NellCheckerCLI extends CommandLineInterface {
             logger.error(LogMessages.ERROR_READING_FILE.toString(), e);
         }
 
+    }
+
+    @SuppressWarnings("HardCodedStringLiteral")
+    protected boolean isEquals(File iteration1, File relation1, File iteration2) throws NoSuchAlgorithmException {
+        File relation2 = new File(iteration2, relation1.getName());
+        if (!relation2.exists()) {
+            logger.debug("File {} exists in {} but does not in {}",
+                         relation1.getName(), iteration1, iteration2);
+            return true;
+        }
+        byte[] sha1 = calculateHash(relation1, hashAlgorithm);
+        byte[] sha2 = calculateHash(relation2, hashAlgorithm);
+        if (Arrays.equals(sha1, sha2)) {
+            logger.trace("File {} is equal in the two directories with hash {}", relation1.getName(),
+                         Hex.encodeHexString(sha1));
+            return true;
+        } else {
+            logger.debug("File {} in directory {} has hash {}", relation1.getName(), iteration1,
+                         Hex.encodeHexString(sha1));
+            logger.debug("File {} in directory {} has hash {}", relation2.getName(), iteration2,
+                         Hex.encodeHexString(sha2));
+            return false;
+        }
     }
 
     /**

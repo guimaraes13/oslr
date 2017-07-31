@@ -540,11 +540,21 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     protected void writePredicateToFile(int index, Predicate predicate, Set outputAtoms, boolean positive)
             throws IOException, NoSuchAlgorithmException {
         File iterationDirectory = getIterationDirectory(index);
-        final String outputExtension = positive ? this.positiveOutputExtension : this.negativeOutputExtension;
+        final String outputExtension = getOutputExtension(positive);
         File outputFile = new File(iterationDirectory, predicate.getName() + outputExtension);
         String hash = saveIterationPredicate(outputAtoms, outputFile);
         (positive ? positiveOutputSize : negativeOutputSize)[index] += outputAtoms.size();
         (positive ? outputPositiveHash : outputNegativeHash)[index].put(predicate, hash);
+    }
+
+    /**
+     * Gets the output extension.
+     *
+     * @param positive the class
+     * @return the output extension
+     */
+    protected String getOutputExtension(boolean positive) {
+        return positive ? this.positiveOutputExtension : this.negativeOutputExtension;
     }
 
     /**
