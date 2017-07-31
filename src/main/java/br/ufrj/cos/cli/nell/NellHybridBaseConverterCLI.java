@@ -59,6 +59,17 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      * Temporary extension.
      */
     public static final String TEMPORARY_EXTENSION = ".tmp";
+    /**
+     * If it is to process the iteration first, or the relation first.
+     * <p>
+     * If {@code true}, it will process each iteration at a time. If {@code false} it will be each relation each a time.
+     */
+    public boolean iterationFirst = false;
+    /**
+     * If it is to save the iterations to logic files before begin. It is generally the desired behavior, except when
+     * the logic files were already saved by another run.
+     */
+    public boolean saveIterationToLogic = true;
 
     protected String finalPositiveExtension;
     protected String finalNegativeExtension;
@@ -94,9 +105,9 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
     @Override
     protected void processFiles() throws IOException, NoSuchAlgorithmException {
         correctingPhase = false;
-        saveIterationFiles();
+        if (saveIterationToLogic) { saveIterationFiles(); }
         correctingPhase = true;
-        filterFactsFromRelations();
+        if (iterationFirst) { filterFactsIterationFirst(); } else { filterFactsPredicateFirst(); }
     }
 
     @Override
@@ -143,11 +154,32 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
      *                                  algorithm.
      */
-    protected void filterFactsFromRelations() throws IOException, NoSuchAlgorithmException {
+    protected void filterFactsIterationFirst() throws IOException, NoSuchAlgorithmException {
+        for (int i = startIndex; i < nellInputFilePaths.length; i++) {
+            logger.info(LogMessages.PROCESSING_ITERATION.toString(), i);
+            initializeOutputHashMaps(i);
+            for (Predicate predicate : atomFactory.getPredicates()) {
+                logger.debug(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
+                processRelationOfIteration(predicate, i, true);
+                processRelationOfIteration(predicate, i, false);
+            }
+            logger.info(LogMessages.DONE_ITERATION.toString(), i);
+        }
+    }
+
+    /**
+     * Filter the facts from the relations in the iterations, removing the facts of same class in previous iteration
+     * and of different class in the next iteration.
+     *
+     * @throws IOException              if an I/O error has occurred
+     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
+     *                                  algorithm.
+     */
+    protected void filterFactsPredicateFirst() throws IOException, NoSuchAlgorithmException {
         for (Predicate predicate : atomFactory.getPredicates()) {
             logger.info(LogMessages.PROCESSING_RELATION.toString(), predicate.getName());
             for (int i = startIndex; i < nellInputFilePaths.length; i++) {
-                logger.debug(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
+                logger.trace(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
                 initializeOutputHashMaps(i);
                 processRelationOfIteration(predicate, i, true);
                 processRelationOfIteration(predicate, i, false);
@@ -182,9 +214,9 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
         previousSkippedAtoms[index] -= currentAtoms.size();
         if (index < nellInputFilePaths.length - 1) {
             String oppositeExtension = positive ? negativeOutputExtension : positiveOutputExtension;
-            removedAtoms[index - 1] = currentAtoms.size();
+            removedAtoms[index] = currentAtoms.size();
             filterAtoms(currentAtoms, predicate, index + 1, oppositeExtension);
-            removedAtoms[index - 1] -= currentAtoms.size();
+            removedAtoms[index] -= currentAtoms.size();
         }
         writePredicateToFile(index, predicate, currentAtoms, positive);
         deleteDataDirectory(relationFile);

@@ -21,6 +21,18 @@
 
 package br.ufrj.cos.cli;
 
+import br.ufrj.cos.core.LearningSystem;
+import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
+import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.filter.ClausePredicate;
+import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
+import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.logic.*;
+import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
+import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.TimeMeasure;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
@@ -30,16 +42,18 @@ import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.prove.InnerProductWeighter;
 import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.util.*;
+import edu.cmu.ml.proppr.util.Dictionary;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Locale;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created on 25/03/17.
@@ -51,12 +65,71 @@ public class Main {
 
     public static final Logger logger = LogManager.getLogger();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException, ParseException {
+        Locale.setDefault(new Locale("en", "us"));
+        long begin = TimeMeasure.getNanoTime();
+        logger.info("Begin Program!");
+        // ---------- Program Begin! ----------
+
+        File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.190.cesv.pl");
+//        File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.1060.cesv.csv.pl");
+        List<Term> terms = new ArrayList<>(1);
+        terms.add(new Constant("concept_sport_baseball"));
+        processBase(file, terms, 0, 1);
+
+        // ----------  Program End!  ----------
+        long end = TimeMeasure.getNanoTime();
+        logger.warn(LogMessages.TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+        logger.fatal("End Program!");
+    }
+
+    public static void processBase(File file, List<Term> seeds, int distance1, int distance2)
+            throws FileNotFoundException, UnsupportedEncodingException, ParseException {
+        NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+        DecimalFormat decimalFormat = new DecimalFormat("0.000");
+        logger.info("Processing relevant breath for file:\t{}", file.getAbsolutePath());
+        logger.info("Distance for the breadth first search:\t[{}, {})", distance1, distance2);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
+                                                                         LanguageUtils.DEFAULT_INPUT_ENCODE));
+        KnowledgeParser parser = new KnowledgeParser(reader);
+        List<Clause> clauses = parser.parseKnowledge();
+
+        ClausePredicate clausePredicate = new GroundedFactPredicate();
+        KnowledgeBase knowledgeBase = new KnowledgeBase(new HashSet<>(), clausePredicate);
+        knowledgeBase.addAll(clauses, Atom.class);
+        LearningSystem learningSystem = new LearningSystem(knowledgeBase, new Theory(new HashSet<>()), new Examples(),
+                                                           new ProPprEngineSystemTranslator<>());
+        logger.info(LogMessages.KNOWLEDGE_BASE_SIZE.toString(), numberFormat.format(knowledgeBase.size()));
+        for (Term term : seeds) {
+            logger.info("Seed for the breadth first search:\t{}", term);
+        }
+        logger.info("Total of\t{} seeds", seeds.size());
+        logger.info("");
+
+        for (int i = distance1; i < distance2; i++) {
+            logger.info("Distance for the breadth first search:\t{}", i);
+            logger.info("");
+            Set<Atom> atomSet = learningSystem.baseBreadthFirstSearch(seeds, i);
+            Map<Predicate, Set<Atom>> map = new HashMap<>();
+            atomSet.stream().forEach(a -> map.computeIfAbsent(a.getPredicate(), s -> new HashSet<>()).add(a));
+            List<Map.Entry<Predicate, Set<Atom>>> entries;
+            entries = map.entrySet().stream()
+                    .sorted((o1, o2) -> -Integer.compare(o1.getValue().size(), o2.getValue().size()))
+                    .collect(Collectors.toList());
+            for (Map.Entry<Predicate, Set<Atom>> entry : entries) {
+                logger.info("Predicate:\t{}\t{}%", entry.getKey().getName().replaceAll("^candidate:concept:", ""),
+                            decimalFormat.format((double) entry.getValue().size() / atomSet.size() * 100));
+            }
+            logger.info("");
+            logger.info("Total:\t{}/{}", map.keySet().size(), parser.factory.getPredicates().size());
+            logger.info("");
+            logger.info("");
+        }
+    }
+
+    protected static void run() {
         System.out.println(TimeMeasure.getCurrentTime());
         System.exit(0);
-        logger.info("Begin Program!");
-        Locale.setDefault(new Locale("en", "us"));
-
 //        Smokers Experiment
         String prefix = "/Users/Victor/IdeaProjects/PLLData/TestSmokers";
         String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
@@ -86,7 +159,6 @@ public class Main {
 //        grounder(1e-2, 0.1, groundingArguments);
 //        trainer(1e-2, 0.1, trainingArguments);
         inference(1e-2, 0.1, inferenceArguments);
-        logger.info("End Program!");
     }
 
     public static void test() {

@@ -135,7 +135,7 @@ public class LearningSystem implements Initializable {
     /**
      * Evaluates the {@link Theory} using the given {@link TheoryMetric}.
      *
-     * @param metric           the {@link TheoryMetric}
+     * @param metric   the {@link TheoryMetric}
      * @param examples the examples
      * @return the evaluation
      */
@@ -338,7 +338,7 @@ public class LearningSystem implements Initializable {
      * @param safeStop       if is to stop the search when the found atoms is sufficient to make the terms safe
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "Duplicates"})
     public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth, boolean safeStop) {
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();
@@ -354,7 +354,8 @@ public class LearningSystem implements Initializable {
             headTerms.add(term);
         }
 
-        Set<Atom> atomSet;
+        Set<Atom> atomSet = groundRelevants(currentRelevants);
+        atoms.addAll(atomSet);
         Term currentTerm;
         Integer currentDistance;
         Integer previousDistance = 0;
@@ -385,6 +386,53 @@ public class LearningSystem implements Initializable {
                 bodyTerms.addAll(atomSet.stream().flatMap(a -> a.getTerms().stream()).collect(Collectors.toSet()));
                 if (bodyTerms.containsAll(headTerms)) { break; }
             }
+            if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
+                for (Term neighbour : getKnowledgeBase().getTermNeighbours(currentTerm)) {
+                    if (!termDistance.containsKey(neighbour)) {
+                        termDistance.put(neighbour, currentDistance + 1);
+                        queue.add(neighbour);
+                    }
+                }
+            }
+        }
+
+        return atoms;
+    }
+
+    /**
+     * Gets the relevant {@link Atom}s, given the relevant seed {@link Term}s, by performing a breadth-first search
+     * on the {@link KnowledgeBase}'s cached graph
+     *
+     * @param terms          the seed {@link Term}s
+     * @param relevantsDepth the depth of the relevant breadth first search
+     * @return the relevant {@link Atom}s to the seed {@link Term}s
+     */
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "Duplicates"})
+    public Set<Atom> baseBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth) {
+        Map<Term, Integer> termDistance = new HashMap<>();
+        Queue<Term> queue = new ArrayDeque<>();
+        Set<Atom> atoms = new HashSet<>();
+
+        for (Term term : terms) {
+            termDistance.put(term, 0);
+            queue.add(term);
+        }
+
+        Set<Atom> atomSet;
+        Term currentTerm;
+        Integer currentDistance;
+        Integer previousDistance = 0;
+        while (!queue.isEmpty()) {
+            currentTerm = queue.poll();
+            currentDistance = termDistance.get(currentTerm);
+
+            if (!Objects.equals(currentDistance, previousDistance)) {
+                previousDistance = currentDistance;
+            }
+
+            atomSet = getKnowledgeBase().getAtomsWithTerm(currentTerm);
+            atoms.addAll(atomSet);
+
             if (relevantsDepth == NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
                 for (Term neighbour : getKnowledgeBase().getTermNeighbours(currentTerm)) {
                     if (!termDistance.containsKey(neighbour)) {
