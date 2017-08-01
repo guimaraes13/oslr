@@ -27,7 +27,6 @@ import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +35,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 
-import static br.ufrj.cos.util.LogMessages.*;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
+import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
  * This class mixes the processing of the nell base by iteration and by relation.
@@ -66,11 +68,13 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      * <p>
      * If {@code true}, it will process each iteration at a time. If {@code false} it will be each relation each a time.
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean iterationFirst = false;
     /**
      * If it is to save the iterations to logic files before begin. It is generally the desired behavior, except when
      * the logic files were already saved by another run.
      */
+    @SuppressWarnings("CanBeFinal")
     public boolean saveIterationToLogic = true;
 
     protected String finalPositiveExtension;
@@ -158,14 +162,14 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      */
     protected void filterFactsIterationFirst() throws IOException, NoSuchAlgorithmException {
         for (int i = startIndex; i < nellInputFilePaths.length; i++) {
-            logger.info(LogMessages.PROCESSING_ITERATION.toString(), i);
+            logger.info(PROCESSING_ITERATION.toString(), i);
             initializeOutputHashMaps(i);
             for (Predicate predicate : getPredicates()) {
-                logger.trace(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
+                logger.trace(PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
                 processRelationOfIteration(predicate, i, true);
                 processRelationOfIteration(predicate, i, false);
             }
-            logger.info(LogMessages.DONE_ITERATION.toString(), i);
+            logger.info(DONE_ITERATION.toString(), i);
         }
     }
 
@@ -216,14 +220,14 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      */
     protected void filterFactsPredicateFirst() throws IOException, NoSuchAlgorithmException {
         for (Predicate predicate : getPredicates()) {
-            logger.info(LogMessages.PROCESSING_RELATION.toString(), predicate.getName());
+            logger.info(PROCESSING_RELATION.toString(), predicate.getName());
             for (int i = startIndex; i < nellInputFilePaths.length; i++) {
-                logger.trace(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
+                logger.trace(PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
                 initializeOutputHashMaps(i);
                 processRelationOfIteration(predicate, i, true);
                 processRelationOfIteration(predicate, i, false);
             }
-            logger.info(LogMessages.DONE_RELATION.toString(), predicate.getName());
+            logger.info(DONE_RELATION.toString(), predicate.getName());
         }
     }
 

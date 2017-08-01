@@ -32,7 +32,6 @@ import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.TimeMeasure;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
@@ -54,6 +53,9 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
+import static br.ufrj.cos.util.log.SystemLog.KNOWLEDGE_BASE_SIZE;
 
 /**
  * Created on 25/03/17.
@@ -82,7 +84,7 @@ public class Main {
 
         // ----------  Program End!  ----------
         long end = TimeMeasure.getNanoTime();
-        logger.warn(LogMessages.TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+        logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
         logger.fatal("End Program!");
     }
 
@@ -102,7 +104,7 @@ public class Main {
         knowledgeBase.addAll(clauses, Atom.class);
         LearningSystem learningSystem = new LearningSystem(knowledgeBase, new Theory(new HashSet<>()), new Examples(),
                                                            new ProPprEngineSystemTranslator<>());
-        logger.info(LogMessages.KNOWLEDGE_BASE_SIZE.toString(), numberFormat.format(knowledgeBase.size()));
+        logger.info(KNOWLEDGE_BASE_SIZE.toString(), numberFormat.format(knowledgeBase.size()));
         for (Term term : seeds) {
             logger.info("Seed for the breadth first search:\t{}", term);
         }

@@ -30,10 +30,14 @@ import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+
+import static br.ufrj.cos.util.log.PreRevisionLog.TRY_REFINE_RULE;
 
 /**
  * Revision operator that removes a node from the {@link TreeTheory}.
@@ -45,11 +49,17 @@ import java.util.LinkedHashSet;
 @SuppressWarnings({"unused"})
 public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
     @Override
     public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
-            //FIXME: this operator does not change the theory
             Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
+            logger.trace(TRY_REFINE_RULE.toString(), revisionLeaf);
+            if (revisionLeaf.isDefaultChild()) { return null; }
             if (revisionLeaf.isRoot()) {
                 // this is the root node
                 if (TreeTheory.isDefaultTheory(revisionLeaf)) {

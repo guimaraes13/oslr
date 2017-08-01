@@ -22,7 +22,6 @@
 package br.ufrj.cos.engine.proppr.ground;
 
 import br.ufrj.cos.engine.proppr.MapCleanup;
-import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.Prover;
@@ -40,6 +39,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
+
+import static br.ufrj.cos.util.log.InferenceLog.ERROR_GROUNDING_EXAMPLE;
 
 /**
  * An in memory version of the ProPPR's {@link Grounder}.
@@ -150,7 +151,7 @@ public class InMemoryGrounder<P extends ProofGraph> extends Grounder<P> {
             saveFeaturesToSymbolTable(featureTable, masterFeatures);
             reportStatistics(statistics);
         } catch (Exception e) {
-            logger.error(LogMessages.ERROR_GROUNDING_EXAMPLE.toString(), e);
+            logger.error(ERROR_GROUNDING_EXAMPLE.toString(), e);
         }
         return groundCleanup.getResultMap();
     }

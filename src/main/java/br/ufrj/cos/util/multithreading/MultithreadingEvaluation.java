@@ -26,7 +26,6 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,6 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
+
+import static br.ufrj.cos.util.log.InferenceLog.*;
 
 /**
  * Class to handle the multithreading evaluation of candidate revision.
@@ -84,34 +85,20 @@ public class MultithreadingEvaluation<V> {
     }
 
     /**
-     * Evaluates the candidate clauses against the metric, and returns the best evaluated {@link HornClause}.
-     * <p>
-     * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
+     * Submits one evaluator {@link HornClause} to the pool and returns its {@link Future} value.
      *
-     * @param candidates the candidate clauses
-     * @param examples   the examples
-     * @return the best evaluated {@link HornClause}
+     * @param evaluator      the evaluator {@link HornClause}
+     * @param evaluationPool the pool
+     * @return the {@link Future} value
      */
-    public AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends V> candidates,
-                                                             Collection<? extends Example> examples) {
-        if (candidates == null || candidates.isEmpty()) { return null; }
-        AsyncTheoryEvaluator bestClause = null;
-        int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
+    public static Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
+                                                               ExecutorService evaluationPool) {
         try {
-            logger.trace(LogMessages.BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
-            ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
-            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool, examples);
-
-            evaluationPool.shutdown();
-            evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
-                                            TimeUnit.SECONDS);
-            evaluationPool.shutdownNow();
-            logger.trace(LogMessages.END_ASYNC_EVALUATION);
-            bestClause = retrieveEvaluatedMetrics(futures, null);
-        } catch (InterruptedException e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
+        } catch (Exception e) {
+            logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
         }
-        return bestClause;
+        return null;
     }
 
     /**
@@ -136,6 +123,37 @@ public class MultithreadingEvaluation<V> {
         }
         futures.remove(null);
         return futures;
+    }
+
+    /**
+     * Evaluates the candidate clauses against the metric, and returns the best evaluated {@link HornClause}.
+     * <p>
+     * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
+     *
+     * @param candidates the candidate clauses
+     * @param examples   the examples
+     * @return the best evaluated {@link HornClause}
+     */
+    public AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends V> candidates,
+                                                             Collection<? extends Example> examples) {
+        if (candidates == null || candidates.isEmpty()) { return null; }
+        AsyncTheoryEvaluator bestClause = null;
+        int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
+        try {
+            logger.trace(BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
+            ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
+            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool, examples);
+
+            evaluationPool.shutdown();
+            evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
+                                            TimeUnit.SECONDS);
+            evaluationPool.shutdownNow();
+            logger.trace(END_ASYNC_EVALUATION);
+            bestClause = retrieveEvaluatedMetrics(futures, null);
+        } catch (InterruptedException e) {
+            logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
+        }
+        return bestClause;
     }
 
     /**
@@ -166,32 +184,15 @@ public class MultithreadingEvaluation<V> {
                     bestClause = evaluated;
                 }
             } catch (InterruptedException | ExecutionException e) {
-                logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
+                logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
             } catch (CancellationException ignored) {
-                logger.error(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(),
+                logger.error(EVALUATION_THEORY_TIMEOUT.toString(),
                              evaluationTimeout);
             }
         }
-        logger.trace(LogMessages.EVALUATED_TIMEOUT_PROPORTION.toString(),
+        logger.trace(EVALUATED_TIMEOUT_PROPORTION.toString(),
                      (double) count / futures.size() * 100, futures.size());
         return bestClause;
-    }
-
-    /**
-     * Submits one evaluator {@link HornClause} to the pool and returns its {@link Future} value.
-     *
-     * @param evaluator      the evaluator {@link HornClause}
-     * @param evaluationPool the pool
-     * @return the {@link Future} value
-     */
-    public static Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
-                                                               ExecutorService evaluationPool) {
-        try {
-            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
-        } catch (Exception e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CLAUSE.toString(), e);
-        }
-        return null;
     }
 
 }

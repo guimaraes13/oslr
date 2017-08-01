@@ -34,6 +34,10 @@ import java.util.HashSet;
 @SuppressWarnings("ClassIndependentOfModule")
 public class Node<E> {
 
+    /**
+     * The null string representation to the toString method.
+     */
+    public static final String NULL_STRING = "null";
     protected final Node<E> parent;
     protected final Node<E> defaultChild;
     protected final Collection<Node<E>> children;
@@ -179,6 +183,11 @@ public class Node<E> {
         if (parent != null ? !parent.equals(node.parent) : node.parent != null) { return false; }
 //        if (!children.equals(node.children)) { return false; }
         return element != null ? element.equals(node.element) : node.element == null;
+    }
+
+    @Override
+    public String toString() {
+        return element != null ? element.toString() : NULL_STRING;
     }
 
 }

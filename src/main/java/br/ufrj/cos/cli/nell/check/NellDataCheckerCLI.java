@@ -26,7 +26,6 @@ import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,8 +37,9 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import static br.ufrj.cos.util.LogMessages.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.LogMessages.PROGRAM_END;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 
 /**
  * Created on 31/07/17.
@@ -77,6 +77,7 @@ public class NellDataCheckerCLI extends NellHashCheckerCLI {
         }
         Collection<? extends Clause> clauses1 = readLogicFile(relation1);
         Collection<? extends Clause> clauses2 = readLogicFile(relation2);
+        //noinspection ConstantConditions
         if (clauses1.equals(clauses2)) {
             logger.trace("File {} is equal in the two directories.", relation1.getName());
             return true;
@@ -92,7 +93,7 @@ public class NellDataCheckerCLI extends NellHashCheckerCLI {
      * @param file the logic file
      * @return the clauses
      */
-    protected Collection<Clause> readLogicFile(File file) {
+    protected static Collection<Clause> readLogicFile(File file) {
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), LanguageUtils
                 .DEFAULT_INPUT_ENCODE)) {
             KnowledgeParser parser = new KnowledgeParser(reader);
@@ -100,7 +101,7 @@ public class NellDataCheckerCLI extends NellHashCheckerCLI {
             parser.parseKnowledgeAppend(clauses);
             return clauses;
         } catch (ParseException | IOException e) {
-            logger.error(LogMessages.ERROR_READING_FILE, e);
+            logger.error(ERROR_READING_FILE, e);
             return null;
         }
     }

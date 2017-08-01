@@ -407,7 +407,7 @@ public class LearningSystem implements Initializable {
      * @param relevantsDepth the depth of the relevant breadth first search
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "Duplicates"})
+    @SuppressWarnings({"OverlyLongMethod", "Duplicates"})
     public Set<Atom> baseBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth) {
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();

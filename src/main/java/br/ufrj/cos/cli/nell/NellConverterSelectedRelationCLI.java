@@ -31,8 +31,8 @@ import java.util.ArrayDeque;
 import java.util.Locale;
 import java.util.Set;
 
-import static br.ufrj.cos.util.LogMessages.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.LogMessages.PROGRAM_END;
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 
 /**
  * Class to convert a Knowledge base from Nell's csv files to a set of logic files.
@@ -51,6 +51,7 @@ public class NellConverterSelectedRelationCLI extends NellBaseConverterRelationC
     /**
      * The target predicates to process.
      */
+    @SuppressWarnings("unused")
     public Set<String> targetPredicates;
 
     /**

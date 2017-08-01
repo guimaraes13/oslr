@@ -36,11 +36,15 @@ import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+
+import static br.ufrj.cos.util.log.PreRevisionLog.RULE_PROPOSED_TO_THEORY;
+import static br.ufrj.cos.util.log.PreRevisionLog.TRY_REFINE_RULE;
+import static br.ufrj.cos.util.log.RevisionLog.PROPOSED_REFINED_RULE;
+import static br.ufrj.cos.util.log.RevisionLog.REFINING_RULE;
 
 /**
  * Revision operator that adds a new node on the {@link TreeTheory}.
@@ -137,6 +141,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
             Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
+            logger.trace(TRY_REFINE_RULE.toString(), revisionLeaf);
             if (revisionLeaf.isRoot()) {
                 // this is the root node
                 return addRuleToTheory(revisionLeaf, targets);
@@ -176,14 +181,16 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      */
     protected void addNodesToTree(Node<HornClause> revisionLeaf, Conjunction initialBody) {
         Atom head = revisionLeaf.getElement().getHead();
-        Conjunction currentBody;
+        Conjunction currentBody = initialBody;
+        Conjunction nextBody;
         Node<HornClause> node = revisionLeaf;
         for (Literal literal : revisedClause.getBody()) {
-            if (initialBody.contains(literal)) { continue; }
-            currentBody = new Conjunction(initialBody.size() + 1);
-            currentBody.addAll(initialBody);
-            currentBody.add(literal);
-            node = TreeTheory.addNodeToTree(node, new HornClause(head, currentBody));
+            if (currentBody.contains(literal)) { continue; }
+            nextBody = new Conjunction(currentBody.size() + 1);
+            nextBody.addAll(currentBody);
+            nextBody.add(literal);
+            node = TreeTheory.addNodeToTree(node, new HornClause(head, nextBody));
+            currentBody = nextBody;
         }
     }
 
@@ -238,7 +245,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
             hornClause = refineClause(hornClause, examples);
         }
         revisedClause = hornClause.getHornClause();
-        logger.debug(LogMessages.RULE_PROPOSED_TO_THEORY.toString(), revisedClause);
+        logger.debug(RULE_PROPOSED_TO_THEORY.toString(), revisedClause);
         Theory theory = learningSystem.getTheory().copy();
         theory.add(revisedClause);
         if (removeOld) { theory.remove(node.getElement()); }
@@ -268,7 +275,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
      */
     protected AsyncTheoryEvaluator refineClause(AsyncTheoryEvaluator initialClause,
                                                 Collection<? extends Example> examples) throws TheoryRevisionException {
-        logger.debug(LogMessages.REFINING_RULE.toString(), initialClause);
+        logger.debug(REFINING_RULE.toString(), initialClause);
         int sideWayMovements = 0;
         AsyncTheoryEvaluator best = initialClause;
         AsyncTheoryEvaluator current = initialClause;
@@ -277,7 +284,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
             if (current == null) {
                 break;
             }
-            logger.trace(LogMessages.PROPOSED_REFINED_RULE.toString(), current);
+            logger.trace(PROPOSED_REFINED_RULE.toString(), current);
             if (theoryMetric.difference(current.getEvaluation(), best.getEvaluation()) > improvementThreshold) {
                 best = current;
                 sideWayMovements = 0;

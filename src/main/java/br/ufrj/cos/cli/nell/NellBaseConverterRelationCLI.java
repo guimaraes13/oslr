@@ -24,7 +24,6 @@ package br.ufrj.cos.cli.nell;
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Predicate;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +34,11 @@ import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static br.ufrj.cos.util.LogMessages.*;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
+import static br.ufrj.cos.util.log.NellConverterLog.DONE_RELATION;
+import static br.ufrj.cos.util.log.NellConverterLog.PROCESSING_RELATION;
 
 /**
  * Class to convert a Knowledge base from Nell's csv files to a set of logic files.
@@ -81,9 +84,9 @@ public class NellBaseConverterRelationCLI extends NellBaseConverterCLI {
         initializeTargetPredicates();
         while (!targetPredicates.isEmpty()) {
             currentPredicate = targetPredicates.remove();
-            logger.info(LogMessages.PROCESSING_RELATION.toString(), currentPredicate.getName());
+            logger.info(PROCESSING_RELATION.toString(), currentPredicate.getName());
             super.processFiles();
-            logger.info(LogMessages.DONE_RELATION.toString(), currentPredicate.getName());
+            logger.info(DONE_RELATION.toString(), currentPredicate.getName());
         }
     }
 

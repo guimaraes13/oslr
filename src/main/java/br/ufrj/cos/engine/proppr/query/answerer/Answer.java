@@ -23,7 +23,6 @@ package br.ufrj.cos.engine.proppr.query.answerer;
 
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
@@ -40,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+
+import static br.ufrj.cos.util.log.InferenceLog.*;
 
 /**
  * Represents a ProPPR's Answer of a goal.
@@ -128,7 +129,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
                                    boolean normalize, @SuppressWarnings("unused") int id) throws LogicProgramException {
         P pg = prover.makeProofGraph(new InferenceExample(query, null, null), aprOptions, featureTable,
                                      program, plugins);
-        logger.trace(LogMessages.ANSWERING_QUERY.toString(), query);
+        logger.trace(ANSWERING_QUERY.toString(), query);
         Map<State, Double> dist = prove(prover, pg);
         if (dist == null) { return null; }
         solutions = new TreeMap<>();
@@ -136,16 +137,16 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
             if (s.getKey().isCompleted()) {
                 Query x = pg.fill(s.getKey());
                 solutions.put(x, s.getValue());
-                logger.trace(LogMessages.ANSWER_RESULT_WITH_VALUE.toString(), x.toString(), s.getValue());
+                logger.trace(ANSWER_RESULT_WITH_VALUE.toString(), x.toString(), s.getValue());
             } else {
-                logger.trace(LogMessages.ANSWER_STATE_WITH_VALUE.toString(), s.toString(), s.getValue());
+                logger.trace(ANSWER_STATE_WITH_VALUE.toString(), s.toString(), s.getValue());
             }
         }
         if (normalize) {
             solutions = Dictionary.normalize(solutions);
         }
         List<Map.Entry<Query, Double>> solutionDist = Dictionary.sort(solutions);
-        logger.trace(LogMessages.NUMBER_OF_QUERY_ANSWERS.toString(), solutionDist.size());
+        logger.trace(NUMBER_OF_QUERY_ANSWERS.toString(), solutionDist.size());
 
         return this;
     }
@@ -161,7 +162,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
         try {
             return prover.prove(pg, status);
         } catch (LogicProgramException ignored) {
-            logger.trace(LogMessages.ERROR_PROVING_GOAL.toString(), Arrays.deepToString(query.getRhs()));
+            logger.trace(ERROR_PROVING_GOAL.toString(), Arrays.deepToString(query.getRhs()));
         }
         return null;
     }

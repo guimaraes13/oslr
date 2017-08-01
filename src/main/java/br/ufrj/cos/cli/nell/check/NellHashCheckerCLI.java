@@ -25,7 +25,6 @@ import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.cli.CommandLineOptions;
 import br.ufrj.cos.cli.nell.NellBaseConverterCLI;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Hex;
@@ -39,8 +38,10 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.*;
-import static br.ufrj.cos.util.LogMessages.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.LogMessages.PROGRAM_END;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
+import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
  * Class to check if two output directories from {@link NellBaseConverterCLI} contains the same data.
@@ -115,15 +116,15 @@ public class NellHashCheckerCLI extends CommandLineInterface {
         return this;
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "HardCodedStringLiteral", "ConstantConditions"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "HardCodedStringLiteral"})
     @Override
     public void run() {
         logCommittedVersion();
-        logger.info(LogMessages.DIRECTORY_1.toString(), directory1);
-        logger.info(LogMessages.DIRECTORY_2.toString(), directory2);
-        logger.info(LogMessages.ITERATION_PREFIX.toString(), iterationPrefix);
-        logger.info(LogMessages.POSITIVE_EXTENSION.toString(), positiveExtension);
-        logger.info(LogMessages.NEGATIVE_EXTENSION.toString(), negativeExtension);
+        logger.info(DIRECTORY_1.toString(), directory1);
+        logger.info(DIRECTORY_2.toString(), directory2);
+        logger.info(ITERATION_PREFIX.toString(), iterationPrefix);
+        logger.info(POSITIVE_EXTENSION.toString(), positiveExtension);
+        logger.info(NEGATIVE_EXTENSION.toString(), negativeExtension);
         FilenameFilter iterationFilter = (dir, name) -> name.startsWith(iterationPrefix);
         @SuppressWarnings("OverlyLongLambda") FileFilter relationFilter = pathname -> {
             if (!pathname.isFile()) { return false; }
@@ -136,10 +137,7 @@ public class NellHashCheckerCLI extends CommandLineInterface {
             boolean allIterations = true;
             File[] directory1Iterations = directory1.listFiles(iterationFilter);
             File[] relations;
-            byte[] sha1;
-            byte[] sha2;
             File iteration2;
-            File relation2;
             for (File iteration1 : directory1Iterations != null ? directory1Iterations : FILES) {
                 relations = iteration1.listFiles(relationFilter);
                 iteration2 = new File(directory2, iteration1.getName());
@@ -165,12 +163,22 @@ public class NellHashCheckerCLI extends CommandLineInterface {
                 logger.warn("There are different files in the directories.");
             }
         } catch (NoSuchAlgorithmException e) {
-            logger.error(LogMessages.ERROR_READING_FILE.toString(), e);
+            logger.error(ERROR_READING_FILE.toString(), e);
         }
 
     }
 
-    @SuppressWarnings("HardCodedStringLiteral")
+    /**
+     * Checks if the files from relations are equal, by a hash algorithm.
+     *
+     * @param iteration1 the iteration 1
+     * @param relation1  the relation 1
+     * @param iteration2 the iteration 2
+     * @return {@code true} if they are equal {@code false}, otherwise
+     * @throws NoSuchAlgorithmException if no Provider supports a MessageDigestSpi implementation for the specified
+     *                                  algorithm.
+     */
+    @SuppressWarnings({"HardCodedStringLiteral", "ConstantConditions"})
     protected boolean isEquals(File iteration1, File relation1, File iteration2) throws NoSuchAlgorithmException {
         File relation2 = new File(iteration2, relation1.getName());
         if (!relation2.exists()) {
@@ -215,7 +223,7 @@ public class NellHashCheckerCLI extends CommandLineInterface {
             }
             return digest.digest();
         } catch (IOException e) {
-            logger.error(LogMessages.ERROR_READING_FILE.toString(), e);
+            logger.error(ERROR_READING_FILE.toString(), e);
         }
         return null;
     }

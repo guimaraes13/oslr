@@ -21,13 +21,14 @@
 
 package br.ufrj.cos.engine.proppr;
 
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import static br.ufrj.cos.util.log.InferenceLog.ERROR_PROVING_GOAL;
 
 /**
  * Implements the {@link Runnable} to put into the {@link Map}.
@@ -65,7 +66,7 @@ public class MapCleanupRun<Result> implements Runnable {
         try {
             integerMap.put(id, input.get());
         } catch (InterruptedException | ExecutionException ignored) {
-            logger.trace(LogMessages.ERROR_PROVING_GOAL.toString(), id);
+            logger.trace(ERROR_PROVING_GOAL.toString(), id);
         }
     }
 

@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.engine.proppr.ground;
 
-import br.ufrj.cos.util.LogMessages;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
@@ -36,6 +35,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static br.ufrj.cos.util.log.InferenceLog.GROUNDING_EXAMPLE;
 
 /**
  * Represents an iterator grounded by ProPPR.
@@ -129,7 +130,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
      * @throws LogicProgramException if an error occurs during the grounding
      */
     public GroundedExample groundExample(Prover<P> prover) throws LogicProgramException {
-        logger.trace(LogMessages.GROUNDING_EXAMPLE.toString(), proofGraph.getExample().toString());
+        logger.trace(GROUNDING_EXAMPLE.toString(), proofGraph.getExample().toString());
 
         Map<State, Double> ans = prover.prove(proofGraph, status);
 

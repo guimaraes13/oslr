@@ -55,7 +55,10 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
-import static br.ufrj.cos.util.LogMessages.*;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_WRITING_FILE;
+import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
  * Class to convert a Knowledge base from Nell's csv files to a set of logic files.
@@ -486,7 +489,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     protected void filterPreviousAtoms(int index) throws IOException {
         FilterAtomProcessor atomProcessor = new FilterAtomProcessor(previousAtoms);
         for (int i = 0; i < index - 1; i++) {
-            logger.debug(LogMessages.FILTERING_ITERATION.toString(), index, i);
+            logger.debug(FILTERING_ITERATION.toString(), index, i);
             for (Predicate predicate : getPositives(previousAtoms).keySet()) {
                 filterPreviousAtoms(i, predicate, atomProcessor, true);
             }
@@ -552,7 +555,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      */
     protected void saveIteration(int index) throws IOException, NoSuchAlgorithmException {
         File iterationDirectory = getIterationDirectory(index);
-        logger.debug(LogMessages.ITERATION_SAVING.toString(), index, iterationDirectory);
+        logger.debug(ITERATION_SAVING.toString(), index, iterationDirectory);
         if (!iterationDirectory.exists()) {
             if (!iterationDirectory.mkdirs()) {
                 throw new IOException(
@@ -574,7 +577,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             outputAtoms = negativeMap.computeIfAbsent(predicate, k -> new HashSet<>());
             writePredicateToFile(index, predicate, outputAtoms, false);
         }
-        logger.info(LogMessages.ITERATION_SAVED.toString(), index, iterationDirectory);
+        logger.info(ITERATION_SAVED.toString(), index, iterationDirectory);
     }
 
     /**
@@ -672,17 +675,16 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * @param atomProcessor the {@link AtomProcessor}
      * @throws UnsupportedEncodingException if the encode is not supported
      */
-    @SuppressWarnings("OverlyLongMethod")
     protected void processInputFile(InputStream stream, int index, AtomProcessor atomProcessor) throws
             UnsupportedEncodingException {
         InputStreamReader inputStreamReader = new InputStreamReader(stream, fileEncode);
         Pair<Atom, Boolean> pair;
         try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-            logger.info(LogMessages.PROCESSING_FILE.toString(), nellInputFilePaths[index]);
+            logger.info(PROCESSING_FILE.toString(), nellInputFilePaths[index]);
             String line;
             line = bufferedReader.readLine();
             int count = 1;
-            logger.trace(LogMessages.PROCESSING_FILE_HEADER.toString(), nellInputFilePaths[index],
+            logger.trace(PROCESSING_FILE_HEADER.toString(), nellInputFilePaths[index],
                          StringEscapeUtils.escapeJava(line));
             readHeader(index, line);
             line = bufferedReader.readLine();

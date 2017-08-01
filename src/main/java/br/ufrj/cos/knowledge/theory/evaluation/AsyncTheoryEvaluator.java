@@ -27,7 +27,6 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.TimeMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +34,9 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static br.ufrj.cos.util.log.InferenceLog.ERROR_EVALUATING_CANDIDATE_THEORY;
+import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_THEORY_TIMEOUT;
 
 /**
  * Handle a asynchronous execution of evaluation a {@link Theory}. This is useful when a maximum amount of time is
@@ -113,11 +115,11 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
             thread.start();
             thread.join(timeout * TimeMeasure.SECONDS_TO_MILLISECONDS_MULTIPLIER);
             if (thread.isAlive()) {
-                logger.trace(LogMessages.EVALUATION_THEORY_TIMEOUT.toString(), timeout);
+                logger.trace(EVALUATION_THEORY_TIMEOUT.toString(), timeout);
                 thread.interrupt();
             }
         } catch (InterruptedException e) {
-            logger.error(LogMessages.ERROR_EVALUATING_CANDIDATE_THEORY, e);
+            logger.error(ERROR_EVALUATING_CANDIDATE_THEORY, e);
         }
         return this;
     }
@@ -193,5 +195,5 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     public String toString() {
         return hornClause.toString();
     }
-    
+
 }

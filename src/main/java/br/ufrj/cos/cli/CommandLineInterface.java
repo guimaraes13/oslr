@@ -42,6 +42,11 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.ParsingLog.ERROR_PARSING_FAILED;
+import static br.ufrj.cos.util.log.ParsingLog.PARSING_INPUT_ARGUMENTS;
+import static br.ufrj.cos.util.log.RepositoryInfoLog.*;
+
 /**
  * Represents classes that implements the main method and so have input options
  * <p>
@@ -193,7 +198,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         if (main != null) {
             main.cliArguments = args;
             main.initialize();
-            logger.info(LogMessages.PROGRAM_BEGIN);
+            logger.info(PROGRAM_BEGIN);
             logger.info(main.toString());
             main.run();
         }
@@ -275,9 +280,9 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
             LanguageUtils.writeStringToFile(configFileContent, configurationFile);
 
-            logger.info(LogMessages.COMMAND_LINE_ARGUMENTS.toString(),
+            logger.info(COMMAND_LINE_ARGUMENTS.toString(),
                         Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
-            logger.info(LogMessages.CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
+            logger.info(CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
         } catch (IOException e) {
             throw new InitializationException(e);
         }
@@ -306,7 +311,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         final Filter filter = null;
         config.getRootLogger().addAppender(appender, level, filter);
         config.getRootLogger().addAppender(appender, level, filter);
-        logger.info(LogMessages.SAVE_STANDARD_OUTPUT.toString(), outputFileName);
+        logger.info(SAVE_STANDARD_OUTPUT.toString(), outputFileName);
     }
 
     /**
@@ -347,21 +352,21 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             boolean changed;
             changed = isLoggedChangedFiles(prop.getProperty(CHANGED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
                                            prop.getProperty(FILES_PROPERTY, FILES_PROPERTY),
-                                           LogMessages.UNCOMMITTED_FILE.toString());
+                                           UNCOMMITTED_FILE.toString());
             changed |= isLoggedChangedFiles(prop.getProperty(HAS_UNTRACKED_FILES_PROPERTY, DEFAULT_BOOLEAN_VALUE),
                                             prop.getProperty(UNTRACKED_FILES_PROPERTY, UNTRACKED_FILES_DEFAULT_VALUE),
-                                            LogMessages.UNTRACKED_FILE.toString());
+                                            UNTRACKED_FILE.toString());
             if (!changed) {
-                logger.info(LogMessages.ALL_FILES_COMMITTED.toString());
+                logger.info(ALL_FILES_COMMITTED.toString());
             }
         } catch (IOException e) {
-            logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+            logger.error(ERROR_READING_BUILD_PROPERTIES.toString(), e);
         } finally {
             if (input != null) {
                 try {
                     input.close();
                 } catch (IOException e) {
-                    logger.error(LogMessages.ERROR_READING_BUILD_PROPERTIES.toString(), e);
+                    logger.error(ERROR_READING_BUILD_PROPERTIES.toString(), e);
                 }
             }
         }
@@ -396,10 +401,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         String commit = prop.getProperty(COMMIT_PROPERTY);
         boolean hasTag = Boolean.parseBoolean(prop.getProperty(HAS_TAG_PROPERTY, DEFAULT_BOOLEAN_VALUE));
         if (hasTag) {
-            logger.info(LogMessages.COMMITTED_VERSION_WITH_TAG.toString(),
+            logger.info(COMMITTED_VERSION_WITH_TAG.toString(),
                         prop.getProperty(TAG_PROPERTY, TAG_PROPERTY), commit);
         } else {
-            logger.info(LogMessages.COMMITTED_VERSION.toString(), commit);
+            logger.info(COMMITTED_VERSION.toString(), commit);
         }
     }
 
@@ -458,11 +463,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             initializeOptions();
         }
         try {
-            logger.trace(LogMessages.PARSING_INPUT_ARGUMENTS);
+            logger.trace(PARSING_INPUT_ARGUMENTS);
             CommandLine commandLine = parser.parse(options, arguments);
             return parseOptions(commandLine);
         } catch (ParseException | CommandLineInterrogationException e) {
-            logger.error(LogMessages.ERROR_PARSING_FAILED, e);
+            logger.error(ERROR_PARSING_FAILED, e);
         }
         return null;
     }

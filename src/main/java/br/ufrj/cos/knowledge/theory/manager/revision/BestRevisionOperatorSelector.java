@@ -24,12 +24,13 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Iterator;
+
+import static br.ufrj.cos.util.log.InferenceLog.ERROR_EVALUATING_REVISION_OPERATOR;
 
 /**
  * Class that selects the best possible revision operator.
@@ -123,7 +124,7 @@ public class BestRevisionOperatorSelector extends RevisionOperatorSelector {
                         bestEvaluated = evaluator;
                     }
                 } catch (TheoryRevisionException e) {
-                    logger.warn(LogMessages.ERROR_EVALUATING_REVISION_OPERATOR.toString(), e);
+                    logger.warn(ERROR_EVALUATING_REVISION_OPERATOR.toString(), e);
                 }
             }
 

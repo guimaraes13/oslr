@@ -30,11 +30,13 @@ import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
+
+import static br.ufrj.cos.util.log.PreRevisionLog.CALLING_REVISION_ON_EXAMPLES;
+import static br.ufrj.cos.util.log.PreRevisionLog.SELECTED_OPERATOR;
 
 /**
  * Responsible to decide when to revise the {@link Theory} based on the Hoeffding's bound, with confidence delta.
@@ -81,9 +83,10 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         if (bestPossibleImprovement >= epsilon) {
             Collection<? extends Example> targets = examples.getTrainingExamples(trainUsingAllExamples);
             // calls the revision on the right threshold
-            logger.debug(LogMessages.CALLING_REVISION_ON_EXAMPLES.toString(),
+            logger.debug(CALLING_REVISION_ON_EXAMPLES.toString(),
                          examples.getTrainingExamples(trainUsingAllExamples).size());
             RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
+            logger.debug(SELECTED_OPERATOR.toString(), operatorEvaluator);
             if (operatorEvaluator == null) { return false; }
             return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
         }

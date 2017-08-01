@@ -42,6 +42,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_INITIAL_THEORIES;
+import static br.ufrj.cos.util.log.PreRevisionLog.RULE_APPENDED_TO_THEORY;
+import static br.ufrj.cos.util.log.RevisionLog.*;
+
 /**
  * Operator that implements Guimarães and Paes rule creation algorithm.
  * <p>
@@ -204,14 +208,14 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         try {
             if (!example.isPositive() || isCovered(example, theory)) {
                 if (example.isPositive()) {
-                    logger.trace(LogMessages.SKIPPING_COVERED_EXAMPLE.toString(), example);
+                    logger.trace(SKIPPING_COVERED_EXAMPLE.toString(), example);
                 }
                 return;
             }
-            logger.info(LogMessages.BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+            logger.info(BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
             newRule = buildRuleForExample(evaluationExamples, example);
             if (theory.add(newRule)) {
-                logger.debug(LogMessages.RULE_APPENDED_TO_THEORY.toString(), newRule);
+                logger.debug(RULE_APPENDED_TO_THEORY.toString(), newRule);
             }
         } catch (TheoryRevisionException e) {
             logger.debug(e.getMessage());
@@ -247,28 +251,28 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     protected HornClause buildRuleForExample(Collection<? extends Example> evaluationExamples,
                                              Example example) throws TheoryRevisionException {
         try {
-            logger.debug(LogMessages.BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
+            logger.debug(BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
             HornClause bottomClause = buildBottomClause(example);
 
-            logger.debug(LogMessages.FIND_MINIMAL_SAFE_CLAUSES);
+            logger.debug(FIND_MINIMAL_SAFE_CLAUSES);
             Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
 
-            logger.debug(LogMessages.EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
+            logger.debug(EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
             AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet(),
                                                                                           evaluationExamples);
             if (bestClause == null) {
-                logger.debug(LogMessages.ERROR_EVALUATING_MINIMAL_CLAUSES);
+                logger.debug(ERROR_EVALUATING_MINIMAL_CLAUSES);
                 return null;
             }
 
             if (refine) {
-                logger.debug(LogMessages.REFINING_RULE_FROM_EXAMPLE.toString(), example);
+                logger.debug(REFINING_RULE_FROM_EXAMPLE.toString(), example);
                 bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap(),
                                         evaluationExamples);
             }
             return bestClause.getHornClause();
         } catch (Exception e) {
-            throw new TheoryRevisionException(LogMessages.ERROR_REVISING_THEORY.toString(), e);
+            throw new TheoryRevisionException(ERROR_REVISING_THEORY.toString(), e);
         }
     }
 

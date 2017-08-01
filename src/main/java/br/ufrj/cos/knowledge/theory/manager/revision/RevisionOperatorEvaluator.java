@@ -161,4 +161,9 @@ public class RevisionOperatorEvaluator implements Initializable {
         revisionOperator.theoryRevisionAccepted(revised);
     }
 
+    @Override
+    public String toString() {
+        return revisionOperator.getClass().getCanonicalName();
+    }
+
 }

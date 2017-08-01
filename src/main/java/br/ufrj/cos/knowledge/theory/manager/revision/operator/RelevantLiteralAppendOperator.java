@@ -37,6 +37,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.RevisionLog.ERROR_REVISING_THEORY;
+
 /**
  * A literal append operator that search for the literal based on the relevant terms from the examples.
  * <p>
@@ -234,7 +236,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
                     HornClauseUtils.buildAllLiteralFromClause(initialClause, variableRelevants, candidateLiterals,
                                                               skipCandidates);
                 } catch (InstantiationException | IllegalAccessException e) {
-                    logger.debug(LogMessages.ERROR_REVISING_THEORY.toString(), e);
+                    logger.debug(ERROR_REVISING_THEORY.toString(), e);
                 }
             }
         }

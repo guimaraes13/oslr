@@ -33,7 +33,6 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -41,6 +40,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static br.ufrj.cos.util.log.PreRevisionLog.ERROR_INITIALIZING_REVISION_EXAMPLES;
 
 /**
  * Manages the examples by putting them in a tree structure based on the theory.
@@ -119,7 +120,7 @@ public class TreeExampleManager extends IncomingExampleManager {
                 try {
                     revisionExamples = new RevisionExamples(learningSystem, sampleSelector.copy());
                 } catch (InitializationException ignored) {
-                    logger.warn(LogMessages.ERROR_INITIALIZING_REVISION_EXAMPLES.toString(),
+                    logger.warn(ERROR_INITIALIZING_REVISION_EXAMPLES.toString(),
                                 ALL_SAMPLE_SELECTOR.getClass().getSimpleName());
                     revisionExamples = new RevisionExamples(learningSystem, ALL_SAMPLE_SELECTOR);
                 }

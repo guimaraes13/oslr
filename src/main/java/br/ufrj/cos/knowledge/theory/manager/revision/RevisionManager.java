@@ -23,12 +23,17 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
-import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static br.ufrj.cos.util.log.RevisionLog.ERROR_REVISING_THEORY;
 
 /**
  * Responsible for applying the revision operator on the {@link br.ufrj.cos.knowledge.theory.Theory}.
@@ -83,7 +88,7 @@ public class RevisionManager implements Initializable {
         try {
             return theoryRevisionManager.applyRevision(operatorSelector, examples);
         } catch (TheoryRevisionException e) {
-            logger.error(LogMessages.ERROR_REVISING_THEORY, e);
+            logger.error(ERROR_REVISING_THEORY, e);
         }
         return false;
     }

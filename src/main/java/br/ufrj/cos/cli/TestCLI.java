@@ -29,7 +29,6 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetr
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.Plot2D;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
@@ -45,6 +44,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
+import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
+import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 
 /**
  * Class to evaluate the model trained from a {@link LearningFromFilesCLI} into a test set.
@@ -105,9 +108,9 @@ public class TestCLI extends CommandLineInterface {
             main = main.parseOptions(args);
             run(main, args);
         } catch (Exception e) {
-            logger.error(LogMessages.ERROR_MAIN_PROGRAM, e);
+            logger.error(ERROR_MAIN_PROGRAM, e);
         } finally {
-            logger.fatal(LogMessages.PROGRAM_END);
+            logger.fatal(PROGRAM_END);
         }
     }
 
@@ -175,7 +178,7 @@ public class TestCLI extends CommandLineInterface {
         double evaluation;
         for (TheoryMetric metric : theoryMetrics) {
             evaluation = metric.evaluate(inferredExamples, examples);
-            logger.warn(LogMessages.EVALUATION_UNDER_METRIC.toString(), metric, evaluation);
+            logger.warn(EVALUATION_UNDER_METRIC.toString(), metric, evaluation);
             if (metric instanceof RocCurveMetric) {
                 rocCurveMetric = (RocCurveMetric) metric;
             }

@@ -25,13 +25,14 @@ import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.util.LogMessages;
 import br.ufrj.cos.util.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.function.Predicate;
+
+import static br.ufrj.cos.util.log.SystemLog.ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH;
 
 /**
  * Responsible for holding the knowledge base. In addition, it keeps a cache in form of a graph of its {@link Term}s and
@@ -100,7 +101,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
             try {
                 addAtomToMaps(atom);
             } catch (InstantiationException | IllegalAccessException e) {
-                logger.error(LogMessages.ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
+                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
             }
         }
     }
@@ -169,7 +170,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
             try {
                 addAtomToMaps(atom);
             } catch (InstantiationException | IllegalAccessException e) {
-                logger.error(LogMessages.ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
+                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
             }
             return true;
         } else {
