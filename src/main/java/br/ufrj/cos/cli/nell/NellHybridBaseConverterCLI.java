@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.function.Function;
 
 import static br.ufrj.cos.util.LogMessages.*;
 
@@ -51,6 +52,7 @@ import static br.ufrj.cos.util.LogMessages.*;
  */
 public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
 
+    private static final int NELL_ARITY = 2;
     /**
      * The logger
      */
@@ -158,13 +160,50 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
         for (int i = startIndex; i < nellInputFilePaths.length; i++) {
             logger.info(LogMessages.PROCESSING_ITERATION.toString(), i);
             initializeOutputHashMaps(i);
-            for (Predicate predicate : atomFactory.getPredicates()) {
-                logger.debug(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
+            for (Predicate predicate : getPredicates()) {
+                logger.trace(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
                 processRelationOfIteration(predicate, i, true);
                 processRelationOfIteration(predicate, i, false);
             }
             logger.info(LogMessages.DONE_ITERATION.toString(), i);
         }
+    }
+
+    /**
+     * Gets the collections of predicates.
+     *
+     * @return the collections of predicates
+     */
+    protected Collection<Predicate> getPredicates() {
+        if (saveIterationToLogic) {
+            return atomFactory.getPredicates();
+        } else {
+            return loadRelationFromFiles();
+        }
+    }
+
+    /**
+     * Loads the collections of predicates.
+     *
+     * @return the collections of predicates
+     */
+    protected Collection<Predicate> loadRelationFromFiles() {
+        Collection<Predicate> predicates = new HashSet<>();
+        FilenameFilter filenameFilter = (dir, name) -> name.endsWith(positiveOutputExtension) ||
+                name.endsWith(negativeOutputExtension);
+        Function<String, String> nameMap = n -> n.replace(positiveOutputExtension, "")
+                .replace(negativeOutputExtension, "");
+        File iterationDirectory;
+        String[] relationFileNames;
+        for (int i = startIndex; i < nellInputFilePaths.length; i++) {
+            iterationDirectory = getIterationDirectory(i);
+            relationFileNames = iterationDirectory.list(filenameFilter);
+            if (relationFileNames == null) {
+                continue;
+            }
+            Arrays.stream(relationFileNames).map(nameMap).forEach(n -> predicates.add(new Predicate(n, NELL_ARITY)));
+        }
+        return predicates;
     }
 
     /**
@@ -176,7 +215,7 @@ public class NellHybridBaseConverterCLI extends NellBaseConverterCLI {
      *                                  algorithm.
      */
     protected void filterFactsPredicateFirst() throws IOException, NoSuchAlgorithmException {
-        for (Predicate predicate : atomFactory.getPredicates()) {
+        for (Predicate predicate : getPredicates()) {
             logger.info(LogMessages.PROCESSING_RELATION.toString(), predicate.getName());
             for (int i = startIndex; i < nellInputFilePaths.length; i++) {
                 logger.trace(LogMessages.PROCESSING_RELATION_ITERATION.toString(), predicate.getName(), i);
