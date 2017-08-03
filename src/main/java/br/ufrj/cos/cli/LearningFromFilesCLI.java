@@ -82,7 +82,7 @@ import static br.ufrj.cos.util.log.SystemLog.*;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"CanBeFinal", "unused"})
+@SuppressWarnings({"CanBeFinal"})
 public class LearningFromFilesCLI extends CommandLineInterface {
 
     /**
@@ -92,11 +92,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * The default yaml configuration file.
      */
-    public static final String DEFAULT_YAML_CONFIGURATION_FILE = "src/main/resources/default.yml";
-    /**
-     * The timestamp format
-     */
-    public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_YAML_CONFIGURATION_FILE = "default.yml";
     /**
      * The name of the saved theory file.
      */
@@ -258,7 +254,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected static Examples buildExampleSet(String[] exampleFilePaths) throws InstantiationException,
             IllegalAccessException, FileNotFoundException {
-        List<InputStream> inputStreams = new ArrayList<>();
         List<AtomExample> atomExamples = new ArrayList<>();
         List<ProPprExample> proPprExamples = new ArrayList<>();
         logger.trace(READING_INPUT_FILES);
@@ -406,10 +401,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
         try {
             super.parseOptions(commandLine);
-            LearningFromFilesCLI cli = readYamlFile(commandLine, LearningFromFilesCLI.class,
-                                                    DEFAULT_YAML_CONFIGURATION_FILE);
-            cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine, CommandLineOptions.KNOWLEDGE_BASE
-                    .getOptionName());
+            LearningFromFilesCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
+            cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine,
+                                                            CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
             cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
             cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
             cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName());
@@ -503,10 +497,11 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         List<Clause> clauses = readInputKnowledge(LanguageUtils.readPathsToFiles(knowledgeBaseFilePaths,
                                                                                  CommandLineOptions.KNOWLEDGE_BASE
                                                                                          .getOptionName()));
+
         ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
         logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
-
         knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+
         knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
         logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
     }
@@ -617,7 +612,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @return the {@link List} of {@link Clause}s
      */
     protected static List<Clause> readInputKnowledge(File[] inputFiles) {
-        List<InputStream> inputStreams = new ArrayList<>();
         List<Clause> clauses = new ArrayList<>();
         logger.trace(READING_INPUT_FILES);
         for (File file : inputFiles) {

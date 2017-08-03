@@ -12,8 +12,7 @@ theoryCollectionClassName:          java.util.ArrayList
 theoryPredicateClassName:
 theoryBaseAncestralClassName:
 
-controlConcurrence:          false
-loadedPreTrainedParameters:  false
+controlConcurrence: false
 
 engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    useTernayIndex:         false
@@ -31,19 +30,6 @@ engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    prover:              !edu.cmu.ml.proppr.prove.DprProver {}
    squashingFunction:   !edu.cmu.ml.proppr.learn.tools.ClippedExp {}
 
-incomingExampleManager:    !br.ufrj.cos.knowledge.manager.ReviseAllIncomingExample
-   sampleSelector:   !br.ufrj.cos.knowledge.theory.manager.revision.point.IndependentSampleSelector
-      relevantDepth: 0
-
-theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
-
-theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager
-   theoryMetric: !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
-
-revisionManager:           !br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager {}
-
-revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.SelectFirstRevisionOperator {}
-
 theoryMetrics:
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.AccuracyMetric  {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.PrecisionMetric {}
@@ -54,16 +40,37 @@ theoryMetrics:
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric      {}
 
+revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.BestRevisionOperatorSelector {}
+theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
+theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager
+   theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
+   delta:                  0.2
+   trainUsingAllExamples:  true
+
+incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager
+   sampleSelector:   !br.ufrj.cos.knowledge.theory.manager.revision.point.IndependentSampleSelector
+      relevantDepth: 0
+   treeTheory:       &tree !br.ufrj.cos.knowledge.manager.TreeTheory {}
+
+revisionManager:  !br.ufrj.cos.knowledge.theory.manager.revision.BestLeafRevisionManager
+   numberOfLeavesToRevise: 1
+   treeTheory:             *tree
+   revisionHeuristic:      !br.ufrj.cos.knowledge.theory.manager.revision.heuristic.EntropyHeuristic {}
+
 revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
-      revisionOperator: !br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule
-         theoryMetric:   !br.ufrj.cos.knowledge.theory.evaluation.metric.logic.F1ScoreMetric
-            parametersRetrainedBeforeEvaluate: false
-         variableGeneratorClassName:   br.ufrj.cos.util.VariableGenerator
-         refine:                       false
-         relevantsDepth:               0
-         maximumSideWayMovements:      -1
+      revisionOperator:    !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator
+         treeTheory:       *tree
+         refine:                       true
+         maximumSideWayMovements:      0
          improvementThreshold:         0.0
          generic:                      true
-         evaluationTimeout:            300
-         numberOfThreads:              1
+         theoryMetric:           *metric
+         appendOperator:         !br.ufrj.cos.knowledge.theory.manager.revision.operator.RelevantLiteralAppendOperator
+            theoryMetric:        *metric
+            numberOfThreads:     1
+            evaluationTimeout:   30
+            relevantsDepth:      0
+   - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
+         revisionOperator:   !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.RemoveNodeTreeRevisionOperator
+            treeTheory:       *tree

@@ -40,10 +40,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
 import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
@@ -139,12 +136,15 @@ public class TestCLI extends CommandLineInterface {
      * @throws IOException if the an error occurs when reading the file
      */
     protected LearningFromFilesCLI initializeLearningCLI() throws IOException {
+        learningFromFilesCLI = new LearningFromFilesCLI();
         @SuppressWarnings("StaticFieldReferencedViaSubclass")
         String arguments = LanguageUtils.readFileToString(new File(inputDirectoryPath,
-                                                                   LearningFromFilesCLI.ARGUMENTS_FILE_NAME));
-        learningFromFilesCLI = new LearningFromFilesCLI();
-        return (LearningFromFilesCLI) learningFromFilesCLI.parseOptions(
-                arguments.split(LanguageUtils.ARGUMENTS_SEPARATOR));
+                                                                   learningFromFilesCLI.getArgumentFileName()));
+        String[] fields = arguments.split(LanguageUtils.ARGUMENTS_SEPARATOR);
+        if (fields[0].endsWith(LearningFromFilesCLI.class.getSimpleName())) {
+            fields = Arrays.copyOfRange(fields, 1, fields.length);
+        }
+        return (LearningFromFilesCLI) learningFromFilesCLI.parseOptions(fields);
     }
 
     @Override

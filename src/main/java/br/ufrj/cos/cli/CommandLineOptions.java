@@ -74,25 +74,36 @@ public enum CommandLineOptions {
                               .hasArgs(2)
                               .withDescription("the directories to read from.")
                               .create("i")),
-    ITERATION_PREFIX(OptionBuilder.withArgName("prefix")
+    DATA_DIRECTORY(OptionBuilder.withArgName("dataDirectory")
+                           .withLongOpt("dataDirectory")
+                           .hasArg()
+                           .withDescription("the directory of the iterations data. If not specified, the program " +
+                                                    "will try to read it from a yaml configuration file.")
+                           .create("d")),
+    ITERATION_PREFIX(OptionBuilder.withArgName("iterationPrefix")
                              .withLongOpt("iterationPrefix")
                              .hasArg()
                              .withDescription("the iteration prefix, default is (" +
                                                       NellBaseConverterCLI.DEFAULT_ITERATION_PREFIX + ").")
                              .create("p")),
-    POSITIVE_EXTENSION(OptionBuilder.withArgName("positive")
+    POSITIVE_EXTENSION(OptionBuilder.withArgName("positiveExtension")
                                .withLongOpt("positiveExtension")
                                .hasArg()
                                .withDescription("the positive relation extension, default is (" +
                                                         NellBaseConverterCLI.DEFAULT_POSITIVE_EXTENSION + ").")
                                .create("pos")),
-    NEGATIVE_EXTENSION(OptionBuilder.withArgName("negative")
+    NEGATIVE_EXTENSION(OptionBuilder.withArgName("negativeExtension")
                                .withLongOpt("negativeExtension")
                                .hasArg()
                                .withDescription("the negative relation extension, default is (" +
                                                         NellBaseConverterCLI.DEFAULT_NEGATIVE_EXTENSION + ").")
-                               .create("neg"));
-
+                               .create("neg")),
+    TARGET_RELATION(OptionBuilder.withArgName("targetRelation")
+                            .withLongOpt("targetRelation")
+                            .hasArg()
+                            .withDescription("the target relation to learn the theory. If not specified, the program " +
+                                                     "will try to read it from a yaml configuration file.")
+                            .create("tr"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

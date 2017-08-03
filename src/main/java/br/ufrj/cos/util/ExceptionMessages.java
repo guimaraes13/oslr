@@ -38,6 +38,7 @@ public enum ExceptionMessages {
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),
     ERROR_GETTING_CLASS_BY_NAME("Error when getting the class by its name."),
+    ERROR_FILE_NOT_IN_CLASS_PATH("Default configuration file not in the class path."),
 
     //One additional parameters to format
     ERROR_ANSWERING_QUERY("Error when answering the query {}."),
@@ -57,6 +58,7 @@ public enum ExceptionMessages {
 
     public static final String LAST_FIELD_SEPARATOR = " and ";
     public static final String FIELD_SEPARATOR = ", ";
+
     protected final String message;
 
     ExceptionMessages(String message) {

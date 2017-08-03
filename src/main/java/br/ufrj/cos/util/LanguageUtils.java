@@ -596,9 +596,19 @@ public final class LanguageUtils {
     @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     public static String formatDirectoryName(Object object, String suffix) {
         String className = object.getClass().getName();
-        className = className.replaceAll(SIMPLE_CLASS_NAME_PATTERN, "");
+        className = formatClassName(className);
 
         return className + NAME_FORMATTER_SEPARATOR + (suffix == null ? "" : suffix);
+    }
+
+    /**
+     * Formats the class name by getting only the upper case letters.
+     *
+     * @param className the class name
+     * @return the formatted name
+     */
+    public static String formatClassName(String className) {
+        return className.replaceAll(SIMPLE_CLASS_NAME_PATTERN, "");
     }
 
     /**

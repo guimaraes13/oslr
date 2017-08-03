@@ -38,6 +38,7 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.*;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -120,11 +121,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * The output arguments file name.
      */
-    public static final String ARGUMENTS_FILE_NAME = "arguments.txt";
+    public static final String ARGUMENTS_FILE_NAME = "arguments_%s.txt";
     /**
      * The output configuration file name.
      */
-    public static final String CONFIG_FILE_NAME = "configuration.yaml";
+    public static final String CONFIG_FILE_NAME = "configuration_%s.yaml";
     /**
      * The name of the file that logs the output.
      */
@@ -170,6 +171,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static final String COMMIT_PROPERTY = "commit";
     /**
+     * The directory to save the standard output logs in.
+     */
+    public static final String OUTPUT_STANDARD_DIRECTORY = "std_out";
+    /**
      * The configuration file path.
      */
     public String configurationFilePath;
@@ -214,9 +219,9 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */
-    protected static <C extends CommandLineInterface> C readYamlFile(CommandLine commandLine,
-                                                                     Class<C> clazz,
-                                                                     String defaultConfigurationFile)
+    protected <C extends CommandLineInterface> C readYamlFile(CommandLine commandLine,
+                                                              Class<C> clazz,
+                                                              String defaultConfigurationFile)
             throws FileNotFoundException, YamlException {
         File yamlFile;
         if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
@@ -224,7 +229,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         } else if (defaultConfigurationFile == null) {
             throw new FileNotFoundException(ExceptionMessages.ERROR_NO_YAML_FILE.toString());
         } else {
-            yamlFile = new File(defaultConfigurationFile);
+            final URL resource = getClass().getClassLoader().getResource(defaultConfigurationFile);
+            if (resource == null) {
+                throw new FileNotFoundException(ExceptionMessages.ERROR_FILE_NOT_IN_CLASS_PATH.toString());
+            }
+            yamlFile = new File(resource.getFile());
         }
         return readYamlFile(clazz, yamlFile);
     }
@@ -272,12 +281,17 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         try {
             String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
             buildOutputDirectory(configFileContent);
-            addAppender(new File(outputDirectory, getOutputLogFileName()).getAbsolutePath());
+            File outputStdDirectory = new File(outputDirectory, OUTPUT_STANDARD_DIRECTORY);
+            if (!outputStdDirectory.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                outputStdDirectory.mkdir();
+            }
+            addAppender(new File(outputStdDirectory, getOutputLogFileName()).getAbsolutePath());
             logCommittedVersion();
-            File configurationFile = new File(outputDirectory, CONFIG_FILE_NAME);
+            File configurationFile = new File(outputDirectory, getConfigurationFileName());
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
                                                                     configurationFile.getCanonicalPath());
-            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, ARGUMENTS_FILE_NAME));
+            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, getArgumentFileName()));
             LanguageUtils.writeStringToFile(configFileContent, configurationFile);
 
             logger.info(COMMAND_LINE_ARGUMENTS.toString(),
@@ -286,6 +300,38 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         } catch (IOException e) {
             throw new InitializationException(e);
         }
+    }
+
+    /**
+     * Gets the configuration file name.
+     *
+     * @return the configuration file name
+     */
+    public String getConfigurationFileName() {
+        return String.format(CONFIG_FILE_NAME, LanguageUtils.formatClassName(this.getClass().getSimpleName()));
+    }
+
+    /**
+     * Formats an array of command line arguments appending a configuration file at the end.
+     *
+     * @param arguments    the input arguments
+     * @param option       the option to add
+     * @param optionValues the value of the option
+     * @return the formatted string
+     */
+    public String formatArgumentsWithOption(String[] arguments, Option option, String... optionValues) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append(this.getClass().getSimpleName());
+        stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
+
+        consumeArguments(arguments, option, stringBuilder);
+
+        stringBuilder.append(ARGUMENTS_SHORT_OPTION_PREFIX);
+        stringBuilder.append(option.getOpt());
+        stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
+        for (String optionValue : optionValues) { stringBuilder.append(optionValue); }
+        return stringBuilder.toString().trim();
     }
 
     /**
@@ -373,23 +419,12 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     }
 
     /**
-     * Formats an array of command line arguments appending a configuration file at the end.
+     * Gets the argument file name.
      *
-     * @param arguments    the input arguments
-     * @param option       the option to add
-     * @param optionValues the value of the option
-     * @return the formatted string
+     * @return the argument file name
      */
-    public static String formatArgumentsWithOption(String[] arguments, Option option, String... optionValues) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        consumeArguments(arguments, option, stringBuilder);
-
-        stringBuilder.append(ARGUMENTS_SHORT_OPTION_PREFIX);
-        stringBuilder.append(option.getOpt());
-        stringBuilder.append(LanguageUtils.ARGUMENTS_SEPARATOR);
-        for (String optionValue : optionValues) { stringBuilder.append(optionValue); }
-        return stringBuilder.toString().trim();
+    public String getArgumentFileName() {
+        return String.format(ARGUMENTS_FILE_NAME, LanguageUtils.formatClassName(this.getClass().getSimpleName()));
     }
 
     /**
