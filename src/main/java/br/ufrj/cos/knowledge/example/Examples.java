@@ -22,6 +22,7 @@
 package br.ufrj.cos.knowledge.example;
 
 import br.ufrj.cos.knowledge.Knowledge;
+import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.MapUtils;
 
@@ -37,10 +38,14 @@ import java.util.*;
 public class Examples extends Knowledge<ProPprExample> {
 
     /**
+     * The default class to be used on the {@link Set}s within the {@link Map}s
+     */
+    public static final Class<HashSet> DEFAULT_MAP_SET_CLASS = HashSet.class;
+    /**
      * The class to be used on the {@link Set}s within the {@link Map}s
      */
-    @SuppressWarnings({"CanBeFinal", "NonConstantFieldWithUpperCaseName"})
-    public Class<? extends Set> MAP_SET_CLASS = HashSet.class;
+    @SuppressWarnings({"CanBeFinal"})
+    public Class<? extends Set> mapSetClass = DEFAULT_MAP_SET_CLASS;
 
     /**
      * Default constructor.
@@ -60,7 +65,7 @@ public class Examples extends Knowledge<ProPprExample> {
     public Examples(Collection<ProPprExample> proPprExamples, Collection<? extends AtomExample> atomExamples) throws
             IllegalAccessException, InstantiationException {
         super(proPprExamples);
-        appendAtomExamplesIntoProPpr(atomExamples);
+        if (!atomExamples.isEmpty()) { appendAtomExamplesIntoProPpr(atomExamples, buildPredicateMap()); }
     }
 
     /**
@@ -72,14 +77,12 @@ public class Examples extends Knowledge<ProPprExample> {
      * An {@link AtomExample} may be added to more than one {@link ProPprExample}.
      *
      * @param atomExamples the {@link AtomExample}s
-     * @throws InstantiationException if an error occurs when instantiating a new set
-     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @param predicateMap the predicate map of {@link ProPprExample}
      */
-    protected void appendAtomExamplesIntoProPpr(Iterable<? extends AtomExample> atomExamples) throws
-            IllegalAccessException, InstantiationException {
-        Map<String, Set<ProPprExample>> proPprExampleSetPredicateMap = buildPredicateMap();
+    public static void appendAtomExamplesIntoProPpr(Iterable<? extends AtomExample> atomExamples,
+                                                    Map<Predicate, Set<ProPprExample>> predicateMap) {
         for (AtomExample atomExample : atomExamples) {
-            for (ProPprExample proPprExample : proPprExampleSetPredicateMap.get(atomExample.getName())) {
+            for (ProPprExample proPprExample : predicateMap.get(atomExample.getPredicate())) {
                 if (LanguageUtils.isAtomUnifiableToGoal(atomExample, proPprExample.getGoal())) {
                     proPprExample.getAtomExamples().add(atomExample);
                 }
@@ -95,11 +98,11 @@ public class Examples extends Knowledge<ProPprExample> {
      * @throws InstantiationException if an error occurs when instantiating a new set
      * @throws IllegalAccessException if an error occurs when instantiating a new set
      */
-    protected Map<String, Set<ProPprExample>> buildPredicateMap() throws InstantiationException,
+    protected Map<Predicate, Set<ProPprExample>> buildPredicateMap() throws InstantiationException,
             IllegalAccessException {
-        Map<String, Set<ProPprExample>> predicateMap = new HashMap<>();
+        Map<Predicate, Set<ProPprExample>> predicateMap = new HashMap<>();
         for (ProPprExample exampleSet : this) {
-            MapUtils.assertExistsSet(predicateMap, MAP_SET_CLASS, exampleSet.getGoal().getName()).add(exampleSet);
+            MapUtils.assertExistsSet(predicateMap, mapSetClass, exampleSet.getGoal().getPredicate()).add(exampleSet);
         }
 
         return predicateMap;

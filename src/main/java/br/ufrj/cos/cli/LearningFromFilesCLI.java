@@ -435,9 +435,20 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     protected void build() throws ReflectiveOperationException, IOException, InitializationException {
         buildKnowledgeBase();
         buildTheory();
-        examples = buildExampleSet(exampleFilePaths);
+        buildExamples();
         buildEngineSystemTranslator();
         buildLearningSystem();
+    }
+
+    /**
+     * Builds the examples
+     *
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
+        examples = buildExampleSet(exampleFilePaths);
     }
 
     /**
@@ -483,7 +494,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         for (Example example : examples) {
             learningSystem.incomingExampleManager.incomingExamples(example);
         }
-
     }
 
     /**

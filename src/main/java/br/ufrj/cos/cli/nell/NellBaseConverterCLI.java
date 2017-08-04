@@ -939,8 +939,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
 
             logger.info("");
             logger.info(TOTAL_NUMBER_PREDICATES.toString(), predicates.size());
-            logger.info(TOTAL_NUMBER_POSITIVES.toString(), positiveExamples, positiveRate);
-            logger.info(TOTAL_NUMBER_NEGATIVES.toString(), negativeExamples, negativeRate);
+            logger.info(TOTAL_NUMBER_POSITIVES_RATE.toString(), positiveExamples, positiveRate);
+            logger.info(TOTAL_NUMBER_NEGATIVES_RATE.toString(), negativeExamples, negativeRate);
             logger.info(TOTAL_NUMBER_EXAMPLES.toString(), totalExamples);
             logger.info(TOTAL_SKIPPED_EXAMPLES.toString(), numberFormat.format(previousSkippedAtoms[i]));
             logger.info(TOTAL_REMOVED_EXAMPLES.toString(), numberFormat.format(removedAtoms[i]));

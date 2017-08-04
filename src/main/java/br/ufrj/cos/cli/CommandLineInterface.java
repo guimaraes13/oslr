@@ -173,7 +173,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * The directory to save the standard output logs in.
      */
-    public static final String OUTPUT_STANDARD_DIRECTORY = "std_out";
+    public static final String OUTPUT_STANDARD_DIRECTORY = "STD_OUT";
     /**
      * The configuration file path.
      */

@@ -30,6 +30,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static br.ufrj.cos.util.LanguageUtils.*;
+
 /**
  * Created on 14/04/17.
  *
@@ -71,12 +73,21 @@ public class LanguageTest {
         Assert.assertEquals(atomString, atom.toString());
     }
 
-    protected String getFormattedAtom(String atomName, List<Term> terms) {
-        return String.format("%s%s%s%s",
-                             atomName,
-                             LanguageUtils.PREDICATE_OPEN_ARGUMENT_CHARACTER,
-                             LanguageUtils.listToString(terms),
-                             LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
+    protected String getFormattedHornClause(Atom head, Literal... body) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(head);
+        stringBuilder.append(" ");
+        stringBuilder.append(LanguageUtils.IMPLICATION_SIGN);
+        stringBuilder.append(" ");
+        for (Literal literal : body) {
+            stringBuilder.append(literal);
+            stringBuilder.append(LIST_ARGUMENTS_SEPARATOR);
+        }
+        stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(),
+                             stringBuilder.length());
+
+        stringBuilder.append(LanguageUtils.CLAUSE_END_OF_LINE);
+        return stringBuilder.toString().trim();
     }
 
     @Test
@@ -137,35 +148,38 @@ public class LanguageTest {
         Assert.assertEquals(hornString, hornClause.toString());
     }
 
-    protected String getFormattedHornClause(Atom head, Literal... body) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(head);
-        stringBuilder.append(" ");
-        stringBuilder.append(LanguageUtils.IMPLICATION_SIGN);
-        stringBuilder.append(" ");
-        for (Literal literal : body) {
-            stringBuilder.append(literal);
-            stringBuilder.append(LanguageUtils.LIST_ARGUMENTS_SEPARATOR);
-        }
-        stringBuilder.delete(stringBuilder.length() - LanguageUtils.LIST_ARGUMENTS_SEPARATOR.length(),
-                             stringBuilder.length());
-
-        stringBuilder.append(LanguageUtils.CLAUSE_END_OF_LINE);
-        return stringBuilder.toString().trim();
-    }
-
     @Test
     public void POSITIVE_EXAMPLE_TEST() {
         Atom atom = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
-        String atomString = LanguageUtils.POSITIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
+        String atomString = PROBLOG_EXAMPLE_PREDICATE +
+                PREDICATE_OPEN_ARGUMENT_CHARACTER +
+                getFormattedAtom(ATOM_NAME, terms) +
+                LIST_ARGUMENTS_SEPARATOR +
+                PROBLOG_POSITIVE_EXAMPLE_FLAG +
+                PREDICATE_CLOSE_ARGUMENT_CHARACTER +
+                CLAUSE_END_OF_LINE;
         AtomExample atomExample = new AtomExample(atom, true);
         Assert.assertEquals(atomString, atomExample.toString());
+    }
+
+    protected String getFormattedAtom(String atomName, List<Term> terms) {
+        return String.format("%s%s%s%s",
+                             atomName,
+                             PREDICATE_OPEN_ARGUMENT_CHARACTER,
+                             LanguageUtils.listToString(terms),
+                             LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
     }
 
     @Test
     public void NEGATIVE_EXAMPLE_TEST() {
         Atom atom = new Atom(new Predicate(ATOM_NAME, terms.size()), terms);
-        String atomString = LanguageUtils.NEGATIVE_EXAMPLE_SIGN + getFormattedAtom(ATOM_NAME, terms);
+        String atomString = PROBLOG_EXAMPLE_PREDICATE +
+                PREDICATE_OPEN_ARGUMENT_CHARACTER +
+                getFormattedAtom(ATOM_NAME, terms) +
+                LIST_ARGUMENTS_SEPARATOR +
+                PROBLOG_NEGATIVE_EXAMPLE_FLAG +
+                PREDICATE_CLOSE_ARGUMENT_CHARACTER +
+                CLAUSE_END_OF_LINE;
         AtomExample atomExample = new AtomExample(atom, false);
         Assert.assertEquals(atomString, atomExample.toString());
     }

@@ -23,13 +23,17 @@ package br.ufrj.cos.util;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
+import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
+import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,7 +50,18 @@ public final class LanguageUtils {
      * The default encode of the input.
      */
     public static final String DEFAULT_INPUT_ENCODE = "UTF8";
-
+    /**
+     * ProbLog example predicate name.
+     */
+    public static final String PROBLOG_EXAMPLE_PREDICATE = "evidence";
+    /**
+     * The ProbLog positive examples flag.
+     */
+    public static final String PROBLOG_POSITIVE_EXAMPLE_FLAG = "true";
+    /**
+     * The ProbLog negative examples flag.
+     */
+    public static final String PROBLOG_NEGATIVE_EXAMPLE_FLAG = "false";
     /**
      * The predicate opening argument character.
      */
@@ -55,32 +70,26 @@ public final class LanguageUtils {
      * The predicate closing argument character.
      */
     public static final String PREDICATE_CLOSE_ARGUMENT_CHARACTER = ")";
-
     /**
      * The list separator character.
      */
     public static final String LIST_ARGUMENTS_SEPARATOR = ", ";
-
     /**
      * The end of line/clause character.
      */
     public static final String CLAUSE_END_OF_LINE = ".";
-
     /**
      * The implication sign.
      */
     public static final String IMPLICATION_SIGN = ":-";
-
     /**
      * The negation PREFIX.
      */
     public static final String NEGATION_PREFIX = "not";
-
     /**
      * The weight sign.
      */
     public static final String WEIGHT_SIGN = "::";
-
     /**
      * The feature opening character.
      */
@@ -89,7 +98,6 @@ public final class LanguageUtils {
      * The feature closing character.
      */
     public static final String FEATURES_CLOSE_ARGUMENT_CHARACTER = "}";
-
     /**
      * The constant surrounding character, to allow special characters within the constant.
      */
@@ -102,7 +110,6 @@ public final class LanguageUtils {
      * The negative iterator sign.
      */
     public static final String NEGATIVE_EXAMPLE_SIGN = "-";
-
     /**
      * The iterator separator character.
      */
@@ -111,27 +118,22 @@ public final class LanguageUtils {
      * The pattern of simple constant, the ones without the {@link #CONSTANT_SURROUNDING_CHARACTER}.
      */
     public static final Pattern SIMPLE_CONSTANT_PATTERN = Pattern.compile("[a-z][a-zA-Z0-9_]*");
-
     /**
      * Pattern to simplify the class name keeping only the upper case letters.
      */
     public static final String SIMPLE_CLASS_NAME_PATTERN = "(.*\\.|[a-z]*)";
-
     /**
      * The name formatter separator.
      */
     public static final String NAME_FORMATTER_SEPARATOR = "_";
-
     /**
      * Arguments separator.
      */
     public static final String ARGUMENTS_SEPARATOR = " ";
-
     /**
      * The parameter mark from the log's format
      */
     public static final String LOG_PARAMETER_MARK = "{}";
-
     /**
      * The parameter mark from the string's format
      */
@@ -238,6 +240,22 @@ public final class LanguageUtils {
     public static String formatExampleToProPprString(AtomExample atomExample) {
         return (atomExample.isPositive() ? POSITIVE_EXAMPLE_SIGN : NEGATIVE_EXAMPLE_SIGN) + formatAtomToString
                 (atomExample);
+    }
+
+    /**
+     * Formats the {@link AtomExample} to {@link String} in the ProbLog format.
+     *
+     * @param atomExample the {@link AtomExample}
+     * @return the formatted {@link String}
+     */
+    public static String formatExampleToProbLogString(AtomExample atomExample) {
+        return PROBLOG_EXAMPLE_PREDICATE +
+                PREDICATE_OPEN_ARGUMENT_CHARACTER +
+                formatAtomToString(atomExample) +
+                LIST_ARGUMENTS_SEPARATOR +
+                (atomExample.isPositive() ? PROBLOG_POSITIVE_EXAMPLE_FLAG : PROBLOG_NEGATIVE_EXAMPLE_FLAG) +
+                PREDICATE_CLOSE_ARGUMENT_CHARACTER +
+                CLAUSE_END_OF_LINE;
     }
 
     /**
@@ -628,6 +646,22 @@ public final class LanguageUtils {
     }
 
     /**
+     * Saves the {@link Example}s to the {@link File}.
+     *
+     * @param examples the {@link Example}s
+     * @param file     the {@link File}
+     * @throws IOException if an error occurs with the file
+     */
+    public static void saveExamplesToFile(Collection<? extends Example> examples, File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                               DEFAULT_INPUT_ENCODE))) {
+            for (Example example : examples) {
+                writer.write(example + "\n");
+            }
+        }
+    }
+
+    /**
      * Writes the {@link Theory} to a {@link String}
      *
      * @param theory the {@link Theory}
@@ -693,4 +727,38 @@ public final class LanguageUtils {
         return StringUtils.repeat("\t", Math.round((float) (maxNameSize - name.length() + 1) / TABULATION_SIZE) + 1);
     }
 
+    /**
+     * Splits the objects by some attribute
+     *
+     * @param collection the objects
+     * @param appendMap  the map to append the objects
+     * @param function   function to get the key from the object
+     */
+    public static <K, V> void splitAtomsByPredicate(Collection<? extends V> collection,
+                                                    Map<K, Set<V>> appendMap, Function<V, K> function) {
+        for (V v : collection) {
+            appendMap.computeIfAbsent(function.apply(v), a -> new HashSet<>()).add(v);
+        }
+    }
+
+    /**
+     * Reads the knowledge base from the iteration file.
+     *
+     * @param atomFactory the atom factory, if wants to save memory by keeping same constants pointing to the same
+     *                    object in memory
+     * @param clauses     the clause list to append the read clauses
+     * @param file        the file
+     * @throws ParseException if a parser error occurs
+     * @throws IOException    if an I/O error has occurred
+     */
+    public static void readKnowledgeFromFile(AtomFactory atomFactory, Collection<Clause> clauses, File file)
+            throws IOException, ParseException {
+        BufferedReader reader;
+        KnowledgeParser parser;
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
+        parser = new KnowledgeParser(reader);
+        parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
+        parser.parseKnowledgeAppend(clauses);
+        reader.close();
+    }
 }

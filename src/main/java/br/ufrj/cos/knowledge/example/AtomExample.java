@@ -164,7 +164,7 @@ public class AtomExample extends Atom implements Example {
 
     @Override
     public String toString() {
-        return LanguageUtils.formatExampleToProPprString(this);
+        return LanguageUtils.formatExampleToProbLogString(this);
     }
 
 }

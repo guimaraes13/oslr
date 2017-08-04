@@ -98,12 +98,26 @@ public enum CommandLineOptions {
                                .withDescription("the negative relation extension, default is (" +
                                                         NellBaseConverterCLI.DEFAULT_NEGATIVE_EXTENSION + ").")
                                .create("neg")),
+    EXAMPLES_EXTENSION(OptionBuilder.withArgName("examplesExtension")
+                               .withLongOpt("examplesExtension")
+                               .hasArg()
+                               .withDescription("the examples file extension, default is (" +
+                                                        LearningFromIterationsCLI.DEFAULT_EXAMPLES_FILE_EXTENSION +
+                                                        ").")
+                               .create("ext")),
     TARGET_RELATION(OptionBuilder.withArgName("targetRelation")
                             .withLongOpt("targetRelation")
                             .hasArg()
                             .withDescription("the target relation to learn the theory. If not specified, the program " +
                                                      "will try to read it from a yaml configuration file.")
-                            .create("tr"));
+                            .create("tr")),
+    TARGET_RELATIONS(OptionBuilder.withArgName("targetRelations")
+                             .withLongOpt("targetRelations")
+                             .hasArgs(Option.UNLIMITED_VALUES)
+                             .withDescription("the target relation to learn the theory. If not specified, the program" +
+                                                      " " +
+                                                      "will try to read it from a yaml configuration file.")
+                             .create("tr"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

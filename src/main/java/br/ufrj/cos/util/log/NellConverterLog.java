@@ -43,8 +43,10 @@ public enum NellConverterLog {
     FOUND_INDEX("Found index for {}:{}{}"),
 
     FILTERING_ITERATION("Removing examples of iteration {}\tfound in iteration {}."),
-    TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}{}%"),
-    TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}{}%"),
+    TOTAL_NUMBER_POSITIVES_RATE("Total number of positives:\t{}{}%"),
+    TOTAL_NUMBER_NEGATIVES_RATE("Total number of negatives:\t{}{}%"),
+    TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}"),
+    TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}"),
     FILE_CONTAINS_LINES("File:\t{}\tContains {} lines"),
 
     DONE_ITERATION("Done iteration:\t\t\t{}"),
@@ -57,10 +59,12 @@ public enum NellConverterLog {
 
     TOTAL_NUMBER_PREDICATES("Total number of predicates:\t{}"),
     TOTAL_NUMBER_EXAMPLES("Total added examples:\t\t{}"),
+    TOTAL_NUMBER_EXAMPLES_PROPPR("ProPPR format examples:\t\t{}"),
     TOTAL_SKIPPED_EXAMPLES("Total skipped examples:\t\t{}"),
     TOTAL_REMOVED_EXAMPLES("Total removed examples:\t\t{}. This examples were removed because contradict future ones."),
 
     ITERATION_SAVING("Saving iteration {} to directory:\t{}"),
+    EXAMPLES_SAVING("Saving examples to file:\t{}"),
     ITERATION_SAVED("Iteration {} successfully saved to directory:\t{}"),
     FILE_SAVE("File\t{} saved at\t{}"),
 

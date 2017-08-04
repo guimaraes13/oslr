@@ -35,6 +35,9 @@ public enum SystemLog {
 
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
     BUILDING_ENGINE_SYSTEM_TRANSLATOR("Build the engine system translator:\t{}"),
+    BUILDING_KNOWLEDGE_ITERATIONS("Build the knowledge iterations"),
+    BUILDING_EXAMPLES_ITERATIONS("Build the examples iterations"),
+
 
     CREATING_KNOWLEDGE_BASE_WITH_PREDICATE("Creating knowledge base with predicate:\t{}"),
     KNOWLEDGE_BASE_SIZE("Knowledge base size:\t{}"),
