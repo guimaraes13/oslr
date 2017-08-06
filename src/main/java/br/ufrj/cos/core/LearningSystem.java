@@ -510,4 +510,15 @@ public class LearningSystem implements Initializable {
     public void saveParameters(File workingDirectory) {
         engineSystemTranslator.saveParameters(workingDirectory);
     }
+
+    /**
+     * Adds the atoms to the knowledge of the system translator.
+     *
+     * @param atoms the atoms to be added
+     */
+    public void addAtomsToKnowledgeBase(Collection<? extends Atom> atoms) {
+        knowledgeBase.addAll(atoms);
+        engineSystemTranslator.addAtomsToKnowledgeBase(atoms);
+    }
+
 }

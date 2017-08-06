@@ -72,7 +72,7 @@ public class TheoryRevisionManager implements Initializable {
      */
     @SuppressWarnings("CanBeFinal")
     public boolean trainUsingAllExamples = true;
-    protected long theoryLastChange = TimeMeasure.getNanoTime();
+    protected long theoryLastChange = TimeUtils.getNanoTime();
     protected double theoryEvaluation;
 
     protected LearningSystem learningSystem;
@@ -189,7 +189,7 @@ public class TheoryRevisionManager implements Initializable {
                 learningSystem.saveTrainedParameters();
                 operatorEvaluator.theoryRevisionAccepted(revisedTheory);
                 logMessage = THEORY_MODIFICATION_ACCEPTED;
-                theoryLastChange = TimeMeasure.getNanoTime();
+                theoryLastChange = TimeUtils.getNanoTime();
                 theoryChanged = true;
             }
         }

@@ -144,10 +144,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * The evaluation metrics for the {@link TheoryEvaluator}.
      */
+    @SuppressWarnings("unused")
     public TheoryMetric[] theoryMetrics;
     /**
      * The {@link RevisionOperatorEvaluator}s.
      */
+    @SuppressWarnings("unused")
     public RevisionOperatorEvaluator[] revisionOperatorEvaluators;
     /**
      * The {@link RevisionOperatorSelector}.
@@ -292,13 +294,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void run() {
         try {
-            long begin = TimeMeasure.getNanoTime();
+            long begin = TimeUtils.getNanoTime();
             build();
             reviseExamples();
             saveParameters();
             printMetrics();
-            long end = TimeMeasure.getNanoTime();
-            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+            long end = TimeUtils.getNanoTime();
+            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         } catch (ReflectiveOperationException e) {
             logger.error(ERROR_READING_INPUT_FILES, e);
         } catch (InitializationException e) {
@@ -608,9 +610,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Initializes the {@link TheoryMetric}s.
      *
      * @return the {@link TheoryMetric}s
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected List<TheoryMetric> buildMetrics() throws InitializationException {
+    protected List<TheoryMetric> buildMetrics() {
         return (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
                 Arrays.asList(theoryMetrics));
     }

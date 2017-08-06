@@ -27,7 +27,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.util.TimeMeasure;
+import br.ufrj.cos.util.TimeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -113,7 +113,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
         try {
             Thread thread = new Thread(this);
             thread.start();
-            thread.join(timeout * TimeMeasure.SECONDS_TO_MILLISECONDS_MULTIPLIER);
+            thread.join(timeout * TimeUtils.SECONDS_TO_MILLISECONDS_MULTIPLIER);
             if (thread.isAlive()) {
                 logger.trace(EVALUATION_THEORY_TIMEOUT.toString(), timeout);
                 thread.interrupt();

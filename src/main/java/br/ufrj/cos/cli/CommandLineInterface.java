@@ -382,7 +382,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * @return the name of the output std out file
      */
     protected static String getOutputLogFileName() {
-        return String.format(STDOUT_LOG_FILE_NAME, TimeMeasure.getCurrentTime());
+        return String.format(STDOUT_LOG_FILE_NAME, TimeUtils.getCurrentTime());
     }
 
     /**

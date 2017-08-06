@@ -46,7 +46,6 @@ import static br.ufrj.cos.util.log.PreRevisionLog.TRY_REFINE_RULE;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"unused"})
 public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
 
     /**

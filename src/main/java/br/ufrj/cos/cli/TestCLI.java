@@ -137,7 +137,6 @@ public class TestCLI extends CommandLineInterface {
      */
     protected LearningFromFilesCLI initializeLearningCLI() throws IOException {
         learningFromFilesCLI = new LearningFromFilesCLI();
-        @SuppressWarnings("StaticFieldReferencedViaSubclass")
         String arguments = LanguageUtils.readFileToString(new File(inputDirectoryPath,
                                                                    learningFromFilesCLI.getArgumentFileName()));
         String[] fields = arguments.split(LanguageUtils.ARGUMENTS_SEPARATOR);

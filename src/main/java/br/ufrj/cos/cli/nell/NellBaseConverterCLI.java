@@ -398,15 +398,15 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     public void run() {
         try {
             if (nellInputFilePaths.length == 0) { return; }
-            long begin = TimeMeasure.getNanoTime();
+            long begin = TimeUtils.getNanoTime();
             initializeFields();
 
             processFiles();
             saveDescriptionFile();
 
-            long end = TimeMeasure.getNanoTime();
+            long end = TimeUtils.getNanoTime();
             logger.info(HASH_DISCLAIMER);
-            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         } catch (Exception e) {
             logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);
         }

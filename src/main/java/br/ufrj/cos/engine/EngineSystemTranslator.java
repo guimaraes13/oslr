@@ -267,4 +267,11 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
      */
     public abstract void loadParameters(File workingDirectory);
 
+    /**
+     * Adds the atoms to the knowledge of the system translator.
+     *
+     * @param atoms the atoms to be added
+     */
+    public abstract void addAtomsToKnowledgeBase(Collection<? extends Atom> atoms);
+
 }

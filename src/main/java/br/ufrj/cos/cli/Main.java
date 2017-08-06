@@ -32,7 +32,7 @@ import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.TimeMeasure;
+import br.ufrj.cos.util.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.QueryAnswerer;
@@ -69,7 +69,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
-        long begin = TimeMeasure.getNanoTime();
+        long begin = TimeUtils.getNanoTime();
         logger.info("Begin Program!");
         // ---------- Program Begin! ----------
 
@@ -83,8 +83,8 @@ public class Main {
         processBase(file, terms, 0, 1);
 
         // ----------  Program End!  ----------
-        long end = TimeMeasure.getNanoTime();
-        logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+        long end = TimeUtils.getNanoTime();
+        logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         logger.fatal("End Program!");
     }
 
@@ -133,7 +133,7 @@ public class Main {
     }
 
     protected static void run() {
-        System.out.println(TimeMeasure.getCurrentTime());
+        System.out.println(TimeUtils.getCurrentTime());
         System.exit(0);
 //        Smokers Experiment
         String prefix = "/Users/Victor/IdeaProjects/PLLData/TestSmokers";
@@ -244,18 +244,18 @@ public class Main {
 
     protected static void runExperiment(String dataSet, String[] groundingArguments, String[] trainingArguments) {
         logger.fatal("Begin");
-        long begin = TimeMeasure.getNanoTime();
+        long begin = TimeUtils.getNanoTime();
         grounder(1e-2, 0.1, groundingArguments);
-        long endGrounding = TimeMeasure.getNanoTime();
+        long endGrounding = TimeUtils.getNanoTime();
         trainer(1e-2, 0.1, trainingArguments);
-        long end = TimeMeasure.getNanoTime();
+        long end = TimeUtils.getNanoTime();
         long groundingTime = endGrounding - begin;
         long trainingTime = end - endGrounding;
         long totalTime = end - begin;
 
         logger.fatal("Program {} finished running.\nGrounding time was:\t{}.\nTraining time was:\t{}.\nTotal time " +
-                             "was:\t{}.", dataSet, TimeMeasure.formatNanoDifference(groundingTime), TimeMeasure
-                             .formatNanoDifference(trainingTime), TimeMeasure.formatNanoDifference(totalTime));
+                             "was:\t{}.", dataSet, TimeUtils.formatNanoDifference(groundingTime), TimeUtils
+                             .formatNanoDifference(trainingTime), TimeUtils.formatNanoDifference(totalTime));
     }
 
     public static void grounder(double epsilon, double alpha, String[] args) {

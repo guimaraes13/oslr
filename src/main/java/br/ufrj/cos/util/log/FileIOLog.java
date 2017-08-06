@@ -28,10 +28,8 @@ package br.ufrj.cos.util.log;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc"})
 public enum FileIOLog {
-
-    EMPTY(),
 
     READING_INPUT_FILES("Reading input file(s)."),
 
@@ -39,10 +37,6 @@ public enum FileIOLog {
     ERROR_WRITING_FILE("Error when writing file, reason: {}");
 
     protected final String message;
-
-    FileIOLog() {
-        this.message = "";
-    }
 
     FileIOLog(String message) {
         this.message = message;

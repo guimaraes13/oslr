@@ -31,18 +31,12 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum ParsingLog {
 
-    EMPTY(),
-
     PARSING_INPUT_ARGUMENTS("Parsing input arguments."),
 
     ERROR_READING_INPUT_FILES("Error during reading the input files, reason:"),
     ERROR_PARSING_FAILED("Parsing failed, reason:");
 
     protected final String message;
-
-    ParsingLog() {
-        this.message = "";
-    }
 
     ParsingLog(String message) {
         this.message = message;

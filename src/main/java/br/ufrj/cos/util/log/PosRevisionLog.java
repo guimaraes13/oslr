@@ -31,17 +31,11 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum PosRevisionLog {
 
-    EMPTY(),
-
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, threshold of {}."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
                                         "threshold of {}.");
 
     protected final String message;
-
-    PosRevisionLog() {
-        this.message = "";
-    }
 
     PosRevisionLog(String message) {
         this.message = message;

@@ -31,8 +31,6 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum InferenceLog {
 
-    EMPTY(),
-
     ANSWERING_QUERY("Answering query:\t{}"),
     NUMBER_OF_QUERY_ANSWERS("Number of answers:\t{}"),
     ANSWER_RESULT_WITH_VALUE("Result:\tP[{}]\t=\t{}\t[not normalized]"),
@@ -45,23 +43,19 @@ public enum InferenceLog {
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),
-    GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
+    @SuppressWarnings("unused") GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
 
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
 
     ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:"),
-    ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
+    @SuppressWarnings("unused") ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
     ERROR_PROVING_GOAL("Could not prove the goal:\t{}"),
     ERROR_EVALUATING_CLAUSE("Error when evaluating the clause, reason:"),
     ERROR_EVALUATING_CANDIDATE_THEORY("Error when evaluating a candidate theory, reason:"),
     ERROR_EVALUATING_REVISION_OPERATOR("Error when evaluating the revision operator, reason:");
 
     protected final String message;
-
-    InferenceLog() {
-        this.message = "";
-    }
 
     InferenceLog(String message) {
         this.message = message;

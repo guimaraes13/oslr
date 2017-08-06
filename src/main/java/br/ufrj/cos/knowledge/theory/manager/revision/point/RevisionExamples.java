@@ -27,7 +27,7 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.TimeMeasure;
+import br.ufrj.cos.util.TimeUtils;
 
 import java.util.*;
 
@@ -177,7 +177,7 @@ public class RevisionExamples {
      *
      * @param theoryLastChange the time of the last change on the theory
      * @return the inferred examples
-     * @see TimeMeasure
+     * @see TimeUtils
      */
     public Map<Example, Map<Atom, Double>> getInferredExamples(long theoryLastChange) {
         if (lastInference - theoryLastChange < 0) {
@@ -186,7 +186,7 @@ public class RevisionExamples {
         if (!notEvaluatedExamples.isEmpty()) {
             inferredExamples.putAll(learningSystem.inferExamples(notEvaluatedExamples));
             notEvaluatedExamples.clear();
-            lastInference = TimeMeasure.getNanoTime();
+            lastInference = TimeUtils.getNanoTime();
         }
         return inferredExamples;
     }

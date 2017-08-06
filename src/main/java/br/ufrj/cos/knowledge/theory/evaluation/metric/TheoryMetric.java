@@ -144,6 +144,28 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
     }
 
     @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = (parametersRetrainedBeforeEvaluate ? 1 : 0);
+        temp = Double.doubleToLongBits(defaultValue);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + this.getClass().getName().hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (!this.getClass().equals(o.getClass())) { return false; }
+
+        TheoryMetric metric = (TheoryMetric) o;
+
+        if (parametersRetrainedBeforeEvaluate != metric.parametersRetrainedBeforeEvaluate) { return false; }
+        return Double.compare(metric.defaultValue, defaultValue) == 0;
+    }
+
+    @Override
     public abstract String toString();
 
 }

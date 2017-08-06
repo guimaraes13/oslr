@@ -28,10 +28,8 @@ package br.ufrj.cos.util.log;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc"})
 public enum SystemLog {
-
-    EMPTY(),
 
     BUILDING_LEARNING_SYSTEM("Build the learning system:\t{}"),
     BUILDING_ENGINE_SYSTEM_TRANSLATOR("Build the engine system translator:\t{}"),
@@ -55,10 +53,6 @@ public enum SystemLog {
     ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:");
 
     protected final String message;
-
-    SystemLog() {
-        this.message = "";
-    }
 
     SystemLog(String message) {
         this.message = message;

@@ -27,7 +27,10 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
-import br.ufrj.cos.logic.*;
+import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Predicate;
+import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import org.apache.commons.cli.CommandLine;
@@ -48,7 +51,6 @@ import static br.ufrj.cos.cli.CommandLineOptions.POSITIVE_EXTENSION;
 import static br.ufrj.cos.cli.LearningFromIterationsCLI.DEFAULT_EXAMPLES_FILE_EXTENSION;
 import static br.ufrj.cos.cli.LearningFromIterationsCLI.getIterationDirectory;
 import static br.ufrj.cos.util.log.GeneralLog.*;
-import static br.ufrj.cos.util.log.NellConverterLog.EMPTY;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
@@ -72,6 +74,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
     /**
      * The variable name to be used at the examples format.
      */
+    @SuppressWarnings("CanBeFinal")
     public String variableName = DEFAULT_VARIABLE_NAME;
     /**
      * The data directory path. The directory to find the iterations in.
@@ -130,7 +133,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
     @Override
     public void run() {
         try {
-            long begin = TimeMeasure.getNanoTime();
+            long begin = TimeUtils.getNanoTime();
             for (File iteration : iterationDirectories) {
                 logger.info(PROCESSING_ITERATION.toString(), iteration.getName());
                 for (String targetRelation : targetRelations) {
@@ -139,15 +142,15 @@ public class LogicToProPprConverter extends CommandLineInterface {
                     logger.info(EMPTY);
                 }
             }
-            long end = TimeMeasure.getNanoTime();
-            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeMeasure.formatNanoDifference(begin, end));
+            long end = TimeUtils.getNanoTime();
+            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         } catch (IOException | ParseException e) {
             logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);
         }
     }
 
     /**
-     * Converts the examples from the logic files, saving them into the files named by {@link #targetRelation} +
+     * Converts the examples from the logic files, saving them into the files named by {@link #targetRelations} +
      * {@link #examplesFileExtension}, and saving it beside the relation file.
      *
      * @param iteration      the iteration
@@ -160,13 +163,11 @@ public class LogicToProPprConverter extends CommandLineInterface {
         File positive = new File(iteration, targetRelation + positiveExtension);
         File negative = new File(iteration, targetRelation + negativeExtension);
 
-        List<Clause> clauses = new ArrayList<>();
-        LanguageUtils.readKnowledgeFromFile(atomFactory, clauses, positive);
-        List<Atom> positives = clauses.stream().map(a -> (Atom) a).collect(Collectors.toList());
+        List<Atom> positives = new ArrayList<>();
+        LanguageUtils.readAtomKnowledgeFromFile(atomFactory, positives, positive);
 
-        clauses = new ArrayList<>();
-        LanguageUtils.readKnowledgeFromFile(atomFactory, clauses, negative);
-        List<Atom> negatives = clauses.stream().map(a -> (Atom) a).collect(Collectors.toList());
+        List<Atom> negatives = new ArrayList<>();
+        LanguageUtils.readAtomKnowledgeFromFile(atomFactory, negatives, negative);
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(negatives.size()));
         final Collection<? extends Example> examples = convertAtomToExamples(positives, negatives);

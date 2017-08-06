@@ -29,8 +29,6 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum RepositoryInfoLog {
 
-    EMPTY(),
-
     COMMITTED_VERSION("This run is based on the commit of hash {}."),
     COMMITTED_VERSION_WITH_TAG("This run is based on the commit of tag {} and hash {}."),
 
@@ -39,10 +37,6 @@ public enum RepositoryInfoLog {
     UNTRACKED_FILE("The following file(s) was(were) not tracked during this running:\t{}");
 
     protected final String message;
-
-    RepositoryInfoLog() {
-        this.message = "";
-    }
 
     RepositoryInfoLog(String message) {
         this.message = message;

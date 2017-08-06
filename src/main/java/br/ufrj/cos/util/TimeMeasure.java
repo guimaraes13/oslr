@@ -21,123 +21,170 @@
 
 package br.ufrj.cos.util;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Class to measure execution time of methods.
+ * Class to measure time between point in the code.
  * <p>
- * Created on 29/03/17.
+ * Created on 05/08/17.
  *
  * @author Victor Guimarães
  */
-public final class TimeMeasure {
+@SuppressWarnings("unused")
+public class TimeMeasure {
 
     /**
-     * The format of the elapsed time.
+     * The first time stamp.
      */
-    @SuppressWarnings("SpellCheckingInspection")
-    public static final String ELAPSED_TIME_DEFAULT_FORMATTER = "%dh%dmin%ds";
+    public static final String FIRST_TIME_STAMP = "BEGIN";
     /**
-     * The format of the timestamp.
+     * The begin index.
+     */
+    public static final int BEGIN_INDEX = 0;
+
+    protected final List<Long> timeStamps;
+    protected final Map<String, Integer> stampsByName;
+    protected int lastIndex = 0;
+
+    /**
+     * Gets a instance from the time starting with the first measure called {@link #FIRST_TIME_STAMP}.
      *
-     * @see DateTimeFormatter
+     * @return a new instance of the time measure
      */
-    @SuppressWarnings("SpellCheckingInspection")
-    public static final String TIMESTAMP_DEFAULT_FORMATTER = "uuuu_MM_dd_HH'h'mm'min'ss's'";
-    /**
-     * The default date formatter.
-     */
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_DEFAULT_FORMATTER);
-    /**
-     * A constant to divide a number in nano seconds scale and get a number in seconds scale.
-     */
-    public static final long NANO_TO_SECONDS_DENOMINATOR = 1000000000L;
-    /**
-     * A constant to divide a number in seconds scale and get a number in minutes scale.
-     */
-    public static final int SECONDS_TO_MINUTES_DENOMINATOR = 60;
-    /**
-     * A constant to divide a number in minutes scale and get a number in hours scale.
-     */
-    public static final int MINUTES_TO_HOURS_DENOMINATOR = 60;
-    /**
-     * A constant to multiply a number in seconds scale and get a number in milliseconds scale.
-     */
-    public static final int SECONDS_TO_MILLISECONDS_MULTIPLIER = 1000;
-
-    private TimeMeasure() {
+    public static TimeMeasure startTimeMeasure() {
+        return new TimeMeasure();
     }
 
     /**
-     * Gets the time of the System in nano time.
-     *
-     * @return the nano time of the System
+     * Default constructor.
      */
-    public static long getNanoTime() {
-        return System.nanoTime();
+    protected TimeMeasure() {
+        this.timeStamps = new ArrayList<>();
+        this.stampsByName = new HashMap<>();
+
+        measure(FIRST_TIME_STAMP);
     }
 
     /**
-     * Gets formatted timestamp from a time interval from begin to end.
+     * Adds a time stamp with the name.
      *
-     * @param begin the begin of the interval
-     * @param end   the end of the interval
-     * @return the formatted timestamp
+     * @param name the name of the time stamp.
+     * @return return the stamp index
      */
-    public static String formatNanoDifference(long begin, long end) {
-        return formatNanoDifference(begin, end, ELAPSED_TIME_DEFAULT_FORMATTER);
+    public int measure(String name) {
+        lastIndex = timeStamps.size();
+        stampsByName.put(name, lastIndex);
+        timeStamps.add(TimeUtils.getNanoTime());
+        return lastIndex;
     }
 
     /**
-     * Gets formatted timestamp from a time interval from begin to end, with a given format.
+     * Adds a nameless time stamp.
      *
-     * @param begin  the begin of the interval
-     * @param end    the end of the interval
-     * @param format the given format
-     * @return the formatted timestamp
+     * @return return the stamp index
      */
-    @SuppressWarnings("SameParameterValue")
-    public static String formatNanoDifference(long begin, long end, String format) {
-        return formatNanoDifference(end - begin, format);
+    public int measure() {
+        lastIndex = timeStamps.size();
+        timeStamps.add(TimeUtils.getNanoTime());
+        return lastIndex;
     }
 
     /**
-     * Gets formatted timestamp from a time interval of size elapsedTime, with a given format.
+     * Returns the elapsed time until the addition of the last stamp, i.e. the call to {@link #measure(String)}. The
+     * time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
      *
-     * @param elapsedTime the size of the interval
-     * @param format      the given format
-     * @return the formatted timestamp
+     * @return the time in nano seconds
      */
-    public static String formatNanoDifference(long elapsedTime, String format) {
-        long elapsed = elapsedTime / NANO_TO_SECONDS_DENOMINATOR;
-
-        int minutes = (int) (elapsed / SECONDS_TO_MINUTES_DENOMINATOR);
-        int seconds = (int) (elapsed % SECONDS_TO_MINUTES_DENOMINATOR);
-
-        int hours = minutes / MINUTES_TO_HOURS_DENOMINATOR;
-        minutes = minutes % MINUTES_TO_HOURS_DENOMINATOR;
-
-        return String.format(format, hours, minutes, seconds);
+    public long elapsedTimeUntilLastStamp() {
+        return elapsedTimeUntilStamp(lastIndex);
     }
 
     /**
-     * Gets formatted timestamp from a time interval of size elapsedTime.
+     * Returns the elapsed time until the addition of the stamp with the given index.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
      *
-     * @param elapsedTime the size of the interval
-     * @return the formatted timestamp
+     * @param index the index of the stamp
+     * @return the time in nano seconds
      */
-    public static String formatNanoDifference(long elapsedTime) {
-        return formatNanoDifference(elapsedTime, ELAPSED_TIME_DEFAULT_FORMATTER);
+    public long elapsedTimeUntilStamp(int index) {
+        return TimeUtils.getNanoTime() - timeStamps.get(index);
     }
 
     /**
-     * Gets the formatted current time.
+     * Returns the elapsed time until the addition of the stamp with the given game.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
      *
-     * @return the formatted current time
+     * @param stamp the name of the stamp
+     * @return the time in nano seconds
      */
-    public static String getCurrentTime() {
-        return LocalDateTime.now().format(DATE_FORMATTER);
+    public long elapsedTimeUntilStamp(String stamp) {
+        final int stampIndex = stampsByName.getOrDefault(stamp, BEGIN_INDEX);
+        return elapsedTimeUntilStamp(stampIndex);
+    }
+
+    /**
+     * Returns the elapsed time between the first and the last stamp.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
+     *
+     * @return the time in nano seconds
+     */
+    public long elapsedTimeFirstAndLastStamp() {
+        return elapsedTimeBetweenStamps(BEGIN_INDEX, lastIndex);
+    }
+
+    /**
+     * Returns the elapsed time between two stamps.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
+     *
+     * @param stamp0 the index of the stamp 0
+     * @param stamp1 the index of the stamp 1
+     * @return the time in nano seconds
+     */
+    public long elapsedTimeBetweenStamps(int stamp0, int stamp1) {
+        return timeStamps.get(stamp1) - timeStamps.get(stamp0);
+    }
+
+    /**
+     * Returns the elapsed time between two stamps.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
+     *
+     * @param stamp0 the index of the stamp 0
+     * @param stamp1 the index of the stamp 1
+     * @return the time in nano seconds
+     */
+    public long elapsedTimeBetweenStamps(String stamp0, String stamp1) {
+        return timeStamps.get(stampsByName.getOrDefault(stamp1, lastIndex)) -
+                timeStamps.get(stampsByName.getOrDefault(stamp0, BEGIN_INDEX));
+    }
+
+    /**
+     * Returns the elapsed time between the given stamp and the last saved one.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
+     *
+     * @param stamp the index of the stamp
+     * @return the time in nano seconds
+     */
+    public long elapsedTimeFromIndexToLastStamp(int stamp) {
+        return elapsedTimeBetweenStamps(stamp, lastIndex);
+    }
+
+    /**
+     * Returns the elapsed time between the given stamp and the last saved one.
+     * The time is represented in nano seconds, and work properly with {@link TimeUtils} standards.
+     *
+     * @param stamp the index of the stamp
+     * @return the time in nano seconds
+     */
+    public long elapsedTimeFromIndexToLastStamp(String stamp) {
+        return elapsedTimeBetweenStamps(stampsByName.getOrDefault(stamp, BEGIN_INDEX), lastIndex);
+    }
+
+    @Override
+    public String toString() {
+        return TimeUtils.formatNanoDifference(elapsedTimeFirstAndLastStamp());
     }
 
 }

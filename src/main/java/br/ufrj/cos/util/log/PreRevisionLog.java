@@ -28,10 +28,8 @@ package br.ufrj.cos.util.log;
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc"})
 public enum PreRevisionLog {
-
-    EMPTY(),
 
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     TRY_REFINE_RULE("Trying to refine rule:\t{}"),
@@ -43,10 +41,6 @@ public enum PreRevisionLog {
     ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
 
     protected final String message;
-
-    PreRevisionLog() {
-        this.message = "";
-    }
 
     PreRevisionLog(String message) {
         this.message = message;

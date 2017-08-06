@@ -31,8 +31,6 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum RevisionLog {
 
-    EMPTY(),
-
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
 
@@ -50,10 +48,6 @@ public enum RevisionLog {
     ERROR_REVISING_THEORY("Error when revising the theory, reason:");
 
     protected final String message;
-
-    RevisionLog() {
-        this.message = "";
-    }
 
     RevisionLog(String message) {
         this.message = message;

@@ -30,7 +30,6 @@ package br.ufrj.cos.util.log;
  */
 @SuppressWarnings("JavaDoc")
 public enum GeneralLog {
-    EMPTY(),
 
     PROGRAM_BEGIN("Program begin!"),
     PROGRAM_END("Program end!"),
@@ -40,7 +39,9 @@ public enum GeneralLog {
 
     ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
     ERROR_READING_BUILD_PROPERTIES("Error reading build properties, reason:\t{}"),
-    TOTAL_PROGRAM_TIME("Total elapsed time:\t{}"),
+    TOTAL_IO_TIME("Total IO time:\t\t\t{}"),
+    TOTAL_TRAINING_TIME("Total training time:\t{}"),
+    TOTAL_PROGRAM_TIME("Total elapsed time:\t\t{}"),
 
     CONFIGURATION_FILE("Configuration File:\t{}\n--------------- CONFIGURATION FILE " +
                                "---------------\n{}\n--------------- CONFIGURATION FILE ---------------"),
@@ -48,10 +49,6 @@ public enum GeneralLog {
     ERROR_READING_CONFIGURATION_FILE("Error when reading the configuration file, reason:");
 
     protected final String message;
-
-    GeneralLog() {
-        this.message = "";
-    }
 
     GeneralLog(String message) {
         this.message = message;

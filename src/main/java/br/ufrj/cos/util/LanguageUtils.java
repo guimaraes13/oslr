@@ -166,6 +166,7 @@ public final class LanguageUtils {
      * The false predicate to simulate the false boolean value.
      */
     public static final Predicate FALSE_PREDICATE = new Predicate(FALSE_ARGUMENT, PREDICATE_ARITY);
+    private static final Pattern COMPILED_SIMPLE_CLASS_NAME_PATTERN = Pattern.compile(SIMPLE_CLASS_NAME_PATTERN);
 
     private LanguageUtils() {
     }
@@ -611,7 +612,6 @@ public final class LanguageUtils {
      * @param suffix the suffix
      * @return the formatted name
      */
-    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
     public static String formatDirectoryName(Object object, String suffix) {
         String className = object.getClass().getName();
         className = formatClassName(className);
@@ -626,7 +626,7 @@ public final class LanguageUtils {
      * @return the formatted name
      */
     public static String formatClassName(String className) {
-        return className.replaceAll(SIMPLE_CLASS_NAME_PATTERN, "");
+        return COMPILED_SIMPLE_CLASS_NAME_PATTERN.matcher(className).replaceAll("");
     }
 
     /**
@@ -751,7 +751,7 @@ public final class LanguageUtils {
      * @throws ParseException if a parser error occurs
      * @throws IOException    if an I/O error has occurred
      */
-    public static void readKnowledgeFromFile(AtomFactory atomFactory, Collection<Clause> clauses, File file)
+    public static void readAtomKnowledgeFromFile(AtomFactory atomFactory, Collection<Atom> clauses, File file)
             throws IOException, ParseException {
         BufferedReader reader;
         KnowledgeParser parser;
@@ -761,4 +761,5 @@ public final class LanguageUtils {
         parser.parseKnowledgeAppend(clauses);
         reader.close();
     }
+
 }

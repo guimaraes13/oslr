@@ -592,6 +592,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     public synchronized void setKnowledgeBase(KnowledgeBase knowledgeBase) {
         this.knowledgeBase = knowledgeBase;
         this.factsPlugin = buildFactsPlugin(aprOptions, useTernayIndex);
+        addAtomsToKnowledgeBase(knowledgeBase);
     }
 
     /**
@@ -628,10 +629,15 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      *                       bigger than two
      * @return the {@link FactsPlugin}
      */
-    protected FactsPlugin buildFactsPlugin(APROptions aprOptions, boolean useTernayIndex) {
+    protected static FactsPlugin buildFactsPlugin(APROptions aprOptions, boolean useTernayIndex) {
         FactsPlugin factsPlugin = new FactsPlugin(aprOptions, FACTS_PLUGIN_NAME, useTernayIndex);
+        addTrueFalseFacts(factsPlugin);
+        return factsPlugin;
+    }
 
-        for (Atom atom : knowledgeBase) {
+    @Override
+    public void addAtomsToKnowledgeBase(Collection<? extends Atom> atoms) {
+        for (Atom atom : atoms) {
             if (!atom.isGrounded()) {
                 continue;
             }
@@ -642,8 +648,6 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
                 factsPlugin.addFact(atom.getName(), LanguageUtils.toStringCollectionToArray(atom.getTerms()));
             }
         }
-        addTrueFalseFacts(factsPlugin);
-        return factsPlugin;
     }
 
     /**
