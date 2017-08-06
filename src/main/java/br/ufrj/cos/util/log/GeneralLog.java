@@ -39,7 +39,7 @@ public enum GeneralLog {
 
     ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
     ERROR_READING_BUILD_PROPERTIES("Error reading build properties, reason:\t{}"),
-    TOTAL_IO_TIME("Total IO time:\t\t\t{}"),
+    TOTAL_DISK_IO_TIME("Total Disk IO time:\t\t{}"),
     TOTAL_TRAINING_TIME("Total training time:\t{}"),
     TOTAL_PROGRAM_TIME("Total elapsed time:\t\t{}"),
 

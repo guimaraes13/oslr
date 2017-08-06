@@ -138,8 +138,14 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     @Override
     public void run() {
         beginTraining = TimeUtils.getNanoTime();
+        //TODO: revise examples
+//        reviseExamples();
+        //TODO: save parameters (measuring the time)
         end = TimeUtils.getNanoTime();
-        logger.warn(TOTAL_IO_TIME.toString(), TimeUtils.formatNanoDifference(begin, beginTraining));
+        //TODO: load the last data to iterationStatistics
+        //TODO: print all the statistics
+        //TODO: serialize the statistics to a yaml file
+        logger.warn(TOTAL_DISK_IO_TIME.toString(), TimeUtils.formatNanoDifference(begin, beginTraining));
         logger.warn(TOTAL_TRAINING_TIME.toString(), TimeUtils.formatNanoDifference(beginTraining, end));
         logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
     }
@@ -226,16 +232,23 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     @Override
     protected void reviseExamples() {
         final int numberOfIterations = iterationKnowledge.size();
-        iterationStatistics = new IterationStatistics();
-        iterationStatistics.setNumberOfIterations(numberOfIterations);
+        iterationStatistics = new IterationStatistics(numberOfIterations);
         for (int i = 0; i < numberOfIterations; i++) {
+            iterationStatistics.addIterationKnowledgeSizes(iterationKnowledge.get(i).size());
+            iterationStatistics.addIterationExamplesSizes(iterationExamples.get(i).size());
+            //TODO: measure the time to add knowledge to the learning system
             learningSystem.addAtomsToKnowledgeBase(iterationKnowledge.get(i));
+            //TODO: measure the time to train in the iteration
             for (Example example : iterationExamples.get(i)) {
                 learningSystem.incomingExampleManager.incomingExamples(example);
             }
-            //TODO: evaluate examples
+            //TODO: measure the to evaluate the iteration in the train set
+            iterationStatistics.addIterationTrainEvaluation(learningSystem.evaluate(iterationExamples.get(i)));
+            //TODO: measure the to evaluate the iteration in the test set
+            if (i < numberOfIterations - 1) {
+                iterationStatistics.addIterationTestEvaluation(learningSystem.evaluate(iterationExamples.get(i + 1)));
+            }
         }
-
     }
 
     /**
