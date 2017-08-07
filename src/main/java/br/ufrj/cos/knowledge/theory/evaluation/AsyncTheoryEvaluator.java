@@ -27,7 +27,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
-import br.ufrj.cos.util.TimeUtils;
+import br.ufrj.cos.util.time.TimeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

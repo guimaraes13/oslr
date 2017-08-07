@@ -21,7 +21,11 @@
 
 package br.ufrj.cos.cli;
 
-import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.commons.cli.*;
@@ -174,6 +178,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * The directory to save the standard output logs in.
      */
     public static final String OUTPUT_STANDARD_DIRECTORY = "STD_OUT";
+    /**
+     * The output run time to be used in the name of some output files.
+     */
+    public String outputRunTime;
     /**
      * The configuration file path.
      */
@@ -381,8 +389,9 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      *
      * @return the name of the output std out file
      */
-    protected static String getOutputLogFileName() {
-        return String.format(STDOUT_LOG_FILE_NAME, TimeUtils.getCurrentTime());
+    protected String getOutputLogFileName() {
+        outputRunTime = TimeUtils.getCurrentTime();
+        return String.format(STDOUT_LOG_FILE_NAME, outputRunTime);
     }
 
     /**

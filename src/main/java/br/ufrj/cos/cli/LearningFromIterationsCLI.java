@@ -32,7 +32,11 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.AtomFactory;
+import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.IterationStatistics;
+import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.time.*;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -48,7 +52,10 @@ import java.util.regex.Pattern;
 import static br.ufrj.cos.cli.CommandLineOptions.*;
 import static br.ufrj.cos.util.LanguageUtils.DEFAULT_INPUT_ENCODE;
 import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.IterationLog.*;
 import static br.ufrj.cos.util.log.SystemLog.*;
+import static br.ufrj.cos.util.time.RunTimeStamp.BEGIN_INITIALIZE;
+import static br.ufrj.cos.util.time.RunTimeStamp.END_INITIALIZE;
 
 /**
  * A Command Line Interface which allows experiments of learning from files separated by iterations.
@@ -83,6 +90,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     public static final String DEFAULT_EXAMPLES_FILE_EXTENSION = ".data";
     private static final File[] FILES = new File[0];
     /**
+     * The statistic output file name.
+     */
+    public static final String STATISTICS_FILE_NAME = "statistics_%s.yaml";
+    /**
      * The example file extension.
      */
     public String examplesFileExtension = DEFAULT_EXAMPLES_FILE_EXTENSION;
@@ -112,10 +123,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected List<Examples> iterationExamples;
     protected AtomFactory atomFactory;
 
-    protected long begin;
-    protected long beginTraining; // begin training
-    protected long end;
-    protected IterationStatistics iterationStatistics;
+    protected IterationStatistics<TimeStampTag> iterationStatistics;
+    protected TimeMeasure<TimeStampTag> timeMeasure;
+    protected IterationTimeStampFactory timeStampFactory;
+    protected NumberFormat numberFormat;
 
     /**
      * The main method
@@ -137,32 +148,76 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     @Override
     public void run() {
-        beginTraining = TimeUtils.getNanoTime();
-        //TODO: revise examples
-//        reviseExamples();
-        //TODO: save parameters (measuring the time)
-        end = TimeUtils.getNanoTime();
-        //TODO: load the last data to iterationStatistics
-        //TODO: print all the statistics
-        //TODO: serialize the statistics to a yaml file
-        logger.warn(TOTAL_DISK_IO_TIME.toString(), TimeUtils.formatNanoDifference(begin, beginTraining));
-        logger.warn(TOTAL_TRAINING_TIME.toString(), TimeUtils.formatNanoDifference(beginTraining, end));
-        logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
+        try {
+            timeMeasure.measure(RunTimeStamp.BEGIN_TRAIN);
+            reviseExamples();
+            timeMeasure.measure(RunTimeStamp.END_TRAIN);
+            timeMeasure.measure(RunTimeStamp.BEGIN_DISK_OUTPUT);
+            saveParameters();
+            timeMeasure.measure(RunTimeStamp.END_DISK_OUTPUT);
+            timeMeasure.endMeasure(RunTimeStamp.END);
+            logger.warn(iterationStatistics);
+            //TODO: see why the line below does not work
+//            LanguageUtils.writeObjectToYamlFile(iterationStatistics, getStatisticsFile());
+            logger.warn(TOTAL_INITIALIZATION_TIME.toString(),
+                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE));
+            logger.warn(TOTAL_TRAINING_TIME.toString(),
+                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_TRAIN, RunTimeStamp.END_TRAIN));
+            logger.warn(TOTAL_OUTPUT_TIME.toString(),
+                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_DISK_OUTPUT,
+                                                          RunTimeStamp.END_DISK_OUTPUT));
+            logger.warn(TOTAL_PROGRAM_TIME.toString(),
+                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN, RunTimeStamp.END));
+        } catch (IOException e) {
+            logger.error(ERROR_WRITING_OUTPUT_FILE, e);
+        }
     }
 
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
         try {
-            begin = TimeUtils.getNanoTime();
+            timeMeasure = new TimeMeasure<>();
+            timeMeasure.measure(RunTimeStamp.BEGIN);
+            timeMeasure.measure(BEGIN_INITIALIZE);
+            numberFormat = NumberFormat.getIntegerInstance();
+            timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
             iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
             build();
             atomFactory = new AtomFactory();
+            iterationStatistics = new IterationStatistics();
             buildIterationKnowledge();
             buildIterationExamples();
+            iterationStatistics.setNumberOfIterations(iterationKnowledge.size());
+            iterationStatistics.setIterationPrefix(iterationPrefix);
+            iterationStatistics.setTargetRelation(targetRelation);
+            iterationStatistics.setTimeMeasure(timeMeasure);
+            timeMeasure.measure(END_INITIALIZE);
         } catch (IOException | ParseException |
                 br.ufrj.cos.logic.parser.example.ParseException | ReflectiveOperationException e) {
             throw new InitializationException(e);
+        }
+    }
+
+    /**
+     * Builds the examples of each iteration.
+     *
+     * @throws IOException                                     if an I/O error has occurred
+     * @throws br.ufrj.cos.logic.parser.example.ParseException if a error occurs during the parsing
+     * @throws ReflectiveOperationException                    if an error occurs when instantiating a new set of
+     *                                                         examples
+     */
+    protected void buildIterationExamples() throws IOException, br.ufrj.cos.logic.parser.example
+            .ParseException, ReflectiveOperationException {
+        logger.info(BUILDING_EXAMPLES_ITERATIONS);
+        File iterationExample;
+        iterationExamples = new ArrayList<>(iterationDirectories.length);
+        Examples examples;
+        for (File iteration : iterationDirectories) {
+            iterationExample = new File(iteration, targetRelation + examplesFileExtension);
+            examples = readExamplesFromFile(iterationExample);
+            iterationExamples.add(examples);
+            iterationStatistics.addIterationExamplesSizes(examples.size());
         }
     }
 
@@ -197,22 +252,16 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     }
 
     /**
-     * Builds the examples of each iteration.
-     *
-     * @throws IOException                                     if an I/O error has occurred
-     * @throws br.ufrj.cos.logic.parser.example.ParseException if a error occurs during the parsing
-     * @throws ReflectiveOperationException                    if an error occurs when instantiating a new set of
-     *                                                         examples
+     * Call the method to revise the examples
      */
-    protected void buildIterationExamples() throws IOException, br.ufrj.cos.logic.parser.example
-            .ParseException, ReflectiveOperationException {
-        logger.info(BUILDING_EXAMPLES_ITERATIONS);
-        File iterationExample;
-        iterationExamples = new ArrayList<>(iterationDirectories.length);
-        for (File iteration : iterationDirectories) {
-            iterationExample = new File(iteration, targetRelation + examplesFileExtension);
-            iterationExamples.add(readExamplesFromFile(iterationExample));
+    @Override
+    protected void reviseExamples() {
+        final int numberOfIterations = iterationKnowledge.size();
+        logger.info(BEGIN_REVISION_ITERATIONS.toString(), numberOfIterations);
+        for (int i = 0; i < numberOfIterations; i++) {
+            reviseIteration(i);
         }
+        logger.info(END_REVISION_ITERATIONS.toString(), numberOfIterations);
     }
 
     /**
@@ -226,29 +275,11 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         return Integer.parseInt(file.getName().replaceAll(START_STRING + iterationPrefix, ""));
     }
 
-    /**
-     * Call the method to revise the examples
-     */
     @Override
-    protected void reviseExamples() {
-        final int numberOfIterations = iterationKnowledge.size();
-        iterationStatistics = new IterationStatistics(numberOfIterations);
-        for (int i = 0; i < numberOfIterations; i++) {
-            iterationStatistics.addIterationKnowledgeSizes(iterationKnowledge.get(i).size());
-            iterationStatistics.addIterationExamplesSizes(iterationExamples.get(i).size());
-            //TODO: measure the time to add knowledge to the learning system
-            learningSystem.addAtomsToKnowledgeBase(iterationKnowledge.get(i));
-            //TODO: measure the time to train in the iteration
-            for (Example example : iterationExamples.get(i)) {
-                learningSystem.incomingExampleManager.incomingExamples(example);
-            }
-            //TODO: measure the to evaluate the iteration in the train set
-            iterationStatistics.addIterationTrainEvaluation(learningSystem.evaluate(iterationExamples.get(i)));
-            //TODO: measure the to evaluate the iteration in the test set
-            if (i < numberOfIterations - 1) {
-                iterationStatistics.addIterationTestEvaluation(learningSystem.evaluate(iterationExamples.get(i + 1)));
-            }
-        }
+    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
+        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
+        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
+        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
     }
 
     /**
@@ -274,10 +305,9 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     }
 
     @Override
-    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
-        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
-        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
-        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+            InstantiationException, FileNotFoundException {
+        theory = new Theory(new HashSet<>());
     }
 
     @Override
@@ -343,10 +373,90 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         for (int i = 0; i < iterationDirectories.length; i++) {
             description.append("\t\t - ").append(iterationDirectories[i].getName());
             description.append("\tSize:\t").append(numberFormat.format(iterationKnowledge.get(i).size()));
-            description.append("\tExamples:\t").append(numberFormat.format(iterationExamples.get(i).size()));
+            description.append("\tExamples (ProPPR):\t").append(numberFormat.format(iterationExamples.get(i).size()))
+                    .append("\tExamples (All):\t").append(numberFormat.format(flatProPprExamples(iterationExamples
+                                                                                                         .get(i))));
             description.append("\n");
         }
         return description.toString();
+    }
+
+    /**
+     * Calculates the number of atom examples inside the collection of ProPprExamples, since a ProPprExample may
+     * contain several atom examples.
+     *
+     * @param proPprExamples the collection of ProPprExamples
+     * @return the number of atom examples
+     */
+    protected static int flatProPprExamples(Collection<? extends ProPprExample> proPprExamples) {
+        return proPprExamples.stream().mapToInt(p -> p.getGroundedQuery().size()).sum();
+    }
+
+    /**
+     * Revises the iteration.
+     *
+     * @param index the index of the current iteration
+     */
+    protected void reviseIteration(int index) {
+        IterationTimeStamp beginStamp;
+        IterationTimeStamp endStamp;// begin iteration
+        logger.debug(REVISING_ITERATION.toString(), index);
+        beginStamp = timeStampFactory.getTimeStamp(index, IterationTimeMessage.BEGIN);
+        timeMeasure.measure(beginStamp);
+        addIterationKnowledge(index);
+        // measure the time to add knowledge to the learning system
+        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), numberFormat.format(iterationExamples.get(index).size()));
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
+        for (Example example : iterationExamples.get(index)) {
+            learningSystem.incomingExampleManager.incomingExamples(example);
+        }
+        // measure the time to train in the iteration
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.REVISION_DONE));
+        logger.trace(END_REVISION_EXAMPLE.toString());
+
+        evaluateIteration(index);
+        endStamp = timeStampFactory.getTimeStamp(index, IterationTimeMessage.END);
+        timeMeasure.measure(endStamp);
+        logger.debug(END_REVISION_ITERATION.toString(), index);
+        logger.trace(ITERATION_TRAINING_TIME.toString(), timeMeasure.textTimeBetweenStamps(beginStamp, endStamp));
+    }
+
+    /**
+     * Adds the iteration knowledge to the learning system
+     *
+     * @param index the index of the iteration
+     */
+    protected void addIterationKnowledge(int index) {
+        learningSystem.addAtomsToKnowledgeBase(iterationKnowledge.get(index));
+        logger.trace(ADDED_ITERATION_KNOWLEDGE.toString(), numberFormat.format(iterationKnowledge.get(index).size()));
+    }
+
+    /**
+     * Evaluates the trained iteration
+     *
+     * @param index the index of the iteration
+     */
+    protected void evaluateIteration(int index) {
+        logger.trace(BEGIN_EVALUATION.toString(), index);
+        iterationStatistics.addIterationTrainEvaluation(learningSystem.evaluate(iterationExamples.get(index)));
+        // measure the to evaluate the iteration in the train set
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.TRAIN_EVALUATION_DONE));
+        logger.trace(END_TRAIN_EVALUATION.toString(), index);
+        if (index < iterationKnowledge.size() - 1) {
+            iterationStatistics.addIterationTestEvaluation(learningSystem.evaluate(iterationExamples.get(index + 1)));
+            // measure the to evaluate the iteration in the test set
+            timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.TEST_EVALUATION_DONE));
+            logger.trace(END_TEST_EVALUATION.toString(), index);
+        }
+    }
+
+    /**
+     * Gets the statistics file name.
+     *
+     * @return the statistics file name
+     */
+    public File getStatisticsFile() {
+        return new File(outputDirectory, String.format(STATISTICS_FILE_NAME, outputRunTime));
     }
 
     /**
@@ -370,13 +480,8 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             clauses = new HashSet<>();
             appendFactsFromRelations(relations, targetFileName, clauses);
             iterationKnowledge.add(clauses);
+            iterationStatistics.addIterationKnowledgeSizes(clauses.size());
         }
-    }
-
-    @Override
-    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException, FileNotFoundException {
-        theory = new Theory(new HashSet<>());
     }
 
     /**

@@ -27,7 +27,7 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.TimeUtils;
+import br.ufrj.cos.util.time.TimeUtils;
 
 import java.util.*;
 

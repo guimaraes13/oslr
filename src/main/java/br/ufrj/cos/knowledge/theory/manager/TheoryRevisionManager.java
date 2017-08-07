@@ -31,8 +31,12 @@ import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
-import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.Initializable;
+import br.ufrj.cos.util.InitializationException;
+import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.log.PosRevisionLog;
+import br.ufrj.cos.util.time.TimeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

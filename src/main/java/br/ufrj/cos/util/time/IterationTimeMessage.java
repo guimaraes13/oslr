@@ -19,37 +19,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.util.log;
+package br.ufrj.cos.util.time;
 
 /**
- * Centralizes log messages from the system.
+ * Enum to help measuring time of iteration process.
  * <p>
- * Created on 01/08/17.
+ * Created on 06/08/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"JavaDoc"})
-public enum PreRevisionLog {
+@SuppressWarnings("JavaDoc")
+public enum IterationTimeMessage {
 
-    CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
-    SKIPPING_REVISION_ON_EXAMPLES("Skipping the revision on examples, not enough examples to exceed the threshold."),
-    TRY_REFINE_RULE("Trying to refine rule:\t{}"),
-    SELECTED_OPERATOR("Operator selected for revision:\t{}"),
+    BEGIN("Begin of %s%d"),
+    LOAD_KNOWLEDGE_DONE("Load of knowledge from %s%d done."),
+    REVISION_DONE("Revision on %s%d done."),
+    TRAIN_EVALUATION_DONE("Train evaluation on %s%d done."),
+    TEST_EVALUATION_DONE("Test evaluation on %s%d done."),
+    END("End of %s%d");
 
-    RULE_PROPOSED_TO_THEORY("Rule proposed to be add to the theory:\t{}"),
-    RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
+    final String message;
 
-    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
-
-    protected final String message;
-
-    PreRevisionLog(String message) {
+    IterationTimeMessage(String message) {
         this.message = message;
     }
 
-    @Override
-    public String toString() {
-        return message;
+    protected String getMessage(String iterationPrefix, int iterationIndex) {
+        return String.format(message, iterationPrefix, iterationIndex);
     }
 
 }

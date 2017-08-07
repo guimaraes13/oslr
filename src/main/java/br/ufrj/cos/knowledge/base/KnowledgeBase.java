@@ -150,7 +150,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
      * @return the {@link Set} of {@link Atom}s
      */
     public Set<Atom> getAtomsWithTerm(Term term) {
-        return termAtomMap.get(term);
+        return termAtomMap.getOrDefault(term, Collections.emptySet());
     }
 
     /**

@@ -35,8 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 
-import static br.ufrj.cos.util.log.PreRevisionLog.CALLING_REVISION_ON_EXAMPLES;
-import static br.ufrj.cos.util.log.PreRevisionLog.SELECTED_OPERATOR;
+import static br.ufrj.cos.util.log.PreRevisionLog.*;
 
 /**
  * Responsible to decide when to revise the {@link Theory} based on the Hoeffding's bound, with confidence delta.
@@ -89,6 +88,8 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             logger.debug(SELECTED_OPERATOR.toString(), operatorEvaluator);
             if (operatorEvaluator == null) { return false; }
             return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
+        } else {
+            logger.trace(SKIPPING_REVISION_ON_EXAMPLES);
         }
         return false;
     }

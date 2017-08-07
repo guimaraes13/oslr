@@ -32,7 +32,7 @@ import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.LanguageUtils;
-import br.ufrj.cos.util.TimeUtils;
+import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
 import edu.cmu.ml.proppr.QueryAnswerer;

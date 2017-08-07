@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.util;
+package br.ufrj.cos.util.time;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

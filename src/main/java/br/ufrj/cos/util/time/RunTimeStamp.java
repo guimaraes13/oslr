@@ -19,32 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.util.log;
+package br.ufrj.cos.util.time;
 
 /**
- * Centralizes log messages from the system.
+ * Enum to help measuring time of a run.
  * <p>
- * Created on 01/08/17.
+ * Created on 06/08/17.
  *
  * @author Victor Guimarães
  */
-@SuppressWarnings({"JavaDoc"})
-public enum PreRevisionLog {
+@SuppressWarnings("JavaDoc")
+public enum RunTimeStamp implements TimeStampTag {
 
-    CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
-    SKIPPING_REVISION_ON_EXAMPLES("Skipping the revision on examples, not enough examples to exceed the threshold."),
-    TRY_REFINE_RULE("Trying to refine rule:\t{}"),
-    SELECTED_OPERATOR("Operator selected for revision:\t{}"),
+    BEGIN("Begin."),
+    BEGIN_INITIALIZE("Begin initialize."),
+    END_INITIALIZE("End initialize."),
+    BEGIN_DISK_INPUT("Begin disk input."),
+    END_DISK_INPUT("End disk input."),
+    BEGIN_TRAIN("Begin training."),
+    END_TRAIN("End training."),
+    BEGIN_DISK_OUTPUT("Begin disk output."),
+    END_DISK_OUTPUT("End disk output."),
+    END("End.");
 
-    RULE_PROPOSED_TO_THEORY("Rule proposed to be add to the theory:\t{}"),
-    RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
+    final String message;
 
-    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
-
-    protected final String message;
-
-    PreRevisionLog(String message) {
+    RunTimeStamp(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String getMessage() {
+        return toString();
     }
 
     @Override

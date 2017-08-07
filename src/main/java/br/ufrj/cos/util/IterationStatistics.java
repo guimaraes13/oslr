@@ -22,6 +22,7 @@
 package br.ufrj.cos.util;
 
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.util.time.TimeMeasure;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
  * @author Victor Guimarães
  */
 @SuppressWarnings("HardCodedStringLiteral")
-public class IterationStatistics {
+public class IterationStatistics<T> {
 
     /**
      * The number format.
@@ -47,20 +48,23 @@ public class IterationStatistics {
     protected String iterationPrefix;
     protected String targetRelation;
 
+    protected TimeMeasure<T> timeMeasure;
+
     protected List<Integer> iterationKnowledgeSizes;
     protected List<Integer> iterationExamplesSizes;
 
     protected List<Map<TheoryMetric, Double>> iterationTrainEvaluation;
     protected List<Map<TheoryMetric, Double>> iterationTestEvaluation;
 
-    protected long begin;
-    protected long beginTraining;
-    protected long endTime;
-
     /**
      * Default constructor to allow YAML serialization.
      */
     public IterationStatistics() {
+        iterationKnowledgeSizes = new ArrayList<>(numberOfIterations);
+        iterationExamplesSizes = new ArrayList<>(numberOfIterations);
+
+        iterationTrainEvaluation = new ArrayList<>(numberOfIterations);
+        iterationTestEvaluation = new ArrayList<>(numberOfIterations);
     }
 
     /**
@@ -69,12 +73,8 @@ public class IterationStatistics {
      * @param numberOfIterations the number of iterations
      */
     public IterationStatistics(int numberOfIterations) {
+        this();
         this.numberOfIterations = numberOfIterations;
-        iterationKnowledgeSizes = new ArrayList<>(numberOfIterations);
-        iterationExamplesSizes = new ArrayList<>(numberOfIterations);
-
-        iterationTrainEvaluation = new ArrayList<>(numberOfIterations);
-        iterationTestEvaluation = new ArrayList<>(numberOfIterations);
     }
 
     /**
@@ -206,57 +206,21 @@ public class IterationStatistics {
     }
 
     /**
-     * Gets the begin time.
+     * Gets the time measure.
      *
-     * @return the begin time
+     * @return the time measure
      */
-    public long getBegin() {
-        return begin;
+    public TimeMeasure getTimeMeasure() {
+        return timeMeasure;
     }
 
     /**
-     * Sets the begin time.
+     * Sets the time measure.
      *
-     * @param begin the begin time
+     * @param timeMeasure the time measure
      */
-    public void setBegin(long begin) {
-        this.begin = begin;
-    }
-
-    /**
-     * Gets the begin training time.
-     *
-     * @return the begin training time
-     */
-    public long getBeginTraining() {
-        return beginTraining;
-    }
-
-    /**
-     * Sets the begin training time.
-     *
-     * @param beginTraining the begin training time
-     */
-    public void setBeginTraining(long beginTraining) {
-        this.beginTraining = beginTraining;
-    }
-
-    /**
-     * Gets the ending time.
-     *
-     * @return the ending time
-     */
-    public long getEndTime() {
-        return endTime;
-    }
-
-    /**
-     * Sets the ending time.
-     *
-     * @param endTime the ending time
-     */
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
+    public void setTimeMeasure(TimeMeasure timeMeasure) {
+        this.timeMeasure = timeMeasure;
     }
 
     @Override
@@ -280,11 +244,9 @@ public class IterationStatistics {
 
             appendEvaluation(sortedMetrics, description, i, iterationTrainEvaluation, "Train");
             appendEvaluation(sortedMetrics, description, i, iterationTestEvaluation, "Test");
-
             description.append("\n");
         }
-
-        appendRunTime(description);
+        description.append("\t").append("Total Run Time:\t").append(timeMeasure).append("\n");
 
         return description.toString();
     }
@@ -361,25 +323,10 @@ public class IterationStatistics {
             for (TheoryMetric metric : sortedMetrics) {
                 evaluation = iterationTrainEvaluation.get(index).get(metric);
                 if (evaluation != null) {
-                    description.append("\t\t\t\t- ").append(metric).append(":\t").append(evaluation);
+                    description.append("\t\t\t\t- ").append(metric).append(":\t").append(evaluation).append("\n");
                 }
             }
         }
-    }
-
-    /**
-     * Appends the run time to the description.
-     *
-     * @param description the description
-     */
-    protected void appendRunTime(StringBuilder description) {
-        description.append("\t").append("Run time:\n");
-        description.append("\t\t").append("- IO time:\t\t\t")
-                .append(TimeUtils.formatNanoDifference(begin, beginTraining));
-        description.append("\t\t").append("- Training time:\t")
-                .append(TimeUtils.formatNanoDifference(beginTraining, endTime));
-        description.append("\t\t").append("- Total time:\t")
-                .append(TimeUtils.formatNanoDifference(begin, endTime));
     }
 
     /**

@@ -29,21 +29,23 @@ package br.ufrj.cos.util.log;
  * @author Victor Guimarães
  */
 @SuppressWarnings({"JavaDoc"})
-public enum PreRevisionLog {
+public enum IterationLog {
 
-    CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
-    SKIPPING_REVISION_ON_EXAMPLES("Skipping the revision on examples, not enough examples to exceed the threshold."),
-    TRY_REFINE_RULE("Trying to refine rule:\t{}"),
-    SELECTED_OPERATOR("Operator selected for revision:\t{}"),
-
-    RULE_PROPOSED_TO_THEORY("Rule proposed to be add to the theory:\t{}"),
-    RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
-
-    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
+    BEGIN_REVISION_ITERATIONS("Begin the revision of {} iteration(s)"),
+    REVISING_ITERATION("Revising iteration:\t{}"),
+    ADDED_ITERATION_KNOWLEDGE("Added iteration's knowledge:\t{}"),
+    BEGIN_REVISION_EXAMPLE("Begin the revision of\t{} example(s)"),
+    END_REVISION_EXAMPLE("Ended the revision of the example(s)"),
+    BEGIN_EVALUATION("Begin the evaluation on iteration:\t{}"),
+    END_TRAIN_EVALUATION("Ended the train evaluation on iteration:\t{}"),
+    END_TEST_EVALUATION("Ended the test evaluation on iteration:\t{}"),
+    END_REVISION_ITERATION("Ended the revision of the {} iteration(s)"),
+    ITERATION_TRAINING_TIME("Training time of the iteration:\t{}"),
+    END_REVISION_ITERATIONS("Ended the revision of the iteration(s)"),;
 
     protected final String message;
 
-    PreRevisionLog(String message) {
+    IterationLog(String message) {
         this.message = message;
     }
 

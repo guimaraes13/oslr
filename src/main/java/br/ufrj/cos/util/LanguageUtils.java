@@ -29,6 +29,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import com.esotericsoftware.yamlbeans.YamlWriter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
@@ -563,6 +564,7 @@ public final class LanguageUtils {
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
                                                                                DEFAULT_INPUT_ENCODE))) {
             writer.write(content);
+            writer.close();
         }
     }
 
@@ -760,6 +762,24 @@ public final class LanguageUtils {
         parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
         parser.parseKnowledgeAppend(clauses);
         reader.close();
+    }
+
+    /**
+     * Saves the object as a yaml file
+     *
+     * @param object the object
+     * @param file   the output file
+     * @throws IOException if an I/O error has occurred
+     */
+    public static void writeObjectToYamlFile(Object object, File file) throws IOException {
+//        try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+//                                                                                       DEFAULT_INPUT_ENCODE))) {
+//            YamlWriter writer = new YamlWriter(bufferedWriter);
+//            writer.write(object);
+//        }
+        YamlWriter write = new YamlWriter(new FileWriter(file));
+        write.write(object);
+        write.close();
     }
 
 }
