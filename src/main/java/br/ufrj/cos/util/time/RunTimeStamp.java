@@ -34,8 +34,6 @@ public enum RunTimeStamp implements TimeStampTag {
     BEGIN("Begin."),
     BEGIN_INITIALIZE("Begin initialize."),
     END_INITIALIZE("End initialize."),
-    BEGIN_DISK_INPUT("Begin disk input."),
-    END_DISK_INPUT("End disk input."),
     BEGIN_TRAIN("Begin training."),
     END_TRAIN("End training."),
     BEGIN_DISK_OUTPUT("Begin disk output."),

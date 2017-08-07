@@ -22,9 +22,10 @@
 package br.ufrj.cos.util.time;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Class to measure time between point in the code.
@@ -41,18 +42,46 @@ public class TimeMeasure<T> {
      */
     public static final int BEGIN_INDEX = 0;
 
-    protected final List<Long> timeStamps;
-    protected final Map<T, Integer> stampsByName;
-    protected int lastIndex = BEGIN_INDEX;
-    protected boolean isEnded;
+    /**
+     * The time stamps.
+     */
+    public List<Long> timeStamps;
+    /**
+     * The stamps tags.
+     */
+    public Map<T, Integer> stampsByName;
+    /**
+     * The index of the last saved stamp.
+     */
+    public int lastIndex = BEGIN_INDEX;
+    /**
+     * If this class is finished to saving stamps.
+     */
+    public boolean isEnded;
 
     /**
      * Default constructor.
      */
     public TimeMeasure() {
         this.timeStamps = new ArrayList<>();
-        this.stampsByName = new HashMap<>();
+        this.stampsByName = new LinkedHashMap<>();
         this.isEnded = false;
+    }
+
+    /**
+     * Converts this time measure of type {@link T} to a time measure of type {@link R}.
+     *
+     * @param function the function of {@link T} to {@link R}
+     * @param <R>      the output type of the {@link TimeMeasure}
+     * @return the {@link TimeMeasure} of type {@link R}
+     */
+    public <R> TimeMeasure<R> convertTimeMeasure(Function<T, R> function) {
+        TimeMeasure<R> timeMeasure = new TimeMeasure<>();
+        timeMeasure.timeStamps.addAll(this.timeStamps);
+        this.stampsByName.forEach((key, value) -> timeMeasure.stampsByName.put(function.apply(key), value));
+        timeMeasure.isEnded = this.isEnded;
+        timeMeasure.lastIndex = this.lastIndex;
+        return timeMeasure;
     }
 
     /**

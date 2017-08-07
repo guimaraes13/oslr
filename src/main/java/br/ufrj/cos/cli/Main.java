@@ -31,6 +31,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import br.ufrj.cos.util.IterationStatistics;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlReader;
@@ -69,6 +70,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
+        test();
+        System.exit(0);
         long begin = TimeUtils.getNanoTime();
         logger.info("Begin Program!");
         // ---------- Program Begin! ----------
@@ -86,6 +89,22 @@ public class Main {
         long end = TimeUtils.getNanoTime();
         logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         logger.fatal("End Program!");
+    }
+
+    public static void test() {
+        String anchor = "- &var1 X1\n- *var1";
+
+        YamlReader reader = null;
+        try {
+            final String pathname = "/Users/Victor/Desktop/nell/STD_OUT";
+            final String filename = "statistics_2017_08_07_16h34min56s.yaml";
+            reader = new YamlReader(LanguageUtils.readFileToString(new File(pathname, filename)));
+            IterationStatistics it = (IterationStatistics) reader.read();
+            System.out.println(it);
+//            LanguageUtils.writeObjectToYamlFile(it, new File(pathname, "out_" + filename), false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void processBase(File file, List<Term> seeds, int distance1, int distance2)
@@ -164,27 +183,6 @@ public class Main {
 //        grounder(1e-2, 0.1, groundingArguments);
 //        trainer(1e-2, 0.1, trainingArguments);
         inference(1e-2, 0.1, inferenceArguments);
-    }
-
-    public static void test() {
-        String anchor = "- &var1 X1\n- *var1";
-
-        YamlReader reader = null;
-        try {
-            reader = new YamlReader(new StringReader(anchor));
-
-            List<String> variables = (List<String>) reader.read();
-            System.out.println("Variable1:\t\"" + variables.get(0) + "\"");
-            System.out.println("Variable2:\t\"" + variables.get(1) + "\"");
-
-            if (variables.get(0) == variables.get(1)) {
-                System.out.println("[ OK  ] - The variables represent the same object!");
-            } else {
-                System.out.println("[ERROR] - The variables represent different objects!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void inference(double epsilon, double alpha, String[] args) {

@@ -29,6 +29,7 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import com.esotericsoftware.yamlbeans.YamlConfig;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -767,19 +768,33 @@ public final class LanguageUtils {
     /**
      * Saves the object as a yaml file
      *
-     * @param object the object
-     * @param file   the output file
+     * @param object       the object
+     * @param file         the output file
      * @throws IOException if an I/O error has occurred
      */
     public static void writeObjectToYamlFile(Object object, File file) throws IOException {
-//        try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-//                                                                                       DEFAULT_INPUT_ENCODE))) {
-//            YamlWriter writer = new YamlWriter(bufferedWriter);
-//            writer.write(object);
-//        }
-        YamlWriter write = new YamlWriter(new FileWriter(file));
-        write.write(object);
-        write.close();
+        writeObjectToYamlFile(object, file, false);
+    }
+
+    /**
+     * Saves the object as a yaml file
+     *
+     * @param object       the object
+     * @param file         the output file
+     * @param isAutoAnchor if is to use auto anchor
+     * @throws IOException if an I/O error has occurred
+     */
+    public static void writeObjectToYamlFile(Object object, File file, boolean isAutoAnchor) throws IOException {
+        YamlConfig config = new YamlConfig();
+        config.writeConfig.setIndentSize(2);
+        config.writeConfig.setKeepBeanPropertyOrder(true);
+        config.writeConfig.setAutoAnchor(isAutoAnchor);
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                                       DEFAULT_INPUT_ENCODE))) {
+            YamlWriter writer = new YamlWriter(bufferedWriter, config);
+            writer.write(object);
+            writer.close();
+        }
     }
 
 }

@@ -36,7 +36,7 @@ public class IterationTimeStampFactory {
 
     protected final String iterationPrefix;
 
-    protected Map<Integer, Map<IterationTimeMessage, IterationTimeStamp>> messages;
+    protected final Map<Integer, Map<IterationTimeMessage, IterationTimeStamp>> messages;
 
     /**
      * Default constructor with the iteration prefix.

@@ -157,8 +157,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             timeMeasure.measure(RunTimeStamp.END_DISK_OUTPUT);
             timeMeasure.endMeasure(RunTimeStamp.END);
             logger.warn(iterationStatistics);
-            //TODO: see why the line below does not work
-//            LanguageUtils.writeObjectToYamlFile(iterationStatistics, getStatisticsFile());
+            saveStatistics();
             logger.warn(TOTAL_INITIALIZATION_TIME.toString(),
                         timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE));
             logger.warn(TOTAL_TRAINING_TIME.toString(),
@@ -171,6 +170,28 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         } catch (IOException e) {
             logger.error(ERROR_WRITING_OUTPUT_FILE, e);
         }
+    }
+
+    /**
+     * Saves the statistics of the run to a yaml file.
+     *
+     * @throws IOException if an I/O error has occurred
+     */
+    protected void saveStatistics() throws IOException {
+        IterationStatistics<String> statistics = new IterationStatistics<>();
+        statistics.setNumberOfIterations(iterationStatistics.getNumberOfIterations());
+        statistics.setIterationPrefix(iterationStatistics.getIterationPrefix());
+        statistics.setTargetRelation(iterationStatistics.getTargetRelation());
+
+        statistics.setIterationKnowledgeSizes(iterationStatistics.getIterationKnowledgeSizes());
+        statistics.setIterationExamplesSizes(iterationStatistics.getIterationExamplesSizes());
+
+        statistics.setIterationTrainEvaluation(iterationStatistics.getIterationTrainEvaluation());
+        statistics.setIterationTestEvaluation(iterationStatistics.getIterationTestEvaluation());
+
+        statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(TimeStampTag::getMessage));
+
+        LanguageUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
     }
 
     @Override
@@ -456,7 +477,8 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * @return the statistics file name
      */
     public File getStatisticsFile() {
-        return new File(outputDirectory, String.format(STATISTICS_FILE_NAME, outputRunTime));
+        return new File(new File(outputDirectory, OUTPUT_STANDARD_DIRECTORY),
+                        String.format(STATISTICS_FILE_NAME, outputRunTime));
     }
 
     /**

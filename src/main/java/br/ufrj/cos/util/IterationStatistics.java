@@ -53,8 +53,8 @@ public class IterationStatistics<T> {
     protected List<Integer> iterationKnowledgeSizes;
     protected List<Integer> iterationExamplesSizes;
 
-    protected List<Map<TheoryMetric, Double>> iterationTrainEvaluation;
-    protected List<Map<TheoryMetric, Double>> iterationTestEvaluation;
+    protected List<Map> iterationTrainEvaluation;
+    protected List<Map> iterationTestEvaluation;
 
     /**
      * Default constructor to allow YAML serialization.
@@ -172,7 +172,7 @@ public class IterationStatistics<T> {
      *
      * @return the iterations train evaluations
      */
-    public List<Map<TheoryMetric, Double>> getIterationTrainEvaluation() {
+    public List<Map> getIterationTrainEvaluation() {
         return iterationTrainEvaluation;
     }
 
@@ -181,8 +181,7 @@ public class IterationStatistics<T> {
      *
      * @param iterationTrainEvaluation the iterations train evaluations
      */
-    public void setIterationTrainEvaluation(
-            List<Map<TheoryMetric, Double>> iterationTrainEvaluation) {
+    public void setIterationTrainEvaluation(List<Map> iterationTrainEvaluation) {
         this.iterationTrainEvaluation = iterationTrainEvaluation;
     }
 
@@ -191,7 +190,7 @@ public class IterationStatistics<T> {
      *
      * @return the iterations test evaluations
      */
-    public List<Map<TheoryMetric, Double>> getIterationTestEvaluation() {
+    public List<Map> getIterationTestEvaluation() {
         return iterationTestEvaluation;
     }
 
@@ -200,8 +199,7 @@ public class IterationStatistics<T> {
      *
      * @param iterationTestEvaluation the iterations test evaluations
      */
-    public void setIterationTestEvaluation(
-            List<Map<TheoryMetric, Double>> iterationTestEvaluation) {
+    public void setIterationTestEvaluation(List<Map> iterationTestEvaluation) {
         this.iterationTestEvaluation = iterationTestEvaluation;
     }
 
@@ -219,13 +217,13 @@ public class IterationStatistics<T> {
      *
      * @param timeMeasure the time measure
      */
-    public void setTimeMeasure(TimeMeasure timeMeasure) {
+    public void setTimeMeasure(TimeMeasure<T> timeMeasure) {
         this.timeMeasure = timeMeasure;
     }
 
     @Override
     public String toString() {
-        final List<TheoryMetric> sortedMetrics = getSortedMetrics();
+        final List sortedMetrics = getSortedMetrics();
 
         StringBuilder description = new StringBuilder();
         appendGeneralInformation(description);
@@ -256,8 +254,8 @@ public class IterationStatistics<T> {
      *
      * @return the sorted metrics.
      */
-    protected List<TheoryMetric> getSortedMetrics() {
-        final Set<TheoryMetric> metricSet = new HashSet<>();
+    protected List getSortedMetrics() {
+        final Set<Object> metricSet = new HashSet<>();
         iterationTrainEvaluation.stream().flatMap(m -> m.keySet().stream()).forEach(metricSet::add);
         iterationTestEvaluation.stream().flatMap(m -> m.keySet().stream()).forEach(metricSet::add);
         return metricSet.stream().sorted(Comparator.comparing(o -> o.getClass().getSimpleName()))
@@ -315,15 +313,15 @@ public class IterationStatistics<T> {
      * @param label               the label of the evaluation type {@code {Train, Test}}
      */
     @SuppressWarnings("MethodWithTooManyParameters")
-    protected void appendEvaluation(List<TheoryMetric> sortedMetrics, StringBuilder description, int index,
-                                    List<Map<TheoryMetric, Double>> iterationEvaluation, String label) {
-        Double evaluation;
+    protected void appendEvaluation(List sortedMetrics, StringBuilder description, int index,
+                                    List<Map> iterationEvaluation, String label) {
+        Object value;
         if (index < iterationEvaluation.size()) {
             description.append("\t\t\t- ").append(label).append(" Evaluation:\n");
-            for (TheoryMetric metric : sortedMetrics) {
-                evaluation = iterationTrainEvaluation.get(index).get(metric);
-                if (evaluation != null) {
-                    description.append("\t\t\t\t- ").append(metric).append(":\t").append(evaluation).append("\n");
+            for (Object key : sortedMetrics) {
+                value = iterationTrainEvaluation.get(index).get(key);
+                if (value != null) {
+                    description.append("\t\t\t\t- ").append(key).append(":\t").append(value).append("\n");
                 }
             }
         }
