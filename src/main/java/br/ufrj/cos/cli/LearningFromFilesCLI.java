@@ -70,6 +70,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
@@ -77,6 +78,7 @@ import static br.ufrj.cos.util.log.FileIOLog.READING_INPUT_FILES;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 import static br.ufrj.cos.util.log.ParsingLog.ERROR_READING_INPUT_FILES;
+import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 
 /**
@@ -232,6 +234,11 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     protected LearningSystem learningSystem;
 
     /**
+     * The integer number format.
+     */
+    protected NumberFormat integerFormat;
+
+    /**
      * The main method
      *
      * @param args the command line arguments
@@ -362,6 +369,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
 
     @Override
     public void initialize() throws InitializationException {
+        integerFormat = NumberFormat.getIntegerInstance();
         instantiateClasses();
         saveConfigurations();
     }
@@ -497,8 +505,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void reviseExamples() {
         //IMPROVE: delegate this function to the ExampleStream
+        int count = 1;
+        final int size = examples.size();
         for (Example example : examples) {
+            logger.trace(PASSING_EXAMPLE_REVISION.toString(), integerFormat.format(count), integerFormat.format(size));
             learningSystem.incomingExampleManager.incomingExamples(example);
+            count++;
         }
     }
 

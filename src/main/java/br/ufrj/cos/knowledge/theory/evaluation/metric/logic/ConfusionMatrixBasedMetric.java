@@ -30,8 +30,6 @@ import br.ufrj.cos.logic.Atom;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Template for confusion matrix based metrics. Calculates the confusion matrix of the system given the examples.
@@ -73,9 +71,7 @@ public abstract class ConfusionMatrixBasedMetric extends TheoryMetric {
     protected void calculateConfusionMatrix(Map<Example, Map<Atom, Double>> inferredResult,
                                             Collection<? extends Example> examples) {
         Map<Atom, Double> atomValues;
-        Set<Example> provedExamples;
-        provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e)).collect(Collectors.toSet());
-        for (Example example : provedExamples) {
+        for (Example example : examples) {
             atomValues = inferredResult.get(example);
             for (AtomExample atomExample : example.getGroundedQuery()) {
                 incrementMatrixCell(atomValues, atomExample);

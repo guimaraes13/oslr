@@ -35,7 +35,9 @@ public class AccuracyMetric extends ConfusionMatrixBasedMetric {
 
     @Override
     protected double calculateConfusionMatrixMetric() {
-        return (double) (truePositive + trueNegative) / (truePositive + trueNegative + falsePositive + falseNegative);
+        final int numerator = truePositive + trueNegative;
+        if (numerator == 0) { return 0.0; }
+        return (double) numerator / (truePositive + trueNegative + falsePositive + falseNegative);
     }
 
     @Override

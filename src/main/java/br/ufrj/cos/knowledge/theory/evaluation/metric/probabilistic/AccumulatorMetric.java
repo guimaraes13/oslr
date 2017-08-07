@@ -44,6 +44,11 @@ import java.util.stream.Collectors;
  */
 public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
 
+    /**
+     * The default value for unanswered examples.
+     */
+    public static final double NOT_INFERRED_EXAMPLE_VALUE = 0.0;
+
     @Override
     public double evaluate(Map<Example, Map<Atom, Double>> inferredResult, Collection<? extends Example> examples) {
         J evaluation = calculateEvaluation(inferredResult, examples);
@@ -112,10 +117,8 @@ public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
         J result = initialAccumulatorValue();
         Double value;
         for (AtomExample atomExample : groundedQuery) {
-            value = atomValues.get(atomExample.getAtom());
-            if (value != null) {
-                result = accumulateAppend(result, calculateAppend(atomExample, value));
-            }
+            value = atomValues.getOrDefault(atomExample.getAtom(), NOT_INFERRED_EXAMPLE_VALUE);
+            result = accumulateAppend(result, calculateAppend(atomExample, value));
         }
         return result;
     }

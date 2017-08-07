@@ -35,6 +35,7 @@ public class F1ScoreMetric extends ConfusionMatrixBasedMetric {
 
     @Override
     protected double calculateConfusionMatrixMetric() {
+        if (truePositive == 0) { return 0.0; }
         return (double) (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
     }
 

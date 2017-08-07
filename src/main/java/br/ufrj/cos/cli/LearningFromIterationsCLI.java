@@ -53,6 +53,7 @@ import static br.ufrj.cos.cli.CommandLineOptions.*;
 import static br.ufrj.cos.util.LanguageUtils.DEFAULT_INPUT_ENCODE;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.IterationLog.*;
+import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 import static br.ufrj.cos.util.time.RunTimeStamp.BEGIN_INITIALIZE;
 import static br.ufrj.cos.util.time.RunTimeStamp.END_INITIALIZE;
@@ -126,7 +127,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected IterationStatistics<TimeStampTag> iterationStatistics;
     protected TimeMeasure<TimeStampTag> timeMeasure;
     protected IterationTimeStampFactory timeStampFactory;
-    protected NumberFormat numberFormat;
 
     /**
      * The main method
@@ -201,7 +201,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             timeMeasure = new TimeMeasure<>();
             timeMeasure.measure(RunTimeStamp.BEGIN);
             timeMeasure.measure(BEGIN_INITIALIZE);
-            numberFormat = NumberFormat.getIntegerInstance();
             timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
             iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
             build();
@@ -426,11 +425,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure.measure(beginStamp);
         addIterationKnowledge(index);
         // measure the time to add knowledge to the learning system
-        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), numberFormat.format(iterationExamples.get(index).size()));
-        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
-        for (Example example : iterationExamples.get(index)) {
-            learningSystem.incomingExampleManager.incomingExamples(example);
-        }
+        passExamplesToRevise(index);
         // measure the time to train in the iteration
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.REVISION_DONE));
         logger.trace(END_REVISION_EXAMPLE.toString());
@@ -449,7 +444,25 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     protected void addIterationKnowledge(int index) {
         learningSystem.addAtomsToKnowledgeBase(iterationKnowledge.get(index));
-        logger.trace(ADDED_ITERATION_KNOWLEDGE.toString(), numberFormat.format(iterationKnowledge.get(index).size()));
+        logger.trace(ADDED_ITERATION_KNOWLEDGE.toString(), integerFormat.format(iterationKnowledge.get(index).size()));
+    }
+
+    /**
+     * Passes the examples to revise.
+     *
+     * @param index the index of the iteration
+     */
+    protected void passExamplesToRevise(int index) {
+        final Examples currentExamples = iterationExamples.get(index);
+        final int size = currentExamples.size();
+        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
+        int count = 1;
+        for (Example example : currentExamples) {
+            logger.trace(PASSING_EXAMPLE_REVISION.toString(), integerFormat.format(count), integerFormat.format(size));
+            learningSystem.incomingExampleManager.incomingExamples(example);
+            count++;
+        }
     }
 
     /**
