@@ -633,8 +633,8 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         description.append("\t").append("Negative Extension:\t").append(negativeExtension).append("\n");
         description.append("\t").append("Examples Extension:\t").append(examplesFileExtension).append("\n");
         description.append("\t").append("Target Relation:\t").append(targetRelation).append("\n");
-        description.append("\t").append("Iteration Directories:\n");
         appendSelectedRelations(description);
+        description.append("\t").append("Iteration Directories:\n");
         for (int i = 0; i < iterationDirectories.length; i++) {
             description.append("\t\t - ").append(iterationDirectories[i].getName());
             description.append("\tSize:\t").append(integerFormat.format(iterationKnowledge.get(i).size()));
