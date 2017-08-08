@@ -45,7 +45,8 @@ public enum IterationLog {
     END_REVISION_ITERATIONS("Ended the revision of the iteration(s)"),
     ITERATION_DATA_SAVED("Iteration theory saved in directory:\t{}"),
     ERROR_WRITING_ITERATION_THEORY_FILE("Error when writing the iteration's theory, reason:\t{}"),
-    ERROR_WRITING_ITERATION_INFERENCE_FILE("Error when writing the iteration's inferences, reason:\t{}");
+    ERROR_WRITING_ITERATION_INFERENCE_FILE("Error when writing the iteration's inferences, reason:\t{}"),
+    ERROR_WRITING_STATISTICS_FILE("Error when writing the statistics to file, reason:\t{}");
 
     protected final String message;
 

@@ -20,7 +20,7 @@ engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    numberOfThreads:        1
    normalizeAnswers:       true
    aprOptions: !edu.cmu.ml.proppr.util.APROptions
-      epsilon:    1e-4
+      epsilon:    1e-2
       alpha:      0.1
       maxDepth:   20
       traceDepth: 0
@@ -44,7 +44,7 @@ revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.BestRe
 theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
 theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager
    theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
-   delta:                  0.2
+   delta:                  0.1
    trainUsingAllExamples:  true
 
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager

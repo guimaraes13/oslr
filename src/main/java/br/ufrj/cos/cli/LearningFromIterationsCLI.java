@@ -54,6 +54,7 @@ import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 import static br.ufrj.cos.util.time.RunTimeStamp.BEGIN_INITIALIZE;
 import static br.ufrj.cos.util.time.RunTimeStamp.END_INITIALIZE;
+import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
 
 /**
  * A Command Line Interface which allows experiments of learning from files separated by iterations.
@@ -173,15 +174,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             timeMeasure.endMeasure(RunTimeStamp.END);
             logger.warn(iterationStatistics);
             saveStatistics();
-            logger.warn(TOTAL_INITIALIZATION_TIME.toString(),
-                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE));
-            logger.warn(TOTAL_TRAINING_TIME.toString(),
-                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_TRAIN, RunTimeStamp.END_TRAIN));
-            logger.warn(TOTAL_OUTPUT_TIME.toString(),
-                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN_DISK_OUTPUT,
-                                                          RunTimeStamp.END_DISK_OUTPUT));
-            logger.warn(TOTAL_PROGRAM_TIME.toString(),
-                        timeMeasure.textTimeBetweenStamps(RunTimeStamp.BEGIN, RunTimeStamp.END));
+            logElapsedTimes();
         } catch (IOException e) {
             logger.error(ERROR_WRITING_OUTPUT_FILE, e);
         }
@@ -189,24 +182,74 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     /**
      * Saves the statistics of the run to a yaml file.
-     *
-     * @throws IOException if an I/O error has occurred
      */
-    protected void saveStatistics() throws IOException {
-        IterationStatistics<String> statistics = new IterationStatistics<>();
-        statistics.setNumberOfIterations(iterationStatistics.getNumberOfIterations());
-        statistics.setIterationPrefix(iterationStatistics.getIterationPrefix());
-        statistics.setTargetRelation(iterationStatistics.getTargetRelation());
+    protected void saveStatistics() {
+        try {
+            IterationStatistics<String> statistics = new IterationStatistics<>();
+            statistics.setNumberOfIterations(iterationStatistics.getNumberOfIterations());
+            statistics.setIterationPrefix(iterationStatistics.getIterationPrefix());
+            statistics.setTargetRelation(iterationStatistics.getTargetRelation());
 
-        statistics.setIterationKnowledgeSizes(iterationStatistics.getIterationKnowledgeSizes());
-        statistics.setIterationExamplesSizes(iterationStatistics.getIterationExamplesSizes());
+            statistics.setIterationKnowledgeSizes(iterationStatistics.getIterationKnowledgeSizes());
+            statistics.setIterationExamplesSizes(iterationStatistics.getIterationExamplesSizes());
 
-        statistics.setIterationTrainEvaluation(iterationStatistics.getIterationTrainEvaluation());
-        statistics.setIterationTestEvaluation(iterationStatistics.getIterationTestEvaluation());
+            statistics.setIterationTrainEvaluation(iterationStatistics.getIterationTrainEvaluation());
+            statistics.setIterationTestEvaluation(iterationStatistics.getIterationTestEvaluation());
 
-        statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(TimeStampTag::getMessage));
+            statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(TimeStampTag::getMessage));
 
-        FileIOUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
+            FileIOUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
+        } catch (IOException e) {
+            logger.error(ERROR_WRITING_STATISTICS_FILE, e);
+        }
+    }
+
+    /**
+     * Logs the elapsed times of the run.
+     */
+    protected void logElapsedTimes() {
+        long initializeTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE);
+        long allTrainingTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_TRAIN, RunTimeStamp.END_TRAIN);
+        long outputTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_DISK_OUTPUT, RunTimeStamp.END_DISK_OUTPUT);
+        long totalProgramTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN, RunTimeStamp.END);
+
+        logger.warn(TOTAL_INITIALIZATION_TIME.toString(), formatNanoDifference(initializeTime));
+        logger.warn(TOTAL_TRAINING_TIME.toString(), formatNanoDifference(allTrainingTime));
+
+        detailedTimeBySteps();
+
+        logger.warn(TOTAL_OUTPUT_TIME.toString(), formatNanoDifference(outputTime));
+        logger.warn(TOTAL_PROGRAM_TIME.toString(), formatNanoDifference(totalProgramTime));
+    }
+
+    /**
+     * A detailed log which logs the total time of the iterations by each step. The step are: loading knowledge,
+     * revision, inference, output files.
+     */
+    protected void detailedTimeBySteps() {
+        long iterationLoadTime = 0;
+        long iterationRevisionTime = 0;
+        long iterationInferenceTime = 0;
+        long iterationOutputTime = 0;
+        for (int i = 0; i < iterationKnowledge.size(); i++) {
+            iterationLoadTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.BEGIN),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
+            iterationRevisionTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE));
+            iterationInferenceTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE));
+            iterationOutputTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.END));
+        }
+
+        logger.warn(ITERATIONS_KNOWLEDGE_LOAD_TIME.toString(), formatNanoDifference(iterationLoadTime));
+        logger.warn(ITERATIONS_REVISION_TIME.toString(), formatNanoDifference(iterationRevisionTime));
+        logger.warn(ITERATIONS_EVALUATION_TIME.toString(), formatNanoDifference(iterationOutputTime));
+        logger.warn(ITERATIONS_SAVING_FILES_TIME.toString(), formatNanoDifference(iterationInferenceTime));
     }
 
     /**
@@ -300,7 +343,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         endStamp = timeStampFactory.getTimeStamp(index, IterationTimeMessage.END);
         timeMeasure.measure(endStamp);
         logger.debug(END_REVISION_ITERATION.toString(), index);
-        logger.trace(ITERATION_TRAINING_TIME.toString(), timeMeasure.textTimeBetweenStamps(beginStamp, endStamp));
+        logger.debug(ITERATION_TRAINING_TIME.toString(), timeMeasure.textTimeBetweenStamps(beginStamp, endStamp));
     }
 
     /**
@@ -354,7 +397,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         } else {
             testInferredExamples = null;
         }
-        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.END_EVALUATION_DONE));
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.EVALUATION_DONE));
         logger.trace(END_EVALUATION.toString(), index);
     }
 
@@ -409,6 +452,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
                                                 new File(iterationDirectory, TEST_INFERENCE_FILE_NAME));
         }
         learningSystem.saveParameters(iterationDirectory);
+        saveStatistics();
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.SAVING_EVALUATION_DONE));
         logger.trace(ITERATION_DATA_SAVED.toString(), iterationDirectory.getAbsolutePath());
     }

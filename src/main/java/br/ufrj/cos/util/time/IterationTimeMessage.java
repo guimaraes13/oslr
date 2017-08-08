@@ -36,7 +36,7 @@ public enum IterationTimeMessage {
     REVISION_DONE("Revision on %s%d done"),
     TRAIN_EVALUATION_DONE("Train evaluation on %s%d done"),
     TEST_EVALUATION_DONE("Test evaluation on %s%d done"),
-    END_EVALUATION_DONE("End of evaluation on %s%d"),
+    EVALUATION_DONE("End of evaluation on %s%d"),
     SAVING_EVALUATION_DONE("End of saving evaluation on %s%d\t to files"),
     END("End of %s%d");
 
