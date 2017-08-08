@@ -42,7 +42,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -132,6 +131,13 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * The target relation to learn the theory.
      */
     public String targetRelation;
+
+    /**
+     * The set of selected relations to consider. If it is null (or empty), all the relations will be considered,
+     * otherwise, only the relations in the set will be.
+     */
+    @SuppressWarnings("CanBeFinal")
+    public Set<String> selectedRelations = null;
 
     protected File[] iterationDirectories;
     protected List<Collection<? extends Atom>> iterationKnowledge;
@@ -575,7 +581,13 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     protected void loadKnowledge() throws IOException, ParseException {
         final String targetFileName = targetRelation + positiveExtension;
-        final FilenameFilter relationFilenameFilter = (dir, name) -> name.endsWith(positiveExtension);
+        final FilenameFilter relationFilenameFilter;
+        if (selectedRelations == null || selectedRelations.isEmpty()) {
+            relationFilenameFilter = (dir, name) -> name.endsWith(positiveExtension);
+        } else {
+            relationFilenameFilter = (dir, name) -> name.endsWith(positiveExtension) &&
+                    selectedRelations.contains(name.substring(0, name.length() - positiveExtension.length()));
+        }
         Set<Atom> clauses;
         File[] relations;
 
@@ -622,16 +634,30 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         description.append("\t").append("Examples Extension:\t").append(examplesFileExtension).append("\n");
         description.append("\t").append("Target Relation:\t").append(targetRelation).append("\n");
         description.append("\t").append("Iteration Directories:\n");
-        NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+        appendSelectedRelations(description);
         for (int i = 0; i < iterationDirectories.length; i++) {
             description.append("\t\t - ").append(iterationDirectories[i].getName());
-            description.append("\tSize:\t").append(numberFormat.format(iterationKnowledge.get(i).size()));
-            description.append("\tExamples (ProPPR):\t").append(numberFormat.format(iterationExamples.get(i).size()))
-                    .append("\tExamples (All):\t").append(numberFormat.format(flatProPprExamples(iterationExamples
-                                                                                                         .get(i))));
+            description.append("\tSize:\t").append(integerFormat.format(iterationKnowledge.get(i).size()));
+            description.append("\tExamples (ProPPR):\t").append(integerFormat.format(iterationExamples.get(i).size()))
+                    .append("\tExamples (All):\t")
+                    .append(integerFormat.format(flatProPprExamples(iterationExamples.get(i))));
             description.append("\n");
         }
+
         return description.toString();
+    }
+
+    /**
+     * Appends the selected relations to the description.
+     *
+     * @param description the description
+     */
+    @SuppressWarnings("HardCodedStringLiteral")
+    protected void appendSelectedRelations(StringBuilder description) {
+        if (selectedRelations != null && !selectedRelations.isEmpty()) {
+            description.append("\t").append("Selected Relations:\n");
+            selectedRelations.stream().sorted().forEach(r -> description.append("\t\t - ").append(r).append("\n"));
+        }
     }
 
     /**
