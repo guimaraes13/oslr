@@ -24,9 +24,9 @@ package br.ufrj.cos.knowledge.theory.manager.revision.point;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 /**
  * Class to select if a example is relevant to be evaluated or not. All the examples of a revision point must be
@@ -84,8 +84,8 @@ public abstract class RelevantSampleSelector implements Initializable {
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LearningSystem.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }

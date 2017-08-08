@@ -24,8 +24,8 @@ package br.ufrj.cos.knowledge.theory.manager.revision.operator.tree;
 import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 /**
  * Super class for revision operator that performs operation in {@link TreeTheory}.
@@ -43,8 +43,8 @@ public abstract class TreeRevisionOperator extends RevisionOperator {
         super.initialize();
         if (this.treeTheory == null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TreeTheory.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TreeTheory.class.getSimpleName()));
         }
     }
 
@@ -66,8 +66,8 @@ public abstract class TreeRevisionOperator extends RevisionOperator {
     public void setTreeTheory(TreeTheory treeTheory) throws InitializationException {
         if (this.treeTheory != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TreeTheory.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TreeTheory.class.getSimpleName()));
         }
         this.treeTheory = treeTheory;
     }

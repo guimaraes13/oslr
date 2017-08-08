@@ -25,8 +25,8 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -106,8 +106,8 @@ public class IndependentSampleSelector extends RelevantSampleSelector {
     public void setRelevantDepth(int relevantDepth) throws InitializationException {
         if (!previousRelevants.isEmpty()) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_AFTER_USE.toString(),
-                                                   RELEVANT_DEPTH_FIELD_NAME));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_AFTER_USE.toString(),
+                                                 RELEVANT_DEPTH_FIELD_NAME));
         }
         if (relevantDepth > DEFAULT_RELEVANT_DEPTH) { this.relevantDepth = relevantDepth; }
     }

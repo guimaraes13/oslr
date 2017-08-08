@@ -27,9 +27,9 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.Collection;
 
@@ -138,8 +138,8 @@ public class RevisionOperatorEvaluator implements Initializable {
     public void setRevisionOperator(RevisionOperator revisionOperator) throws InitializationException {
         if (this.revisionOperator != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   RevisionOperator.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 RevisionOperator.class.getSimpleName()));
         }
         this.revisionOperator = revisionOperator;
     }

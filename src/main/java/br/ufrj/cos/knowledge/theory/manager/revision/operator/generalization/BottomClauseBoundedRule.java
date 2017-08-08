@@ -169,8 +169,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             variableGeneratorClass = (Class<? extends VariableGenerator>) Class.forName(variableGeneratorClassName);
         } catch (ClassNotFoundException e) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
-                                                   variableGeneratorClassName), e);
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
+                                                 variableGeneratorClassName), e);
         }
         multithreading = new MultithreadingEvaluation(learningSystem, theoryMetric, evaluationTimeout,
                                                       new ClauseSubstitutionAsyncTransformer());

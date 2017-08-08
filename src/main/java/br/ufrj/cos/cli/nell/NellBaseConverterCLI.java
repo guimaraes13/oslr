@@ -29,10 +29,7 @@ import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.AtomFactory;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.nell.converter.AddAtomProcessor;
 import br.ufrj.cos.util.nell.converter.AtomProcessor;
 import br.ufrj.cos.util.nell.converter.FilterAtomProcessor;
@@ -145,7 +142,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     /**
      * The file encode
      */
-    public String fileEncode = LanguageUtils.DEFAULT_INPUT_ENCODE;
+    public String fileEncode = FileIOUtils.DEFAULT_INPUT_ENCODE;
     /**
      * Comment character for the input nell file
      */
@@ -563,8 +560,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         if (!iterationDirectory.exists()) {
             if (!iterationDirectory.mkdirs()) {
                 throw new IOException(
-                        LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_CREATING_DIRECTORY.toString(),
-                                                       iterationDirectory));
+                        FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_CREATING_DIRECTORY.toString(),
+                                                     iterationDirectory));
             }
         }
 
@@ -827,8 +824,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         if (confidenceIndexes[index] < 0) { list.add(confidenceName); }
 
         if (!list.isEmpty()) {
-            throw new IOException(LanguageUtils.formatLogMessage(ExceptionMessages.INDEXES_NOT_FOUND.toString(),
-                                                                 ExceptionMessages.formatList(list), filePath));
+            throw new IOException(FileIOUtils.formatLogMessage(ExceptionMessages.INDEXES_NOT_FOUND.toString(),
+                                                               ExceptionMessages.formatList(list), filePath));
         }
     }
 

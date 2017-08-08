@@ -40,8 +40,12 @@ public enum IterationLog {
     END_TRAIN_EVALUATION("Ended the train evaluation on iteration:\t{}"),
     END_TEST_EVALUATION("Ended the test evaluation on iteration:\t{}"),
     END_REVISION_ITERATION("Ended the revision of the {} iteration(s)"),
+    END_EVALUATION("Ended the evaluation on iteration:\t{}"),
     ITERATION_TRAINING_TIME("Training time of the iteration:\t{}"),
-    END_REVISION_ITERATIONS("Ended the revision of the iteration(s)"),;
+    END_REVISION_ITERATIONS("Ended the revision of the iteration(s)"),
+    ITERATION_DATA_SAVED("Iteration theory saved in directory:\t{}"),
+    ERROR_WRITING_ITERATION_THEORY_FILE("Error when writing the iteration's theory, reason:\t{}"),
+    ERROR_WRITING_ITERATION_INFERENCE_FILE("Error when writing the iteration's inferences, reason:\t{}");
 
     protected final String message;
 

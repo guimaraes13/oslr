@@ -28,9 +28,9 @@ import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.Collection;
 
@@ -91,8 +91,8 @@ public abstract class RevisionOperator implements Initializable {
     public void setTheoryMetric(TheoryMetric theoryMetric) throws InitializationException {
         if (this.theoryMetric != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TheoryMetric.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TheoryMetric.class.getSimpleName()));
         }
         this.theoryMetric = theoryMetric;
     }
@@ -115,8 +115,8 @@ public abstract class RevisionOperator implements Initializable {
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LearningSystem.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }

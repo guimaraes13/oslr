@@ -31,8 +31,8 @@ import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -271,8 +271,8 @@ public class TreeExampleManager extends IncomingExampleManager {
     public void setTreeTheory(TreeTheory treeTheory) throws InitializationException {
         if (this.treeTheory != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TreeTheory.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TreeTheory.class.getSimpleName()));
         }
         this.treeTheory = treeTheory;
     }

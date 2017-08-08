@@ -31,8 +31,8 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.IterationStatistics;
-import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
@@ -79,7 +79,7 @@ public class Main {
         File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.190.cesv.pl");
 //        File file = new File("/Users/Victor/Desktop/nell_converter/nell.gz/threshold_0_75/NELL.08m.1060.cesv.csv.pl");
         YamlReader reader = new YamlReader(
-                LanguageUtils.readFileToString(new File("/Users/Victor/Desktop/relations/music_artist.yaml")));
+                FileIOUtils.readFileToString(new File("/Users/Victor/Desktop/relations/music_artist.yaml")));
         List<String> consts = reader.read(List.class);
         List<Term> terms = consts.stream().map(c -> new Constant(c)).collect(Collectors.toList());
 //        terms.add(new Constant("concept_sport_baseball"));
@@ -98,7 +98,7 @@ public class Main {
         try {
             final String pathname = "/Users/Victor/Desktop/nell/STD_OUT";
             final String filename = "statistics_2017_08_07_16h34min56s.yaml";
-            reader = new YamlReader(LanguageUtils.readFileToString(new File(pathname, filename)));
+            reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
             IterationStatistics it = (IterationStatistics) reader.read();
             System.out.println(it);
 //            LanguageUtils.writeObjectToYamlFile(it, new File(pathname, "out_" + filename), false);
@@ -114,7 +114,7 @@ public class Main {
         logger.info("Processing relevant breath for file:\t{}", file.getAbsolutePath());
         logger.info("Distance for the breadth first search:\t[{}, {})", distance1, distance2);
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
-                                                                         LanguageUtils.DEFAULT_INPUT_ENCODE));
+                                                                         FileIOUtils.DEFAULT_INPUT_ENCODE));
         KnowledgeParser parser = new KnowledgeParser(reader);
         List<Clause> clauses = parser.parseKnowledge();
 

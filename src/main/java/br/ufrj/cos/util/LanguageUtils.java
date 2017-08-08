@@ -23,21 +23,14 @@ package br.ufrj.cos.util;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
-import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
-import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import com.esotericsoftware.yamlbeans.YamlConfig;
-import com.esotericsoftware.yamlbeans.YamlWriter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Class to centralize useful method with respect with to the logic language.
@@ -48,10 +41,6 @@ import java.util.stream.Collectors;
  */
 public final class LanguageUtils {
 
-    /**
-     * The default encode of the input.
-     */
-    public static final String DEFAULT_INPUT_ENCODE = "UTF8";
     /**
      * ProbLog example predicate name.
      */
@@ -132,10 +121,6 @@ public final class LanguageUtils {
      * Arguments separator.
      */
     public static final String ARGUMENTS_SEPARATOR = " ";
-    /**
-     * The parameter mark from the log's format
-     */
-    public static final String LOG_PARAMETER_MARK = "{}";
     /**
      * The parameter mark from the string's format
      */
@@ -529,85 +514,6 @@ public final class LanguageUtils {
     }
 
     /**
-     * Reads a file to a {@link String}
-     *
-     * @param filePath the file's path
-     * @return the content of the file
-     * @throws IOException if an error occurs during the reading
-     */
-    public static String readFileToString(String filePath) throws IOException {
-        return readFileToString(new File(filePath));
-    }
-
-    /**
-     * Reads a file to a {@link String}
-     *
-     * @param file the file
-     * @return the content of the file
-     * @throws FileNotFoundException        if the file does not exists
-     * @throws UnsupportedEncodingException if the encoding is not supported
-     */
-    public static String readFileToString(File file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
-                                                                              DEFAULT_INPUT_ENCODE))) {
-            return reader.lines().collect(Collectors.joining("\n")).trim();
-        }
-    }
-
-    /**
-     * Writes a {@link String} to a file.
-     *
-     * @param content the content of the file
-     * @param file    the file to write to
-     * @throws IOException if an error occurs during the writing
-     */
-    public static void writeStringToFile(String content, File file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                               DEFAULT_INPUT_ENCODE))) {
-            writer.write(content);
-            writer.close();
-        }
-    }
-
-    /**
-     * Reads the file paths to {@link File} objects.
-     *
-     * @param paths     the file paths
-     * @param inputName the input name
-     * @return the {@link File}s
-     * @throws FileNotFoundException if a file does not exists
-     */
-    public static File[] readPathsToFiles(String[] paths, String inputName) throws FileNotFoundException {
-        File[] files = new File[paths.length];
-        File file;
-        for (int i = 0; i < paths.length; i++) {
-            file = new File(paths[i]);
-            if (file.exists()) {
-                files[i] = file;
-            } else {
-                throw new FileNotFoundException(formatLogMessage(ExceptionMessages.FILE_NOT_EXISTS.toString(), file
-                        .getAbsoluteFile(), inputName));
-            }
-        }
-
-        return files;
-    }
-
-    /**
-     * Formats a {@link String} replacing the parameter marks from the log format to the objects {@code toString}
-     * method.
-     *
-     * @param message the message with the {@link #LOG_PARAMETER_MARK}
-     * @param objects the objects
-     * @return the formatted {@link String}
-     */
-    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-    public static String formatLogMessage(String message, Object... objects) {
-        String format = message.replace(LOG_PARAMETER_MARK, STRING_PARAMETER_MARK);
-        return String.format(format, objects);
-    }
-
-    /**
      * Creates a directory name by combining the upper case letters from the class name with the suffix, separated by
      * the {@link #NAME_FORMATTER_SEPARATOR}.
      *
@@ -633,35 +539,28 @@ public final class LanguageUtils {
     }
 
     /**
-     * Saves the {@link Theory} to the {@link File}
+     * Formats the class name by getting only the upper case letters.
      *
-     * @param theory the {@link Theory}
-     * @param file   the {@link File}
-     * @throws IOException if an error occurs with the file
+     * @param instance       the instance of the object
+     * @param suppressSuffix suppresses the suffix of the formatted name
+     * @return the formatted name
      */
-    public static void saveTheoryToFile(Theory theory, File file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                               DEFAULT_INPUT_ENCODE))) {
-            for (HornClause clause : theory) {
-                writer.write(clause + "\n");
-            }
+    public static String formatClassName(Object instance, String suppressSuffix) {
+        String className = formatClassName(instance.getClass().getSimpleName());
+        if (className.endsWith(suppressSuffix)) {
+            className = className.substring(0, className.length() - suppressSuffix.length());
         }
+        return className;
     }
 
     /**
-     * Saves the {@link Example}s to the {@link File}.
+     * Formats the class name by getting only the upper case letters.
      *
-     * @param examples the {@link Example}s
-     * @param file     the {@link File}
-     * @throws IOException if an error occurs with the file
+     * @param instance the instance of the object
+     * @return the formatted name
      */
-    public static void saveExamplesToFile(Collection<? extends Example> examples, File file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                               DEFAULT_INPUT_ENCODE))) {
-            for (Example example : examples) {
-                writer.write(example + "\n");
-            }
-        }
+    public static String formatClassName(Object instance) {
+        return formatClassName(instance.getClass().getSimpleName());
     }
 
     /**
@@ -741,59 +640,6 @@ public final class LanguageUtils {
                                                     Map<K, Set<V>> appendMap, Function<V, K> function) {
         for (V v : collection) {
             appendMap.computeIfAbsent(function.apply(v), a -> new HashSet<>()).add(v);
-        }
-    }
-
-    /**
-     * Reads the knowledge base from the iteration file.
-     *
-     * @param atomFactory the atom factory, if wants to save memory by keeping same constants pointing to the same
-     *                    object in memory
-     * @param clauses     the clause list to append the read clauses
-     * @param file        the file
-     * @throws ParseException if a parser error occurs
-     * @throws IOException    if an I/O error has occurred
-     */
-    public static void readAtomKnowledgeFromFile(AtomFactory atomFactory, Collection<Atom> clauses, File file)
-            throws IOException, ParseException {
-        BufferedReader reader;
-        KnowledgeParser parser;
-        reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
-        parser = new KnowledgeParser(reader);
-        parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
-        parser.parseKnowledgeAppend(clauses);
-        reader.close();
-    }
-
-    /**
-     * Saves the object as a yaml file
-     *
-     * @param object       the object
-     * @param file         the output file
-     * @throws IOException if an I/O error has occurred
-     */
-    public static void writeObjectToYamlFile(Object object, File file) throws IOException {
-        writeObjectToYamlFile(object, file, false);
-    }
-
-    /**
-     * Saves the object as a yaml file
-     *
-     * @param object       the object
-     * @param file         the output file
-     * @param isAutoAnchor if is to use auto anchor
-     * @throws IOException if an I/O error has occurred
-     */
-    public static void writeObjectToYamlFile(Object object, File file, boolean isAutoAnchor) throws IOException {
-        YamlConfig config = new YamlConfig();
-        config.writeConfig.setIndentSize(2);
-        config.writeConfig.setKeepBeanPropertyOrder(true);
-        config.writeConfig.setAutoAnchor(isAutoAnchor);
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-                                                                                       DEFAULT_INPUT_ENCODE))) {
-            YamlWriter writer = new YamlWriter(bufferedWriter, config);
-            writer.write(object);
-            writer.close();
         }
     }
 

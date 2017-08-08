@@ -32,10 +32,12 @@ package br.ufrj.cos.util.time;
 public enum IterationTimeMessage {
 
     BEGIN("Begin of %s%d"),
-    LOAD_KNOWLEDGE_DONE("Load of knowledge from %s%d done."),
-    REVISION_DONE("Revision on %s%d done."),
-    TRAIN_EVALUATION_DONE("Train evaluation on %s%d done."),
-    TEST_EVALUATION_DONE("Test evaluation on %s%d done."),
+    LOAD_KNOWLEDGE_DONE("Load of knowledge from %s%d done"),
+    REVISION_DONE("Revision on %s%d done"),
+    TRAIN_EVALUATION_DONE("Train evaluation on %s%d done"),
+    TEST_EVALUATION_DONE("Test evaluation on %s%d done"),
+    END_EVALUATION_DONE("End of evaluation on %s%d"),
+    SAVING_EVALUATION_DONE("End of saving evaluation on %s%d\t to files"),
     END("End of %s%d");
 
     final String message;

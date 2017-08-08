@@ -27,6 +27,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -72,8 +73,7 @@ public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
         provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e)).collect(Collectors.toSet());
         boolean proved = false;
         for (Example example : provedExamples) {
-            atomValues = inferredResult.get(example);
-            if (atomValues == null) { continue; }
+            atomValues = inferredResult.getOrDefault(example, Collections.emptyMap());
             result = accumulate(result, evaluateExamples(example.getGroundedQuery(), atomValues));
             proved |= true;
         }

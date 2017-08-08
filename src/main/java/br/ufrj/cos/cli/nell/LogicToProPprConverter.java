@@ -32,10 +32,7 @@ import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.AtomFactory;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -168,16 +165,16 @@ public class LogicToProPprConverter extends CommandLineInterface {
         File negative = new File(iteration, targetRelation + negativeExtension);
 
         List<Atom> positives = new ArrayList<>();
-        LanguageUtils.readAtomKnowledgeFromFile(atomFactory, positives, positive);
+        FileIOUtils.readAtomKnowledgeFromFile(atomFactory, positives, positive);
 
         List<Atom> negatives = new ArrayList<>();
-        LanguageUtils.readAtomKnowledgeFromFile(atomFactory, negatives, negative);
+        FileIOUtils.readAtomKnowledgeFromFile(atomFactory, negatives, negative);
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(negatives.size()));
         final Collection<? extends Example> examples = convertAtomToExamples(positives, negatives);
         logger.debug(TOTAL_NUMBER_EXAMPLES_PROPPR.toString(), numberFormat.format(examples.size()));
         final File outputFile = new File(iteration, targetRelation + examplesFileExtension);
-        LanguageUtils.saveExamplesToFile(examples, outputFile);
+        FileIOUtils.saveExamplesToFile(examples, outputFile);
         logger.debug(EXAMPLES_SAVING.toString(), outputFile.getName());
     }
 

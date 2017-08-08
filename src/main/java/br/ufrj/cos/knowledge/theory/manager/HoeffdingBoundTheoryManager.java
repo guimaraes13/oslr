@@ -28,8 +28,8 @@ import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,9 +66,9 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         super.initialize();
         if (Double.isInfinite(theoryMetric.getRange()) || Double.isNaN(theoryMetric.getRange())) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_UNBOUNDED_RANGE_METRIC.toString(),
-                                                   theoryMetric.getClass().getSimpleName(),
-                                                   this.getClass().getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_UNBOUNDED_RANGE_METRIC.toString(),
+                                                 theoryMetric.getClass().getSimpleName(),
+                                                 this.getClass().getSimpleName()));
         }
     }
 

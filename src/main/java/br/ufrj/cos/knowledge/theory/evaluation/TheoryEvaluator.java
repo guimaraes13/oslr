@@ -29,9 +29,9 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.*;
 
@@ -100,8 +100,19 @@ public class TheoryEvaluator implements Initializable {
      * @return a {@link Map} of evaluations per metric
      */
     public Map<TheoryMetric, Double> evaluate(Examples examples) {
-        Map<TheoryMetric, Double> evaluations = new HashMap<>();
         Map<Example, Map<Atom, Double>> inferredExamples = inferExamples(examples, false);
+        return evaluate(examples, inferredExamples);
+    }
+
+    /**
+     * Evaluates the examples based on the inferred examples.
+     *
+     * @param examples         the examples
+     * @param inferredExamples the inferred examples.
+     * @return a {@link Map} of evaluations per metric
+     */
+    public Map<TheoryMetric, Double> evaluate(Examples examples, Map<Example, Map<Atom, Double>> inferredExamples) {
+        Map<TheoryMetric, Double> evaluations = new HashMap<>();
         for (TheoryMetric metric : theoryMetrics) {
             evaluations.put(metric, metric.evaluate(inferredExamples, examples));
         }
@@ -192,8 +203,8 @@ public class TheoryEvaluator implements Initializable {
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LearningSystem.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }
@@ -208,8 +219,8 @@ public class TheoryEvaluator implements Initializable {
             Iterable<? extends TheoryMetric> theoryMetrics) throws InitializationException {
         if (this.theoryMetrics != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TheoryMetric.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TheoryMetric.class.getSimpleName()));
         }
         this.theoryMetrics = theoryMetrics;
     }

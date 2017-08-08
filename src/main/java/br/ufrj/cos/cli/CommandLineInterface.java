@@ -21,10 +21,7 @@
 
 package br.ufrj.cos.cli;
 
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.Initializable;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
@@ -179,6 +176,14 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static final String OUTPUT_STANDARD_DIRECTORY = "STD_OUT";
     /**
+     * The suffix of the class name, to suppress.
+     */
+    public static final String CLASS_NAME_SUPPRESS_SUFFIX = "CLI";
+    /**
+     * The separator between the class name and the file name.
+     */
+    public static final String CLASS_NAME_SEPARATOR = "_";
+    /**
      * The output run time to be used in the name of some output files.
      */
     public String outputRunTime;
@@ -287,20 +292,21 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     protected void saveConfigurations() throws InitializationException {
         try {
-            String configFileContent = LanguageUtils.readFileToString(configurationFilePath);
+            String configFileContent = FileIOUtils.readFileToString(configurationFilePath);
             buildOutputDirectory(configFileContent);
-            File outputStdDirectory = new File(outputDirectory, OUTPUT_STANDARD_DIRECTORY);
+            final File standardOutputFile = getStandardOutputFile();
+            File outputStdDirectory = standardOutputFile.getParentFile();
             if (!outputStdDirectory.exists()) {
                 //noinspection ResultOfMethodCallIgnored
-                outputStdDirectory.mkdir();
+                outputStdDirectory.mkdirs();
             }
-            addAppender(new File(outputStdDirectory, getOutputLogFileName()).getAbsolutePath());
+            addAppender(standardOutputFile.getAbsolutePath());
             logCommittedVersion();
             File configurationFile = new File(outputDirectory, getConfigurationFileName());
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
                                                                     configurationFile.getCanonicalPath());
-            LanguageUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, getArgumentFileName()));
-            LanguageUtils.writeStringToFile(configFileContent, configurationFile);
+            FileIOUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, getArgumentFileName()));
+            FileIOUtils.writeStringToFile(configFileContent, configurationFile);
 
             logger.info(COMMAND_LINE_ARGUMENTS.toString(),
                         Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
@@ -311,12 +317,21 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     }
 
     /**
+     * Gets the standard output file.
+     *
+     * @return the standard output file
+     */
+    protected File getStandardOutputFile() {
+        return new File(new File(outputDirectory, OUTPUT_STANDARD_DIRECTORY), getOutputLogFileName());
+    }
+
+    /**
      * Gets the configuration file name.
      *
      * @return the configuration file name
      */
     public String getConfigurationFileName() {
-        return String.format(CONFIG_FILE_NAME, LanguageUtils.formatClassName(this.getClass().getSimpleName()));
+        return String.format(CONFIG_FILE_NAME, LanguageUtils.formatClassName(this, CLASS_NAME_SUPPRESS_SUFFIX));
     }
 
     /**
@@ -385,13 +400,12 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     }
 
     /**
-     * Formats the name of the output std out file based on the current date and time.
+     * Gets the argument file name.
      *
-     * @return the name of the output std out file
+     * @return the argument file name
      */
-    protected String getOutputLogFileName() {
-        outputRunTime = TimeUtils.getCurrentTime();
-        return String.format(STDOUT_LOG_FILE_NAME, outputRunTime);
+    public String getArgumentFileName() {
+        return String.format(ARGUMENTS_FILE_NAME, LanguageUtils.formatClassName(this, CLASS_NAME_SUPPRESS_SUFFIX));
     }
 
     /**
@@ -428,12 +442,14 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     }
 
     /**
-     * Gets the argument file name.
+     * Formats the name of the output std out file based on the current date and time.
      *
-     * @return the argument file name
+     * @return the name of the output std out file
      */
-    public String getArgumentFileName() {
-        return String.format(ARGUMENTS_FILE_NAME, LanguageUtils.formatClassName(this.getClass().getSimpleName()));
+    protected String getOutputLogFileName() {
+        outputRunTime = TimeUtils.getCurrentTime();
+        String className = LanguageUtils.formatClassName(this, CLASS_NAME_SUPPRESS_SUFFIX);
+        return className + CLASS_NAME_SEPARATOR + String.format(STDOUT_LOG_FILE_NAME, outputRunTime);
     }
 
     /**

@@ -25,7 +25,7 @@ import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.FileIOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,7 +94,7 @@ public class NellDataCheckerCLI extends NellHashCheckerCLI {
      * @return the clauses
      */
     protected static Collection<Clause> readLogicFile(File file) {
-        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), LanguageUtils
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), FileIOUtils
                 .DEFAULT_INPUT_ENCODE)) {
             KnowledgeParser parser = new KnowledgeParser(reader);
             Set<Clause> clauses = new HashSet<>();

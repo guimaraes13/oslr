@@ -26,9 +26,9 @@ import br.ufrj.cos.external.access.ExampleStream;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,8 +108,8 @@ public abstract class IncomingExampleManager implements Initializable {
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         if (this.learningSystem != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LearningSystem.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
     }
@@ -132,8 +132,8 @@ public abstract class IncomingExampleManager implements Initializable {
     public void setSampleSelector(RelevantSampleSelector sampleSelector) throws InitializationException {
         if (this.sampleSelector != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   RelevantSampleSelector.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 RelevantSampleSelector.class.getSimpleName()));
         }
         this.sampleSelector = sampleSelector;
     }

@@ -27,6 +27,7 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.Plot2D;
@@ -137,8 +138,8 @@ public class TestCLI extends CommandLineInterface {
      */
     protected LearningFromFilesCLI initializeLearningCLI() throws IOException {
         learningFromFilesCLI = new LearningFromFilesCLI();
-        String arguments = LanguageUtils.readFileToString(new File(inputDirectoryPath,
-                                                                   learningFromFilesCLI.getArgumentFileName()));
+        String arguments = FileIOUtils.readFileToString(new File(inputDirectoryPath,
+                                                                 learningFromFilesCLI.getArgumentFileName()));
         String[] fields = arguments.split(LanguageUtils.ARGUMENTS_SEPARATOR);
         if (fields[0].endsWith(LearningFromFilesCLI.class.getSimpleName())) {
             fields = Arrays.copyOfRange(fields, 1, fields.length);

@@ -133,6 +133,17 @@ public class LearningSystem implements Initializable {
     }
 
     /**
+     * Evaluates the examples based on the inferred examples.
+     *
+     * @param examples         the examples
+     * @param inferredExamples the inferred examples.
+     * @return a {@link Map} of evaluations per metric
+     */
+    public Map<TheoryMetric, Double> evaluate(Examples examples, Map<Example, Map<Atom, Double>> inferredExamples) {
+        return theoryEvaluator.evaluate(examples, inferredExamples);
+    }
+
+    /**
      * Evaluates the {@link Theory} using the given {@link TheoryMetric}.
      *
      * @param metric   the {@link TheoryMetric}

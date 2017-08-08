@@ -25,8 +25,8 @@ import br.ufrj.cos.knowledge.manager.TreeTheory;
 import br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RevisionHeuristic;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -143,8 +143,8 @@ public class BestLeafRevisionManager extends RevisionManager {
     public void setTreeTheory(TreeTheory treeTheory) throws InitializationException {
         if (this.treeTheory != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TreeTheory.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TreeTheory.class.getSimpleName()));
         }
         this.treeTheory = treeTheory;
     }
@@ -167,8 +167,8 @@ public class BestLeafRevisionManager extends RevisionManager {
     public void setRevisionHeuristic(RevisionHeuristic revisionHeuristic) throws InitializationException {
         if (this.revisionHeuristic != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   RevisionHeuristic.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 RevisionHeuristic.class.getSimpleName()));
         }
         this.revisionHeuristic = revisionHeuristic;
     }

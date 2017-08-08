@@ -57,10 +57,7 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.ExceptionMessages;
-import br.ufrj.cos.util.Initializable;
-import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
@@ -270,7 +267,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         List<AtomExample> atomExamples = new ArrayList<>();
         List<ProPprExample> proPprExamples = new ArrayList<>();
         logger.trace(READING_INPUT_FILES);
-        File[] files = LanguageUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
+        File[] files = FileIOUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
         for (File file : files) {
             readExamplesToLists(file, atomExamples, proPprExamples);
         }
@@ -292,7 +289,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         try {
             BufferedReader reader;
             ExampleParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), FileIOUtils
                     .DEFAULT_INPUT_ENCODE));
             parser = new ExampleParser(reader);
             parser.parseExamplesAppend(atomExamples, proPprExamples);
@@ -355,16 +352,22 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Saves the parameters to files.
+     * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
      *
-     * @throws IOException if an error occurs with the file
+     * @param file    the {@link File} to parse
+     * @param clauses the {@link List} to append to
      */
-    protected void saveParameters() throws IOException {
-        String theoryContent = LanguageUtils.theoryToString(learningSystem.getTheory());
-        File theoryFile = new File(outputDirectory, THEORY_FILE_NAME);
-        LanguageUtils.writeStringToFile(theoryContent, theoryFile);
-        logger.info(THEORY_FILE.toString(), theoryFile.getAbsolutePath(), theoryContent);
-        learningSystem.saveParameters(outputDirectory);
+    protected static void readClausesToList(File file, List<Clause> clauses) {
+        try {
+            BufferedReader reader;
+            KnowledgeParser parser;
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), FileIOUtils
+                    .DEFAULT_INPUT_ENCODE));
+            parser = new KnowledgeParser(reader);
+            parser.parseKnowledgeAppend(clauses);
+        } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        }
     }
 
     @Override
@@ -515,23 +518,16 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Builds the {@link KnowledgeBase} from the input files.
+     * Saves the parameters to files.
      *
-     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
-     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
-     * @throws FileNotFoundException  if a file does not exists
+     * @throws IOException if an error occurs with the file
      */
-    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = readInputKnowledge(LanguageUtils.readPathsToFiles(knowledgeBaseFilePaths,
-                                                                                 CommandLineOptions.KNOWLEDGE_BASE
-                                                                                         .getOptionName()));
-
-        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
-        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
-        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
-
-        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
-        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
+    protected void saveParameters() throws IOException {
+        String theoryContent = LanguageUtils.theoryToString(learningSystem.getTheory());
+        File theoryFile = new File(outputDirectory, THEORY_FILE_NAME);
+        FileIOUtils.writeStringToFile(theoryContent, theoryFile);
+        logger.info(THEORY_FILE.toString(), theoryFile.getAbsolutePath(), theoryContent);
+        learningSystem.saveParameters(outputDirectory);
     }
 
     /**
@@ -649,22 +645,23 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
+     * Builds the {@link KnowledgeBase} from the input files.
      *
-     * @param file    the {@link File} to parse
-     * @param clauses the {@link List} to append to
+     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException  if a file does not exists
      */
-    protected static void readClausesToList(File file, List<Clause> clauses) {
-        try {
-            BufferedReader reader;
-            KnowledgeParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), LanguageUtils
-                    .DEFAULT_INPUT_ENCODE));
-            parser = new KnowledgeParser(reader);
-            parser.parseKnowledgeAppend(clauses);
-        } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
-            logger.error(ERROR_READING_FILE.toString(), e);
-        }
+    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
+                                                                               CommandLineOptions.KNOWLEDGE_BASE
+                                                                                       .getOptionName()));
+
+        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
+        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
+        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+
+        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
+        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
     }
 
     /**
@@ -678,8 +675,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = readInputKnowledge(LanguageUtils.readPathsToFiles(theoryFilePaths,
-                                                                                 CommandLineOptions.THEORY
+        List<Clause> clauses = readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
+                                                                               CommandLineOptions.THEORY
                                                                                          .getOptionName()));
 
         ClausePredicate predicate = null;
@@ -707,8 +704,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     public void setEngineSystemTranslator(EngineSystemTranslator engineSystemTranslator) throws KnowledgeException {
         if (isEngineSystemTranslatorSet()) {
             throw new KnowledgeException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   EngineSystemTranslator.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 EngineSystemTranslator.class.getSimpleName()));
         }
         this.engineSystemTranslator = engineSystemTranslator;
     }

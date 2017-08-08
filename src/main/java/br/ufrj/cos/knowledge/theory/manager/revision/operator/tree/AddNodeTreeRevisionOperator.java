@@ -34,6 +34,7 @@ import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 import org.apache.logging.log4j.LogManager;
@@ -130,8 +131,8 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         super.initialize();
         if (this.appendOperator == null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LiteralAppendOperator.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LiteralAppendOperator.class.getSimpleName()));
         }
         this.appendOperator.setLearningSystem(learningSystem);
         appendOperator.initialize();
@@ -326,8 +327,8 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     public void setAppendOperator(LiteralAppendOperator appendOperator) throws InitializationException {
         if (this.appendOperator != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   LiteralAppendOperator.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 LiteralAppendOperator.class.getSimpleName()));
         }
         this.appendOperator = appendOperator;
     }

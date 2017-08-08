@@ -24,9 +24,9 @@ package br.ufrj.cos.knowledge.theory.manager.revision;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
 import br.ufrj.cos.util.ExceptionMessages;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
-import br.ufrj.cos.util.LanguageUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -117,8 +117,8 @@ public class RevisionManager implements Initializable {
     public void setOperatorSelector(RevisionOperatorSelector operatorSelector) throws InitializationException {
         if (this.operatorSelector != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   RevisionOperatorSelector.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 RevisionOperatorSelector.class.getSimpleName()));
         }
         this.operatorSelector = operatorSelector;
     }
@@ -132,8 +132,8 @@ public class RevisionManager implements Initializable {
     public void setTheoryRevisionManager(TheoryRevisionManager theoryRevisionManager) throws InitializationException {
         if (this.theoryRevisionManager != null) {
             throw new InitializationException(
-                    LanguageUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
-                                                   TheoryRevisionManager.class.getSimpleName()));
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 TheoryRevisionManager.class.getSimpleName()));
         }
         this.theoryRevisionManager = theoryRevisionManager;
     }
