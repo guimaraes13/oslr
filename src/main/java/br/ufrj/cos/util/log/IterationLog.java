@@ -31,6 +31,7 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings({"JavaDoc"})
 public enum IterationLog {
 
+    EXAMPLE_READ_FOR_ITERATION("Examples read for iteration {}:\t{}"),
     BEGIN_REVISION_ITERATIONS("Begin the revision of {} iteration(s)"),
     REVISING_ITERATION("Revising iteration:\t{}"),
     ADDED_ITERATION_KNOWLEDGE("Added iteration's knowledge:\t{}"),

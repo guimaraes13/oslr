@@ -329,11 +329,12 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         File iterationExample;
         iterationExamples = new ArrayList<>(iterationDirectories.length);
         Examples examples;
-        for (File iteration : iterationDirectories) {
-            iterationExample = new File(iteration, targetRelation + examplesFileExtension);
+        for (int i = 0; i < iterationDirectories.length; i++) {
+            iterationExample = new File(iterationDirectories[i], targetRelation + examplesFileExtension);
             examples = readExamplesFromFile(iterationExample);
             iterationExamples.add(examples);
             iterationStatistics.addIterationExamplesSizes(examples.size());
+            logger.trace(EXAMPLE_READ_FOR_ITERATION.toString(), i, examples.size());
         }
     }
 
