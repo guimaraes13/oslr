@@ -651,7 +651,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
                 continue;
             }
             clauses = appendAllKnowledge(relations, targetFileName, relevants);
-            logger.trace(KNOWLEDGE_READ_FROM_ITERATION.toString(), i, integerFormat.format(relevants.size()));
+            logger.trace(KNOWLEDGE_READ_FROM_ITERATION.toString(), i, integerFormat.format(clauses.size()));
             iterationKnowledge.add(clauses);
             iterationStatistics.addIterationKnowledgeSizes(clauses.size());
         }
