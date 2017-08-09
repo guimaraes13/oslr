@@ -30,6 +30,7 @@ import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
@@ -43,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import static br.ufrj.cos.cli.CommandLineOptions.*;
@@ -111,6 +113,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     public static final int DEFAULT_MINI_BATCH_SIZE = 1;
     /**
+     * The default value of the relevant depth filter.
+     */
+    public static final int NO_RELEVANT_DEPTH_FILTER = -1;
+    /**
      * The example file extension.
      */
     public String examplesFileExtension = DEFAULT_EXAMPLES_FILE_EXTENSION;
@@ -148,6 +154,12 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     @SuppressWarnings("CanBeFinal")
     public int examplesBatchSize = DEFAULT_MINI_BATCH_SIZE;
+
+    /**
+     * The relevant depth to filter the knowledge base. If it is negative, no filter will be applied.
+     */
+    @SuppressWarnings("CanBeFinal")
+    public int relevantDepthFilter = NO_RELEVANT_DEPTH_FILTER;
 
     protected File[] iterationDirectories;
     protected List<Collection<? extends Atom>> iterationKnowledge;
@@ -408,7 +420,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected void passExamplesToRevise(int index) {
         final Examples currentExamples = iterationExamples.get(index);
         final int size = currentExamples.size();
-        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
+        logger.debug(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
         int count = 1;
         for (Example example : currentExamples) {
@@ -422,24 +434,24 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     /**
      * Passes the examples to revise.
      *
-     * @param index the index of the iteration
-     * @param examplesBatchSize   example batch size
+     * @param index             the index of the iteration
+     * @param examplesBatchSize example batch size
      */
     protected void passExamplesToRevise(int index, int examplesBatchSize) {
         final IterableSize<? extends Example> currentExamples = new IterableSize<>(examplesBatchSize,
                                                                                    iterationExamples.get(index));
         final int size = iterationExamples.get(index).size();
-        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
+        logger.debug(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
         int count = Math.min(size, examplesBatchSize);
         for (int i = 0; i < size / examplesBatchSize; i++) {
-            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count),
+            logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count),
                          integerFormat.format(size));
             learningSystem.incomingExampleManager.incomingExamples(currentExamples);
             currentExamples.reset();
             count += examplesBatchSize;
         }
-        logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(size),
+        logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(size),
                      integerFormat.format(size));
         learningSystem.incomingExampleManager.incomingExamples(currentExamples);
     }
@@ -632,36 +644,49 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         }
         Set<Atom> clauses;
         File[] relations;
-
+        final Set<Term> relevants = new HashSet<>(atomFactory.getConstants());
         for (File iteration : iterationDirectories) {
             relations = iteration.listFiles(relationFilenameFilter);
             if (relations == null) {
                 iterationKnowledge.add(new HashSet<>());
                 continue;
             }
-            clauses = new HashSet<>();
-            appendFactsFromRelations(relations, targetFileName, clauses);
+            clauses = appendAllKnowledge(relations, targetFileName, relevants);
             iterationKnowledge.add(clauses);
             iterationStatistics.addIterationKnowledgeSizes(clauses.size());
         }
     }
 
     /**
-     * Appends the facts from the relation files into the clauses.
+     * Appends all the knowledge from the files to the knowledge of the iteration.
      *
      * @param relations      the relation files
-     * @param targetFileName the target file name, to skip the target relation
-     * @param clauses        the clauses
+     * @param targetFileName the target file name, to skip.
+     * @param relevants      the set of relevant terms to filter.
+     * @return the set of atoms
      * @throws ParseException if a parser error occurs
      * @throws IOException    if an I/O error has occurred
      */
-    protected void appendFactsFromRelations(File[] relations, String targetFileName, Set<Atom> clauses)
-            throws IOException,
-            ParseException {
-        for (File relation : relations) {
-            if (relation.getName().equals(targetFileName)) { continue; }
-            FileIOUtils.readAtomKnowledgeFromFile(relation, clauses, atomFactory);
+    protected Set<Atom> appendAllKnowledge(File[] relations, String targetFileName, Set<Term> relevants)
+            throws IOException, ParseException {
+        Set<Atom> atoms = new HashSet<>();
+        if (relevantDepthFilter == 0) {
+            Predicate<? super Atom> filter = a -> !Collections.disjoint(a.getTerms(), relevants);
+            for (File relation : relations) {
+                if (relation.getName().equals(targetFileName)) { continue; }
+                FileIOUtils.readFilteredAtomKnowledgeFrom(relation, atoms, atomFactory, filter);
+            }
+        } else {
+            for (File relation : relations) {
+                if (relation.getName().equals(targetFileName)) { continue; }
+                FileIOUtils.readAtomKnowledgeFromFile(relation, atoms, atomFactory);
+            }
+            if (relevantDepthFilter > 0) {
+                KnowledgeBase base = new KnowledgeBase(atoms);
+                atoms = base.baseBreadthFirstSearch(relevants, relevantDepthFilter);
+            }
         }
+        return atoms;
     }
 
     @Override

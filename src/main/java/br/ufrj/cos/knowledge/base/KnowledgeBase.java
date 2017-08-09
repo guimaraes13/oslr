@@ -78,6 +78,13 @@ public class KnowledgeBase extends Knowledge<Atom> {
         super(atoms);
         termAtomMap = new HashMap<>();
         termNeighbours = new HashMap<>();
+        try {
+            for (Atom atom : atoms) {
+                addAtomToMaps(atom);
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), e);
+        }
     }
 
     /**
@@ -149,7 +156,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
             try {
                 addAtomToMaps(atom);
             } catch (InstantiationException | IllegalAccessException e) {
-                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
+                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), e);
             }
         }
     }
@@ -209,7 +216,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
      * @return the {@link Set} of neighbours
      */
     public Set<Term> getTermNeighbours(Term term) {
-        return termNeighbours.get(term);
+        return termNeighbours.getOrDefault(term, Collections.emptySet());
     }
 
     @Override
@@ -218,7 +225,7 @@ public class KnowledgeBase extends Knowledge<Atom> {
             try {
                 addAtomToMaps(atom);
             } catch (InstantiationException | IllegalAccessException e) {
-                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), atom, e);
+                logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), e);
             }
             return true;
         } else {

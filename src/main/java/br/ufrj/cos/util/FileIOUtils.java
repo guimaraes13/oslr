@@ -37,6 +37,7 @@ import java.io.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static br.ufrj.cos.util.LanguageUtils.CLAUSE_END_OF_LINE;
@@ -309,17 +310,21 @@ public final class FileIOUtils {
      * @param clauses     the clause list to append the read clauses
      * @param atomFactory the atom factory, if wants to save memory by keeping same constants pointing to the same
      *                    object in memory
+     * @param filter      the predicate to filter the atoms.
      * @throws IOException if an I/O error has occurred
      */
-    public static void readAtomKnowledgeFromFile2(File file, Collection<Atom> clauses, AtomFactory atomFactory)
+    public static void readFilteredAtomKnowledgeFrom(File file, Collection<Atom> clauses, AtomFactory atomFactory,
+                                                     Predicate<? super Atom> filter)
             throws IOException {
         BufferedReader reader;
         KnowledgeParser parser;
         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
         parser = new KnowledgeParser(reader);
         parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
-        for (Clause clause : parser) {
-            clauses.add((Atom) clause);
+        Atom atom;
+        while (parser.hasNext()) {
+            atom = (Atom) parser.next();
+            if (filter.test(atom)) { clauses.add(atom); }
         }
         reader.close();
     }

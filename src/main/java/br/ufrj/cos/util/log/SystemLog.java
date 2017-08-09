@@ -50,7 +50,7 @@ public enum SystemLog {
                         "---------------\n{}\n--------------- THEORY FILE ---------------"),
     THEORY_CONTENT("\n------------------ THEORY -----------------\n{}\n------------------ THEORY -----------------"),
 
-    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom {}, reason:");
+    ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH("Error updating the knowledge base graph cache for atom, reason: {}");
 
     protected final String message;
 
