@@ -334,7 +334,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             examples = readExamplesFromFile(iterationExample);
             iterationExamples.add(examples);
             iterationStatistics.addIterationExamplesSizes(examples.size());
-            logger.trace(EXAMPLE_READ_FOR_ITERATION.toString(), i, examples.size());
+            logger.trace(EXAMPLE_READ_FROM_ITERATION.toString(), i, integerFormat.format(examples.size()));
         }
     }
 
@@ -637,25 +637,40 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected void loadKnowledge() throws IOException, ParseException {
         final String targetFileName = targetRelation + positiveExtension;
         final FilenameFilter relationFilenameFilter;
+        relationFilenameFilter = getFilenameFilter();
+        Set<Atom> clauses;
+        File[] relations;
+        final Set<Term> relevants = new HashSet<>(atomFactory.getConstants());
+        if (relevantDepthFilter > NO_RELEVANT_DEPTH_FILTER) {
+            logger.trace(NUMBER_OF_RELEVANT_TERM.toString(), integerFormat.format(relevants.size()));
+        }
+        for (int i = 0; i < iterationDirectories.length; i++) {
+            relations = iterationDirectories[i].listFiles(relationFilenameFilter);
+            if (relations == null) {
+                iterationKnowledge.add(new HashSet<>());
+                continue;
+            }
+            clauses = appendAllKnowledge(relations, targetFileName, relevants);
+            logger.trace(KNOWLEDGE_READ_FROM_ITERATION.toString(), i, integerFormat.format(relevants.size()));
+            iterationKnowledge.add(clauses);
+            iterationStatistics.addIterationKnowledgeSizes(clauses.size());
+        }
+    }
+
+    /**
+     * Gets the filename filter for the reation files.
+     *
+     * @return the filename filter
+     */
+    protected FilenameFilter getFilenameFilter() {
+        FilenameFilter relationFilenameFilter;
         if (selectedRelations == null || selectedRelations.isEmpty()) {
             relationFilenameFilter = (dir, name) -> name.endsWith(positiveExtension);
         } else {
             relationFilenameFilter = (dir, name) -> name.endsWith(positiveExtension) &&
                     selectedRelations.contains(name.substring(0, name.length() - positiveExtension.length()));
         }
-        Set<Atom> clauses;
-        File[] relations;
-        final Set<Term> relevants = new HashSet<>(atomFactory.getConstants());
-        for (File iteration : iterationDirectories) {
-            relations = iteration.listFiles(relationFilenameFilter);
-            if (relations == null) {
-                iterationKnowledge.add(new HashSet<>());
-                continue;
-            }
-            clauses = appendAllKnowledge(relations, targetFileName, relevants);
-            iterationKnowledge.add(clauses);
-            iterationStatistics.addIterationKnowledgeSizes(clauses.size());
-        }
+        return relationFilenameFilter;
     }
 
     /**
@@ -672,7 +687,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             throws IOException, ParseException {
         Set<Atom> atoms = new HashSet<>();
         if (relevantDepthFilter == 0) {
-            Predicate<? super Atom> filter = a -> !Collections.disjoint(a.getTerms(), relevants);
+            Predicate<? super Atom> filter = a -> a != null && !Collections.disjoint(a.getTerms(), relevants);
             for (File relation : relations) {
                 if (relation.getName().equals(targetFileName)) { continue; }
                 FileIOUtils.readFilteredAtomKnowledgeFrom(relation, atoms, atomFactory, filter);
