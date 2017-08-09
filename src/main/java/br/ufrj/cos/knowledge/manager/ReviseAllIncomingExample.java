@@ -70,7 +70,7 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Collection<? extends Example> examples) {
+    public void incomingExamples(Iterable<? extends Example> examples) {
         for (Example example : convertToProPprExamples(examples)) { revisionExamples.addExample(example); }
         learningSystem.reviseTheory(singleton);
     }
@@ -81,8 +81,8 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
      * @param examples the {@link Collection} of {@link Example}s
      * @return the {@link Collection} of {@link ProPprExample}
      */
-    public static Collection<ProPprExample> convertToProPprExamples(Collection<? extends Example> examples) {
-        Collection<ProPprExample> proPprExamples = new LinkedHashSet<>(examples.size());
+    public static Collection<ProPprExample> convertToProPprExamples(Iterable<? extends Example> examples) {
+        Collection<ProPprExample> proPprExamples = new LinkedHashSet<>();
         for (Example example : examples) {
             if (example instanceof ProPprExample) {
                 proPprExamples.add((ProPprExample) example);

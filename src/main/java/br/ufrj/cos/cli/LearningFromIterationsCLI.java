@@ -49,7 +49,7 @@ import static br.ufrj.cos.cli.CommandLineOptions.*;
 import static br.ufrj.cos.util.FileIOUtils.DEFAULT_INPUT_ENCODE;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.IterationLog.*;
-import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_REVISION;
+import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 import static br.ufrj.cos.util.time.RunTimeStamp.BEGIN_INITIALIZE;
 import static br.ufrj.cos.util.time.RunTimeStamp.END_INITIALIZE;
@@ -108,6 +108,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     private static final File[] FILES = new File[0];
     /**
+     * The default size of the batches.
+     */
+    public static final int DEFAULT_MINI_BATCH_SIZE = 1;
+    /**
      * The example file extension.
      */
     public String examplesFileExtension = DEFAULT_EXAMPLES_FILE_EXTENSION;
@@ -138,6 +142,12 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     @SuppressWarnings("CanBeFinal")
     public Set<String> selectedRelations = null;
+
+    /**
+     * The size of the batch, the incoming examples will be grouped in batches, of this size, to be passed to
+     * revision.
+     */
+    public int examplesBatchSize = DEFAULT_MINI_BATCH_SIZE;
 
     protected File[] iterationDirectories;
     protected List<Collection<? extends Atom>> iterationKnowledge;
@@ -340,7 +350,11 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure.measure(beginStamp);
         addIterationKnowledge(index);
         // measure the time to add knowledge to the learning system
-        passExamplesToRevise(index);
+        if (examplesBatchSize < 2) {
+            passExamplesToRevise(index);
+        } else {
+            passExamplesToRevise(index, examplesBatchSize);
+        }
         // measure the time to train in the iteration
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.REVISION_DONE));
         logger.trace(END_REVISION_EXAMPLE.toString());
@@ -374,10 +388,36 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
         int count = 1;
         for (Example example : currentExamples) {
-            logger.trace(PASSING_EXAMPLE_REVISION.toString(), integerFormat.format(count), integerFormat.format(size));
+            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
+                    .format(size));
             learningSystem.incomingExampleManager.incomingExamples(example);
             count++;
         }
+    }
+
+    /**
+     * Passes the examples to revise.
+     *
+     * @param index the index of the iteration
+     * @param the   example batch size
+     */
+    protected void passExamplesToRevise(int index, int examplesBatchSize) {
+        final IterableSize<? extends Example> currentExamples = new IterableSize<>(examplesBatchSize,
+                                                                                   iterationExamples.get(index));
+        final int size = iterationExamples.get(index).size();
+        logger.trace(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
+        timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
+        int count = Math.min(size, examplesBatchSize);
+        for (int i = 0; i < size / examplesBatchSize; i++) {
+            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count),
+                         integerFormat.format(size));
+            learningSystem.incomingExampleManager.incomingExamples(currentExamples);
+            currentExamples.reset();
+            count += examplesBatchSize;
+        }
+        logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(size),
+                     integerFormat.format(size));
+        learningSystem.incomingExampleManager.incomingExamples(currentExamples);
     }
 
     /**

@@ -56,6 +56,7 @@ public class TreeExampleManager extends IncomingExampleManager {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+
     protected static final RelevantSampleSelector ALL_SAMPLE_SELECTOR = new AllSampleSelector();
     protected TreeTheory treeTheory;
 
@@ -144,7 +145,7 @@ public class TreeExampleManager extends IncomingExampleManager {
     }
 
     @Override
-    public void incomingExamples(Collection<? extends Example> examples) {
+    public void incomingExamples(Iterable<? extends Example> examples) {
         Map<String, Set<Node<HornClause>>> modifiedLeaves = placeIncomingExamples(examples);
         callRevision(modifiedLeaves);
     }

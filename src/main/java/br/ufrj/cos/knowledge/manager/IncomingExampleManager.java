@@ -31,7 +31,6 @@ import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,7 +96,7 @@ public abstract class IncomingExampleManager implements Initializable {
      *
      * @param examples the arrived {@link Example}s
      */
-    public abstract void incomingExamples(Collection<? extends Example> examples);
+    public abstract void incomingExamples(Iterable<? extends Example> examples);
 
     /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.

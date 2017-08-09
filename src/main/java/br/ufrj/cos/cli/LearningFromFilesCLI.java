@@ -75,7 +75,7 @@ import static br.ufrj.cos.util.log.FileIOLog.READING_INPUT_FILES;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 import static br.ufrj.cos.util.log.ParsingLog.ERROR_READING_INPUT_FILES;
-import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_REVISION;
+import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 
 /**
@@ -511,7 +511,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         int count = 1;
         final int size = examples.size();
         for (Example example : examples) {
-            logger.trace(PASSING_EXAMPLE_REVISION.toString(), integerFormat.format(count), integerFormat.format(size));
+            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
+                    .format(size));
             learningSystem.incomingExampleManager.incomingExamples(example);
             count++;
         }
