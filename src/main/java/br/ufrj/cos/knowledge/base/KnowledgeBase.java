@@ -21,6 +21,7 @@
 
 package br.ufrj.cos.knowledge.base;
 
+import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
@@ -89,6 +90,53 @@ public class KnowledgeBase extends Knowledge<Atom> {
         super(atoms, acceptPredicate);
         termAtomMap = new HashMap<>();
         termNeighbours = new HashMap<>();
+    }
+
+    /**
+     * Gets the relevant {@link Atom}s, given the relevant seed {@link Term}s, by performing a breadth-first search
+     * on the {@link KnowledgeBase}'s cached graph
+     *
+     * @param terms          the seed {@link Term}s
+     * @param relevantsDepth the depth of the relevant breadth first search
+     * @return the relevant {@link Atom}s to the seed {@link Term}s
+     */
+    @SuppressWarnings({"OverlyLongMethod"})
+    public Set<Atom> baseBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth) {
+        Map<Term, Integer> termDistance = new HashMap<>();
+        Queue<Term> queue = new ArrayDeque<>();
+        Set<Atom> atoms = new HashSet<>();
+
+        for (Term term : terms) {
+            termDistance.put(term, 0);
+            queue.add(term);
+        }
+
+        Set<Atom> atomSet;
+        Term currentTerm;
+        Integer currentDistance;
+        Integer previousDistance = 0;
+        while (!queue.isEmpty()) {
+            currentTerm = queue.poll();
+            currentDistance = termDistance.get(currentTerm);
+
+            if (!Objects.equals(currentDistance, previousDistance)) {
+                previousDistance = currentDistance;
+            }
+
+            atomSet = getAtomsWithTerm(currentTerm);
+            atoms.addAll(atomSet);
+
+            if (relevantsDepth == LearningSystem.NO_MAXIMUM_DEPTH || currentDistance < relevantsDepth) {
+                for (Term neighbour : getTermNeighbours(currentTerm)) {
+                    if (!termDistance.containsKey(neighbour)) {
+                        termDistance.put(neighbour, currentDistance + 1);
+                        queue.add(neighbour);
+                    }
+                }
+            }
+        }
+
+        return atoms;
     }
 
     /**

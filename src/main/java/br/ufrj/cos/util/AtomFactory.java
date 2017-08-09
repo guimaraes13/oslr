@@ -115,12 +115,21 @@ public class AtomFactory {
     }
 
     /**
-     * Gets the predicated read by this factory.
+     * Gets the predicates read by this factory.
      *
-     * @return the predicated read by this factory
+     * @return the predicates read by this factory
      */
     public Collection<Predicate> getPredicates() {
         return predicateMap.values();
+    }
+
+    /**
+     * Gets the constants read by this factory.
+     *
+     * @return the constants read by this factory
+     */
+    public Collection<Constant> getConstants() {
+        return constantMap.values();
     }
 
 }

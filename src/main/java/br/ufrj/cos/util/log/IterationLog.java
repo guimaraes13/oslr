@@ -41,7 +41,6 @@ public enum IterationLog {
     END_TEST_EVALUATION("Ended the test evaluation on iteration:\t{}"),
     END_REVISION_ITERATION("Ended the revision of the {} iteration(s)"),
     END_EVALUATION("Ended the evaluation on iteration:\t{}"),
-    END_EVALUATION_WITH_TIME("Ended the evaluation on iteration:\t{}\twith time:\t{}"),
     ITERATION_TRAINING_TIME("Training time of the iteration:\t{}"),
     END_REVISION_ITERATIONS("Ended the revision of the iteration(s)"),
     ITERATION_DATA_SAVED("Iteration theory saved in directory:\t{}"),

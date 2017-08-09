@@ -133,7 +133,7 @@ public class Main {
         for (int i = distance1; i < distance2; i++) {
             logger.info("Distance for the breadth first search:\t{}", i);
             logger.info("");
-            Set<Atom> atomSet = learningSystem.baseBreadthFirstSearch(seeds, i);
+            Set<Atom> atomSet = learningSystem.getKnowledgeBase().baseBreadthFirstSearch(seeds, i);
             Map<Predicate, Set<Atom>> map = new HashMap<>();
             atomSet.stream().forEach(a -> map.computeIfAbsent(a.getPredicate(), s -> new HashSet<>()).add(a));
             List<Map.Entry<Predicate, Set<Atom>>> entries;

@@ -46,7 +46,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static br.ufrj.cos.cli.CommandLineOptions.*;
-import static br.ufrj.cos.util.FileIOUtils.DEFAULT_INPUT_ENCODE;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.IterationLog.*;
 import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
@@ -147,6 +146,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * The size of the batch, the incoming examples will be grouped in batches, of this size, to be passed to
      * revision.
      */
+    @SuppressWarnings("CanBeFinal")
     public int examplesBatchSize = DEFAULT_MINI_BATCH_SIZE;
 
     protected File[] iterationDirectories;
@@ -175,6 +175,32 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             logger.error(ERROR_MAIN_PROGRAM, e);
         } finally {
             logger.fatal(PROGRAM_END);
+        }
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        timeMeasure = new TimeMeasure<>();
+        timeMeasure.measure(RunTimeStamp.BEGIN);
+        timeMeasure.measure(BEGIN_INITIALIZE);
+        super.initialize();
+        try {
+            timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
+            iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
+            build();
+            atomFactory = new AtomFactory();
+            iterationStatistics = new IterationStatistics();
+            buildIterationExamples();
+            buildIterationKnowledge();
+            atomFactory = null;
+            iterationStatistics.setNumberOfIterations(iterationKnowledge.size());
+            iterationStatistics.setIterationPrefix(iterationPrefix);
+            iterationStatistics.setTargetRelation(targetRelation);
+            iterationStatistics.setTimeMeasure(timeMeasure);
+            timeMeasure.measure(END_INITIALIZE);
+        } catch (IOException | ParseException |
+                br.ufrj.cos.logic.parser.example.ParseException | ReflectiveOperationException e) {
+            throw new InitializationException(e);
         }
     }
 
@@ -277,31 +303,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         return new File(outputDirectory, STATISTICS_FILE_NAME);
     }
 
-    @Override
-    public void initialize() throws InitializationException {
-        timeMeasure = new TimeMeasure<>();
-        timeMeasure.measure(RunTimeStamp.BEGIN);
-        timeMeasure.measure(BEGIN_INITIALIZE);
-        super.initialize();
-        try {
-            timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
-            iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
-            build();
-            atomFactory = new AtomFactory();
-            iterationStatistics = new IterationStatistics();
-            buildIterationKnowledge();
-            buildIterationExamples();
-            iterationStatistics.setNumberOfIterations(iterationKnowledge.size());
-            iterationStatistics.setIterationPrefix(iterationPrefix);
-            iterationStatistics.setTargetRelation(targetRelation);
-            iterationStatistics.setTimeMeasure(timeMeasure);
-            timeMeasure.measure(END_INITIALIZE);
-        } catch (IOException | ParseException |
-                br.ufrj.cos.logic.parser.example.ParseException | ReflectiveOperationException e) {
-            throw new InitializationException(e);
-        }
-    }
-
     /**
      * Builds the examples of each iteration.
      *
@@ -322,6 +323,29 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             iterationExamples.add(examples);
             iterationStatistics.addIterationExamplesSizes(examples.size());
         }
+    }
+
+    /**
+     * Reads the examples from the file
+     *
+     * @param file the file
+     * @return the examples
+     * @throws IOException                                     if an I/O error has occurred
+     * @throws br.ufrj.cos.logic.parser.example.ParseException if a error occurs during the parsing
+     * @throws ReflectiveOperationException                    if an error occurs when instantiating a new set of
+     *                                                         examples
+     */
+    public Examples readExamplesFromFile(File file) throws IOException,
+            br.ufrj.cos.logic.parser.example.ParseException, ReflectiveOperationException {
+        final BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), FileIOUtils.DEFAULT_INPUT_ENCODE));
+        ExampleParser parser = new ExampleParser(reader);
+        parser.factory = atomFactory;
+        List<AtomExample> atomExamples = new ArrayList<>();
+        List<ProPprExample> proPprExamples = new ArrayList<>();
+        parser.parseExamplesAppend(atomExamples, proPprExamples);
+        reader.close();
+        return new Examples(proPprExamples, atomExamples);
     }
 
     /**
@@ -529,28 +553,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             //noinspection ResultOfMethodCallIgnored
             theoryFile.delete();
         }
-    }
-
-    /**
-     * Reads the examples from the file
-     *
-     * @param file the file
-     * @return the examples
-     * @throws IOException                                     if an I/O error has occurred
-     * @throws br.ufrj.cos.logic.parser.example.ParseException if a error occurs during the parsing
-     * @throws ReflectiveOperationException                    if an error occurs when instantiating a new set of
-     *                                                         examples
-     */
-    protected static Examples readExamplesFromFile(File file)
-            throws IOException, br.ufrj.cos.logic.parser.example.ParseException, ReflectiveOperationException {
-        final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
-        ExampleParser parser = new ExampleParser(reader);
-        List<AtomExample> atomExamples = new ArrayList<>();
-        List<ProPprExample> proPprExamples = new ArrayList<>();
-        parser.parseExamplesAppend(atomExamples, proPprExamples);
-        reader.close();
-        return new Examples(proPprExamples, atomExamples);
     }
 
     @Override

@@ -260,7 +260,20 @@ public final class FileIOUtils {
      * @throws IOException if an error occurs with the file
      */
     public static void saveExamplesToFile(Collection<? extends Example> examples, File file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+        saveExamplesToFile(examples, file, false);
+    }
+
+    /**
+     * Saves the {@link Example}s to the {@link File}.
+     *
+     * @param examples the {@link Example}s
+     * @param file     the {@link File}
+     * @param append   if is to append the file.
+     * @throws IOException if an error occurs with the file
+     */
+    public static void saveExamplesToFile(Collection<? extends Example> examples, File file, boolean append)
+            throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append),
                                                                                DEFAULT_INPUT_ENCODE))) {
             for (Example example : examples) {
                 writer.write(example + "\n");

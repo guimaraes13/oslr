@@ -32,7 +32,6 @@ package br.ufrj.cos.util.log;
 public enum PreRevisionLog {
 
     PASSING_EXAMPLE_OF_TOTAL_REVISION("Passing example\t{}/{} to revise."),
-    PASSING_EXAMPLE_REVISION("Passing example\t{} to revise."),
     CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
     SKIPPING_REVISION_ON_EXAMPLES("Skipping the revision on examples, not enough examples to exceed the threshold."),
     TRY_REFINE_RULE("Trying to refine rule:\t{}"),
