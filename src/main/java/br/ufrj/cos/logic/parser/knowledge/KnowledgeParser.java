@@ -27,29 +27,38 @@ package br.ufrj.cos.logic.parser.knowledge;
 
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.AtomFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import static br.ufrj.cos.util.log.ParsingLog.ERROR_PARSING_LINE;
+
 /**
  * Created on 15/04/17.
  *
  * @author Victor Guimarães
  */
-public class KnowledgeParser implements KnowledgeParserConstants {
+public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, KnowledgeParserConstants {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    public AtomFactory factory = new AtomFactory();
     private static int[] jj_la1_0;
 
     static {
         jj_la1_init_0();
     }
 
-    private final int[] jj_la1 = new int[15];
+    private final int[] jj_la1 = new int[17];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
-    public AtomFactory factory = new AtomFactory();
     /**
      * Generated Token Manager.
      */
@@ -62,6 +71,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
      * Next token.
      */
     public Token jj_nt;
+    protected boolean hasNext = true;
     SimpleCharStream jj_input_stream;
     private int jj_ntk;
     private int jj_gen;
@@ -87,7 +97,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -99,7 +109,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -110,15 +120,37 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     private static void jj_la1_init_0() {
-        jj_la1_0 = new int[]{0x240, 0x240, 0x40, 0x1000, 0x280, 0x1000, 0x240, 0x4000, 0x30000, 0x1000, 0x400, 0x40,
-                0x40300, 0x40200, 0x80,};
+        jj_la1_0 = new int[]{0x240, 0x240, 0x1, 0x1, 0x40, 0x1000, 0x280, 0x1000, 0x240, 0x4000, 0x30000, 0x1000,
+                0x400, 0x40, 0x40300, 0x40200, 0x80,};
+    }
+
+    @Override
+    public boolean hasNext() {
+        return hasNext;
+    }
+
+    @Override
+    public Clause next() {
+        Clause clause = null;
+        try {
+            clause = readLine();
+        } catch (ParseException e) {
+            logger.error(ERROR_PARSING_LINE, e);
+        }
+        return clause;
+    }
+
+    @Override
+    public Iterator<Clause> iterator() {
+        return this;
     }
 
     public final List parseKnowledge() throws ParseException {
+        Clause clause;
         List clauses;
         clauses = new ArrayList();
         label_1:
@@ -132,7 +164,8 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                     jj_la1[0] = jj_gen;
                     break label_1;
             }
-            readKnowledgeLine(clauses);
+            clause = readKnowledgeLine();
+            clauses.add(clause);
         }
         jj_consume_token(0);
         {if ("" != null) { return clauses; }}
@@ -140,6 +173,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
     }
 
     public final Collection parseKnowledgeAppend(Collection clauses) throws ParseException {
+        Clause clause;
         label_2:
         while (true) {
             switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
@@ -151,15 +185,40 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                     jj_la1[1] = jj_gen;
                     break label_2;
             }
-            readKnowledgeLine(clauses);
+            clause = readKnowledgeLine();
+            clauses.add(clause);
         }
         jj_consume_token(0);
         {if ("" != null) { return clauses; }}
         throw new Error("Missing return statement in function");
     }
 
-    public final void readKnowledgeLine(Collection clauses) throws ParseException {
-        Clause clause = null;
+    public final Clause readLine() throws ParseException {
+        Clause clause;
+        switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+            case 0: {
+                readHasNext();
+                if (!hasNext) {if ("" != null) { return null; }}
+                break;
+            }
+            default:
+                jj_la1[2] = jj_gen;
+        }
+        clause = readKnowledgeLine();
+        switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+            case 0: {
+                jj_consume_token(0);
+                hasNext = false;
+                break;
+            }
+            default:
+                jj_la1[3] = jj_gen;
+        }
+        {if ("" != null) { return clause; }}
+        throw new Error("Missing return statement in function");
+    }
+
+    protected final Clause readKnowledgeLine() throws ParseException {Clause clause = null;
 
         boolean weighted = false;
         double weight = -1;
@@ -179,7 +238,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[2] = jj_gen;
+                jj_la1[4] = jj_gen;
         }
         atom = readAtom(variableMap);
         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
@@ -205,7 +264,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                                     break;
                                 }
                                 default:
-                                    jj_la1[3] = jj_gen;
+                                    jj_la1[5] = jj_gen;
                                     break label_3;
                             }
                             jj_consume_token(LIST_SEPARATOR);
@@ -214,7 +273,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                         break;
                     }
                     default:
-                        jj_la1[4] = jj_gen;
+                        jj_la1[6] = jj_gen;
                 }
                 switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
                     case OPEN_FEATURES: {
@@ -231,7 +290,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                                             break;
                                         }
                                         default:
-                                            jj_la1[5] = jj_gen;
+                                            jj_la1[7] = jj_gen;
                                             break label_4;
                                     }
                                     jj_consume_token(LIST_SEPARATOR);
@@ -240,13 +299,13 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                                 break;
                             }
                             default:
-                                jj_la1[6] = jj_gen;
+                                jj_la1[8] = jj_gen;
                         }
                         jj_consume_token(CLOSE_FEATURES);
                         break;
                     }
                     default:
-                        jj_la1[7] = jj_gen;
+                        jj_la1[9] = jj_gen;
                 }
                 jj_consume_token(END_OF_LINE_CHARACTER);
                 if (features != null) {
@@ -259,11 +318,19 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[8] = jj_gen;
+                jj_la1[10] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
-        clauses.add(clause);
+        {if ("" != null) { return clause; }}
+        throw new Error("Missing return statement in function");
+    }
+
+    public final boolean readHasNext() throws ParseException {
+        jj_consume_token(0);
+        hasNext = false;
+        {if ("" != null) { return hasNext; }}
+        throw new Error("Missing return statement in function");
     }
 
     public final double readDecimal() throws ParseException {
@@ -288,7 +355,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                             break;
                         }
                         default:
-                            jj_la1[9] = jj_gen;
+                            jj_la1[11] = jj_gen;
                             break label_5;
                     }
                     jj_consume_token(LIST_SEPARATOR);
@@ -298,7 +365,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[10] = jj_gen;
+                jj_la1[12] = jj_gen;
         }
         Predicate value = factory.getPredicate(predicate, terms.size());
         {if ("" != null) { return new Atom(value, terms); }}
@@ -317,7 +384,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[11] = jj_gen;
+                jj_la1[13] = jj_gen;
         }
         atom = readAtom(variableMap);
         if (weighted) {
@@ -348,7 +415,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[12] = jj_gen;
+                jj_la1[14] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
@@ -367,7 +434,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[13] = jj_gen;
+                jj_la1[15] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
@@ -396,7 +463,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
                 break;
             }
             default:
-                jj_la1[14] = jj_gen;
+                jj_la1[16] = jj_gen;
         }
         atom = readAtom(variableMap);
         literals.add(new Literal(atom, negated));
@@ -420,7 +487,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -440,7 +507,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -451,7 +518,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 15; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
     }
 
     private Token jj_consume_token(int kind) throws ParseException {
@@ -506,7 +573,7 @@ public class KnowledgeParser implements KnowledgeParserConstants {
             la1tokens[jj_kind] = true;
             jj_kind = -1;
         }
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 17; i++) {
             if (jj_la1[i] == jj_gen) {
                 for (int j = 0; j < 32; j++) {
                     if ((jj_la1_0[i] & (1 << j)) != 0) {

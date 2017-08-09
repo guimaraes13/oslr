@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.LanguageUtils.CLAUSE_END_OF_LINE;
 import static br.ufrj.cos.util.log.IterationLog.ERROR_WRITING_ITERATION_INFERENCE_FILE;
 
 /**
@@ -173,6 +175,26 @@ public final class FileIOUtils {
     }
 
     /**
+     * Saves the {@link Clause}s to the {@link File}
+     *
+     * @param clauses the {@link Clause}s
+     * @param file    the {@link File}
+     * @throws IOException if an error occurs with the file
+     */
+    public static void saveClausesToFile(Collection<? extends Clause> clauses, File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                               DEFAULT_INPUT_ENCODE))) {
+            for (Clause clause : clauses) {
+                writer.write(clause.toString());
+                if (clause instanceof Atom) {
+                    writer.write(CLAUSE_END_OF_LINE);
+                }
+                writer.write("\n");
+            }
+        }
+    }
+
+    /**
      * Saves the inferred examples to file.
      *
      * @param inferredExamples the inferred examples
@@ -249,14 +271,14 @@ public final class FileIOUtils {
     /**
      * Reads the knowledge base from the iteration file.
      *
+     * @param file        the file
+     * @param clauses     the clause list to append the read clauses
      * @param atomFactory the atom factory, if wants to save memory by keeping same constants pointing to the same
      *                    object in memory
-     * @param clauses     the clause list to append the read clauses
-     * @param file        the file
      * @throws ParseException if a parser error occurs
      * @throws IOException    if an I/O error has occurred
      */
-    public static void readAtomKnowledgeFromFile(AtomFactory atomFactory, Collection<Atom> clauses, File file)
+    public static void readAtomKnowledgeFromFile(File file, Collection<Atom> clauses, AtomFactory atomFactory)
             throws IOException, ParseException {
         BufferedReader reader;
         KnowledgeParser parser;
@@ -264,6 +286,28 @@ public final class FileIOUtils {
         parser = new KnowledgeParser(reader);
         parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
         parser.parseKnowledgeAppend(clauses);
+        reader.close();
+    }
+
+    /**
+     * Reads the knowledge base from the iteration file.
+     *
+     * @param file        the file
+     * @param clauses     the clause list to append the read clauses
+     * @param atomFactory the atom factory, if wants to save memory by keeping same constants pointing to the same
+     *                    object in memory
+     * @throws IOException if an I/O error has occurred
+     */
+    public static void readAtomKnowledgeFromFile2(File file, Collection<Atom> clauses, AtomFactory atomFactory)
+            throws IOException {
+        BufferedReader reader;
+        KnowledgeParser parser;
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
+        parser = new KnowledgeParser(reader);
+        parser.factory = atomFactory != null ? atomFactory : new AtomFactory();
+        for (Clause clause : parser) {
+            clauses.add((Atom) clause);
+        }
         reader.close();
     }
 

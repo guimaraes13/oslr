@@ -165,10 +165,10 @@ public class LogicToProPprConverter extends CommandLineInterface {
         File negative = new File(iteration, targetRelation + negativeExtension);
 
         List<Atom> positives = new ArrayList<>();
-        FileIOUtils.readAtomKnowledgeFromFile(atomFactory, positives, positive);
+        FileIOUtils.readAtomKnowledgeFromFile(positive, positives, atomFactory);
 
         List<Atom> negatives = new ArrayList<>();
-        FileIOUtils.readAtomKnowledgeFromFile(atomFactory, negatives, negative);
+        FileIOUtils.readAtomKnowledgeFromFile(negative, negatives, atomFactory);
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(negatives.size()));
         final Collection<? extends Example> examples = convertAtomToExamples(positives, negatives);

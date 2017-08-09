@@ -399,7 +399,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * Passes the examples to revise.
      *
      * @param index the index of the iteration
-     * @param the   example batch size
+     * @param examplesBatchSize   example batch size
      */
     protected void passExamplesToRevise(int index, int examplesBatchSize) {
         final IterableSize<? extends Example> currentExamples = new IterableSize<>(examplesBatchSize,
@@ -658,7 +658,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             ParseException {
         for (File relation : relations) {
             if (relation.getName().equals(targetFileName)) { continue; }
-            FileIOUtils.readAtomKnowledgeFromFile(atomFactory, clauses, relation);
+            FileIOUtils.readAtomKnowledgeFromFile(relation, clauses, atomFactory);
         }
     }
 

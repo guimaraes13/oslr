@@ -79,7 +79,7 @@ public class KnowledgeParserTokenManager implements KnowledgeParserConstants {
     /**
      * Debug output.
      */
-    public PrintStream debugStream = System.out;
+    public  PrintStream debugStream = System.out;
     protected SimpleCharStream  input_stream;
     protected int curChar;
 int curLexState = 0;

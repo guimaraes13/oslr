@@ -34,6 +34,7 @@ public enum ParsingLog {
     PARSING_INPUT_ARGUMENTS("Parsing input arguments."),
 
     ERROR_READING_INPUT_FILES("Error during reading the input files, reason:"),
+    ERROR_PARSING_LINE("Parsing line failed, reason:"),
     ERROR_PARSING_FAILED("Parsing failed, reason:");
 
     protected final String message;

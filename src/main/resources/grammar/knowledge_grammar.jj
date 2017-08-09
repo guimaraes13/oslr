@@ -29,20 +29,47 @@ PARSER_BEGIN(KnowledgeParser)
 
 package br.ufrj.cos.logic.parser.knowledge;
 
-import br.ufrj.cos.util.LanguageUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import br.ufrj.cos.logic.*;
 
 import java.util.*;
 import br.ufrj.cos.util.AtomFactory;
+
+import static br.ufrj.cos.util.log.ParsingLog.ERROR_PARSING_LINE;
 
 /**
  * Created on 15/04/17.
  *
  * @author Victor Guimarães
  */
-public class KnowledgeParser {
+public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause> {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     public AtomFactory factory = new AtomFactory();
+    protected boolean hasNext = true;
+
+    @Override
+    public boolean hasNext() { return hasNext; }
+
+    @Override
+    public Clause next() {
+        Clause clause = null;
+        try {
+            clause = readLine();
+        } catch (ParseException e) {
+            logger.error(ERROR_PARSING_LINE, e);
+        }
+        return clause;
+    }
+
+    @Override
+    public Iterator<Clause> iterator() { return this; }
 
 }
 
@@ -82,6 +109,7 @@ TOKEN : {
 
 List parseKnowledge() :
 {
+    Clause clause;
 	List clauses;
 }
 {
@@ -89,26 +117,37 @@ List parseKnowledge() :
 		clauses = new ArrayList();
 	}
 
-	( readKnowledgeLine(clauses) )* <EOF>
+	( clause = readKnowledgeLine() { clauses.add(clause); } )* <EOF>
 
 	{
 		return clauses;
 	}
 }
 
-List parseKnowledgeAppend(Collection clauses) :
+Collection parseKnowledgeAppend(Collection clauses) :
 {
-
+    Clause clause;
 }
 {
-	( readKnowledgeLine(clauses) )* <EOF>
+	( clause = readKnowledgeLine() { clauses.add(clause); } )* <EOF>
 
 	{
 		return clauses;
 	}
 }
 
-void readKnowledgeLine(Collection clauses) :
+Clause readLine() :
+{
+    Clause clause;
+}
+{
+    [ readHasNext() {if (!hasNext) return null; } ]
+    clause = readKnowledgeLine()
+    [<EOF> { hasNext = false; }]
+    { return clause; }
+}
+
+protected Clause readKnowledgeLine() :
 {
 	Clause clause = null;
 
@@ -170,8 +209,16 @@ void readKnowledgeLine(Collection clauses) :
 		}
 	)
 	{
-		clauses.add(clause);
+		return clause;
 	}
+}
+
+boolean readHasNext() :
+{
+}
+{
+    <EOF> {hasNext = false;}
+    { return hasNext; }
 }
 
 double readDecimal() :
