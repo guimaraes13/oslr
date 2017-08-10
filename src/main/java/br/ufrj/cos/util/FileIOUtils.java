@@ -88,6 +88,7 @@ public final class FileIOUtils {
      * The parameter mark from the log's format
      */
     public static final String LOG_PARAMETER_MARK = "{}";
+    private static final File[] FILES = new File[0];
 
     private FileIOUtils() {
     }
@@ -142,6 +143,7 @@ public final class FileIOUtils {
      * @throws FileNotFoundException if a file does not exists
      */
     public static File[] readPathsToFiles(String[] paths, String inputName) throws FileNotFoundException {
+        if (paths == null) { return FILES; }
         File[] files = new File[paths.length];
         File file;
         for (int i = 0; i < paths.length; i++) {
@@ -381,6 +383,7 @@ public final class FileIOUtils {
      */
     public static List<Clause> readInputKnowledge(File[] inputFiles) {
         List<Clause> clauses = new ArrayList<>();
+        if (inputFiles == null) { return clauses; }
         logger.trace(READING_INPUT_FILES);
         for (File file : inputFiles) {
             readClausesToList(file, clauses);

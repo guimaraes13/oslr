@@ -116,10 +116,6 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public static final String DEFAULT_COUNTRY = "us";
     /**
-     * The default empty string array.
-     */
-    public static final String[] EMPTY_STRING = new String[0];
-    /**
      * The output arguments file name.
      */
     public static final String ARGUMENTS_FILE_NAME = "arguments_%s.txt";
@@ -273,16 +269,17 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     /**
      * Gets the correspondent {@link File}s from the parsed {@link CommandLine}.
      *
-     * @param commandLine the parsed command line
-     * @param optionName  the {@link Option} to get the parsed {@link String}s.
+     * @param commandLine  the parsed command line
+     * @param optionName   the {@link Option} to get the parsed {@link String}s.
+     * @param defaultValue the default value
      * @return the {@link File}s
      */
-    protected static String[] getFilesFromOption(CommandLine commandLine, String optionName) {
+    protected static String[] getFilesFromOption(CommandLine commandLine, String optionName, String[] defaultValue) {
         if (commandLine.hasOption(optionName)) {
             return commandLine.getOptionValues(optionName);
         }
 
-        return EMPTY_STRING;
+        return defaultValue;
     }
 
     @Override

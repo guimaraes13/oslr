@@ -95,6 +95,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The name of the saved theory file.
      */
     public static final String THEORY_FILE_NAME = "theory.pl";
+    private static final String[] STRINGS = new String[0];
     /**
      * The knowledge base collection class name.
      */
@@ -130,15 +131,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * Input knowledge base files.
      */
-    public String[] knowledgeBaseFilePaths;
+    public String[] knowledgeBaseFilePaths = STRINGS;
     /**
      * Input theory files.
      */
-    public String[] theoryFilePaths;
+    public String[] theoryFilePaths = STRINGS;
     /**
      * Input example files.
      */
-    public String[] exampleFilePaths;
+    public String[] exampleFilePaths = STRINGS;
     /**
      * The evaluation metrics for the {@link TheoryEvaluator}.
      */
@@ -190,6 +191,11 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * If it is {@code false}, the files will not be loaded (and will possible be overwritten).
      */
     public boolean loadedPreTrainedParameters = false;
+    /**
+     * If {@code true}, passes all the examples at once to the learning system. If {@code false}, passes a example at
+     * a time. Default is {@code false}.
+     */
+    public boolean passAllExampleAtOnce = false;
     /**
      * The knowledge base collection class.
      */
@@ -351,10 +357,14 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             super.parseOptions(commandLine);
             LearningFromFilesCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
             cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine,
-                                                            CommandLineOptions.KNOWLEDGE_BASE.getOptionName());
-            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName());
-            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
-            cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName());
+                                                            CommandLineOptions.KNOWLEDGE_BASE.getOptionName(),
+                                                            cli.knowledgeBaseFilePaths);
+            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName(),
+                                                     cli.theoryFilePaths);
+            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName(),
+                                                      cli.exampleFilePaths);
+            cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName(),
+                                                                 cli.outputDirectoryPath);
             return cli;
         } catch (FileNotFoundException | YamlException e) {
             throw new CommandLineInterrogationException(e);
@@ -439,6 +449,18 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void reviseExamples() {
         //IMPROVE: delegate this function to the ExampleStream
+        if (passAllExampleAtOnce) {
+
+            learningSystem.incomingExampleManager.incomingExamples(examples);
+        } else {
+            passEachExampleAtTime();
+        }
+    }
+
+    /**
+     * Passes a example at a time to the learning system.
+     */
+    protected void passEachExampleAtTime() {
         int count = 1;
         final int size = examples.size();
         for (Example example : examples) {
@@ -571,7 +593,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
                                                                                            CommandLineOptions
                                                                                                    .KNOWLEDGE_BASE
-                                                                                       .getOptionName()));
+                                                                                                   .getOptionName()));
 
         ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
         logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
@@ -594,7 +616,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
             InvocationTargetException, InstantiationException, FileNotFoundException {
         List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
                                                                                            CommandLineOptions.THEORY
-                                                                                         .getOptionName()));
+                                                                                                   .getOptionName()));
 
         ClausePredicate predicate = null;
         if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {

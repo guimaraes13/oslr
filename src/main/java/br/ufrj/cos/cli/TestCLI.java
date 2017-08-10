@@ -161,7 +161,8 @@ public class TestCLI extends CommandLineInterface {
         try {
             super.parseOptions(commandLine);
             TestCLI cli = readYamlFile(commandLine, TestCLI.class, DEFAULT_YAML_CONFIGURATION_FILE);
-            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName());
+            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName(),
+                                                      cli.exampleFilePaths);
             cli.inputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.INPUT_DIRECTORY.getOptionName());
             return cli;
         } catch (FileNotFoundException | YamlException e) {
