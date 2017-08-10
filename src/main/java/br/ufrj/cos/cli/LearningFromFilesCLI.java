@@ -26,10 +26,8 @@ import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
 import br.ufrj.cos.knowledge.KnowledgeException;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
-import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
-import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.manager.IncomingExampleManager;
@@ -54,9 +52,6 @@ import br.ufrj.cos.knowledge.theory.manager.revision.point.IndependentSampleSele
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.logic.parser.example.ExampleParser;
-import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
-import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlException;
@@ -65,13 +60,13 @@ import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
-import static br.ufrj.cos.util.log.FileIOLog.READING_INPUT_FILES;
 import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 import static br.ufrj.cos.util.log.ParsingLog.ERROR_READING_INPUT_FILES;
@@ -253,52 +248,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
-    /**
-     * Builds the {@link Examples} from the input files.
-     *
-     * @param exampleFilePaths the examples paths
-     * @return the examples
-     * @throws InstantiationException if an error occurs when instantiating a new set
-     * @throws IllegalAccessException if an error occurs when instantiating a new set
-     * @throws FileNotFoundException  if a file does not exists
-     */
-    protected static Examples buildExampleSet(String[] exampleFilePaths) throws InstantiationException,
-            IllegalAccessException, FileNotFoundException {
-        List<AtomExample> atomExamples = new ArrayList<>();
-        List<ProPprExample> proPprExamples = new ArrayList<>();
-        logger.trace(READING_INPUT_FILES);
-        File[] files = FileIOUtils.readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
-        for (File file : files) {
-            readExamplesToLists(file, atomExamples, proPprExamples);
-        }
-        logger.info(EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
-
-        return new Examples(proPprExamples, atomExamples);
-    }
-
-    /**
-     * Parses the {@link File}'s iterator and appends they to the correspondent {@link List}.
-     *
-     * @param file           the {@link File} to parse
-     * @param atomExamples   the {@link List} to the ProbLog like iterator
-     * @param proPprExamples the {@link List} to the ProPPR like iterator
-     */
-    protected static void readExamplesToLists(File file,
-                                              List<AtomExample> atomExamples,
-                                              List<ProPprExample> proPprExamples) {
-        try {
-            BufferedReader reader;
-            ExampleParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), FileIOUtils
-                    .DEFAULT_INPUT_ENCODE));
-            parser = new ExampleParser(reader);
-            parser.parseExamplesAppend(atomExamples, proPprExamples);
-        } catch (UnsupportedEncodingException | FileNotFoundException | br.ufrj.cos.logic.parser.example
-                .ParseException e) {
-            logger.error(ERROR_READING_FILE.toString(), e);
-        }
-    }
-
     @Override
     public void run() {
         try {
@@ -351,27 +300,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         return metrics;
     }
 
-    /**
-     * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
-     *
-     * @param file    the {@link File} to parse
-     * @param clauses the {@link List} to append to
-     */
-    protected static void readClausesToList(File file, List<Clause> clauses) {
-        try {
-            BufferedReader reader;
-            KnowledgeParser parser;
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), FileIOUtils
-                    .DEFAULT_INPUT_ENCODE));
-            parser = new KnowledgeParser(reader);
-            parser.parseKnowledgeAppend(clauses);
-        } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
-            logger.error(ERROR_READING_FILE.toString(), e);
-        }
-    }
-
     @Override
     public void initialize() throws InitializationException {
+        super.initialize();
         integerFormat = NumberFormat.getIntegerInstance();
         instantiateClasses();
         saveConfigurations();
@@ -465,7 +396,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @throws FileNotFoundException  if a file does not exists
      */
     protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
-        examples = buildExampleSet(exampleFilePaths);
+        examples = FileIOUtils.buildExampleSet(exampleFilePaths);
     }
 
     /**
@@ -630,22 +561,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Reads the input {@link File}s to a {@link List} of {@link Clause}s.
-     *
-     * @param inputFiles the input {@link File}s
-     * @return the {@link List} of {@link Clause}s
-     */
-    protected static List<Clause> readInputKnowledge(File[] inputFiles) {
-        List<Clause> clauses = new ArrayList<>();
-        logger.trace(READING_INPUT_FILES);
-        for (File file : inputFiles) {
-            readClausesToList(file, clauses);
-        }
-        logger.debug(READ_CLAUSE_SIZE.toString(), clauses.size());
-        return clauses;
-    }
-
-    /**
      * Builds the {@link KnowledgeBase} from the input files.
      *
      * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
@@ -653,8 +568,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @throws FileNotFoundException  if a file does not exists
      */
     protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
-                                                                               CommandLineOptions.KNOWLEDGE_BASE
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
+                                                                                           CommandLineOptions
+                                                                                                   .KNOWLEDGE_BASE
                                                                                        .getOptionName()));
 
         ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
@@ -676,8 +592,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
-                                                                               CommandLineOptions.THEORY
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
+                                                                                           CommandLineOptions.THEORY
                                                                                          .getOptionName()));
 
         ClausePredicate predicate = null;

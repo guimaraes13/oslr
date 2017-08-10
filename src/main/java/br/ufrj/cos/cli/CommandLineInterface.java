@@ -285,6 +285,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         return EMPTY_STRING;
     }
 
+    @Override
+    public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_COMMAND_LINE_INTERFACE.toString(), this.getClass().getName());
+    }
+
     /**
      * Logs the configurations from the configuration file.
      *

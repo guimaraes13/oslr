@@ -124,7 +124,7 @@ public class TestCLI extends CommandLineInterface {
             };
             learningFromFilesCLI.loadedPreTrainedParameters = LOAD_PARAMETERS;
             learningFromFilesCLI.build();
-            examples = LearningFromFilesCLI.buildExampleSet(exampleFilePaths);
+            examples = FileIOUtils.buildExampleSet(exampleFilePaths);
         } catch (Exception e) {
             throw new InitializationException(e);
         }

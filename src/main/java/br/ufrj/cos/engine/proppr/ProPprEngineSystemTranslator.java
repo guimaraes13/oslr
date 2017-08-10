@@ -55,12 +55,15 @@ import edu.cmu.ml.proppr.util.Dictionary;
 import edu.cmu.ml.proppr.util.math.ParamVector;
 import edu.cmu.ml.proppr.util.math.SimpleParamVector;
 import edu.cmu.ml.proppr.util.multithreading.Multithreading;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.EngineSystemLog.*;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_CAPACITY;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
 
@@ -74,15 +77,18 @@ import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
 public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSystemTranslator {
 
     /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
+    /**
      * The facts plugins name.
      */
     public static final String FACTS_PLUGIN_NAME = "facts";
-
     /**
      * No limits on the number of solutions.
      */
     public static final int NO_MAX_SOLUTIONS = -1;
-
     /**
      * Name of the saved parameters file.
      */
@@ -316,6 +322,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     @Override
     @SuppressWarnings("unchecked")
     public synchronized void initialize() {
+        super.initialize();
         if (this.prover == null) { this.prover = (Prover<P>) new DprProver(aprOptions); }
         this.prover.apr = aprOptions;
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
@@ -488,16 +495,19 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
 
     @Override
     public synchronized void trainParameters(Example... examples) {
+        logger.debug(TRAINING_PARAMETERS);
         currentParamVector = trainParameters(new InferenceExampleIterable(examples), savedParamVector, grounder);
     }
 
     @Override
     public synchronized void trainParameters(Iterable<? extends Example> examples) {
+        logger.debug(TRAINING_PARAMETERS);
         currentParamVector = trainParameters(new InferenceExampleIterable(examples), savedParamVector, grounder);
     }
 
     @Override
     public synchronized void saveTrainedParameters() {
+        logger.debug(SAVING_TRAINED_PARAMETERS_AS_CURRENT);
         savedParamVector = currentParamVector;
         answerer.addParams(prover, savedParamVector, squashingFunction);
     }
@@ -611,12 +621,16 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
 
     @Override
     public synchronized void saveParameters(File workingDirectory) {
-        ParamsFile.save(savedParamVector, new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME), null);
+        final File file = new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME);
+        logger.debug(SAVING_PARAMETERS_TO_FILE.toString(), file);
+        ParamsFile.save(savedParamVector, file, null);
     }
 
     @Override
     public synchronized void loadParameters(File workingDirectory) {
-        ParamsFile paramsFile = new ParamsFile(new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME));
+        final File file = new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME);
+        logger.debug(LOADING_PARAMETERS_FROM_FILE.toString(), file);
+        ParamsFile paramsFile = new ParamsFile(file);
         currentParamVector = new SimpleParamVector<>(Dictionary.load(paramsFile, new ConcurrentHashMap<>()));
         saveTrainedParameters();
     }

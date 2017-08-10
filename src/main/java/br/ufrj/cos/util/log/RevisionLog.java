@@ -31,6 +31,15 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum RevisionLog {
 
+    INITIALIZING_THEORY_REVISION_MANAGER("Initializing TheoryRevisionManager:\t{}"),
+    INITIALIZING_REVISION_MANAGER("Initializing RevisionManager:\t{}"),
+    INITIALIZING_THEORY_EVALUATOR("Initializing TheoryEvaluator:\t{}"),
+    INITIALIZING_REVISION_OPERATOR_SELECTOR("Initializing RevisionOperatorSelector:\t{}"),
+    INITIALIZING_REVISION_OPERATOR_EVALUATOR("Initializing RevisionOperatorEvaluator:\t{}"),
+    INITIALIZING_REVISION_OPERATOR("Initializing RevisionOperator:\t{}"),
+
+    PERFORMING_OPERATION_ON_EXAMPLES("Performing operation on\t{} examples."),
+
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
 
@@ -40,6 +49,14 @@ public enum RevisionLog {
     REFINING_RULE("Refining rule :\t{}"),
 
     PROPOSED_REFINED_RULE("Proposed refined rule:\t{}"),
+    ACCEPTING_NEW_BEST_REFINED_CANDIDATE("Accepting new best refined candidate:\t{}"),
+    MAKING_SIDE_MOVEMENT_FOR_CANDIDATE("Making side movement for candidate:\t{}"),
+
+    PROPOSED_ADD_RULE("Propose to add the rule:\t{}"),
+    PROPOSED_ADD_LITERAL("Propose to add the literal(s):\t{}"),
+
+    PROPOSED_REMOVE_RULE("Propose to remove the rule:\t{}"),
+    PROPOSED_REMOVE_LITERAL("Propose to remove the literal:\t{}"),
 
     ERROR_EVALUATING_MINIMAL_CLAUSES("No minimal safe clause could be evaluated. There are two possible reasons: " +
                                              "the timeout is too low; or the metric returns the default value for " +

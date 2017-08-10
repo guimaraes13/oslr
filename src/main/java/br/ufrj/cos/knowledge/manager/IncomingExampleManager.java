@@ -29,10 +29,14 @@ import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static br.ufrj.cos.util.log.IncomingExampleLog.INITIALIZING_INCOMING_EXAMPLE_MANAGER;
 
 /**
  * Responsible for receiving the atomExamples from the {@link ExampleStream},
@@ -43,6 +47,11 @@ import java.util.List;
  * @author Victor Guimarães
  */
 public abstract class IncomingExampleManager implements Initializable {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     protected LearningSystem learningSystem;
     protected RelevantSampleSelector sampleSelector;
@@ -67,6 +76,7 @@ public abstract class IncomingExampleManager implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_INCOMING_EXAMPLE_MANAGER.toString(), this.getClass().getName());
         List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
             fields.add(LearningSystem.class.getSimpleName());

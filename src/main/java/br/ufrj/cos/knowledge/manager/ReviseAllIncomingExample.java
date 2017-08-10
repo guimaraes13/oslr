@@ -26,10 +26,13 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RevisionExamples;
-import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+
+import static br.ufrj.cos.util.log.IncomingExampleLog.CALLING_REVISION_OF_EXAMPLE;
 
 /**
  * Class to getBestRevisionOperator all incoming examples as they arrive.
@@ -39,6 +42,11 @@ import java.util.*;
  * @author Victor Guimarães
  */
 public class ReviseAllIncomingExample extends IncomingExampleManager {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     protected RevisionExamples revisionExamples;
     protected List<RevisionExamples> singleton;
@@ -58,20 +66,14 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
      */
     public ReviseAllIncomingExample(LearningSystem learningSystem, RelevantSampleSelector sampleSelector) {
         super(learningSystem, sampleSelector);
-        this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
-        this.singleton = Collections.singletonList(revisionExamples);
-    }
-
-    @Override
-    public void initialize() throws InitializationException {
-        super.initialize();
-        this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
-        this.singleton = Collections.singletonList(revisionExamples);
     }
 
     @Override
     public void incomingExamples(Iterable<? extends Example> examples) {
+        this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
+        this.singleton = Collections.singletonList(revisionExamples);
         for (Example example : convertToProPprExamples(examples)) { revisionExamples.addExample(example); }
+        logger.debug(CALLING_REVISION_OF_EXAMPLE.toString(), singleton.size());
         learningSystem.reviseTheory(singleton);
     }
 

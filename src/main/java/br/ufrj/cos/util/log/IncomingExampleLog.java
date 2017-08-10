@@ -22,28 +22,25 @@
 package br.ufrj.cos.util.log;
 
 /**
- * Centralizes log messages from the system.
+ * Centralizes log messages from the incoming examples manager.
  * <p>
  * Created on 01/08/17.
  *
  * @author Victor Guimarães
  */
 @SuppressWarnings({"JavaDoc"})
-public enum PreRevisionLog {
+public enum IncomingExampleLog {
 
-    PASSING_EXAMPLE_OF_TOTAL_REVISION("Passing example\t{}/{} to revise."),
-    CALLING_REVISION_ON_EXAMPLES("Calling the revision on {} examples."),
-    SKIPPING_REVISION_ON_EXAMPLES("Skipping the revision on examples, not enough examples to exceed the threshold."),
-    TRY_REFINE_RULE("Trying to refine rule:\t{}"),
-    SELECTED_OPERATOR("Operator selected for revision:\t{}"),
+    INITIALIZING_INCOMING_EXAMPLE_MANAGER("Initializing IncomingExampleManager:\t{}"),
 
-    RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
+    CALLING_REVISION_OF_EXAMPLE("Calling the revision for\t{} examples."),
 
-    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
+    EXAMPLES_PLACED_AT_LEAVES("New examples placed at the leaves of the tree, total:\t{}"),
+    CALLING_REVISION_OF_LEAVES("Calling the revision for\t{} modified leaves of predicate:\t{}."),;
 
     protected final String message;
 
-    PreRevisionLog(String message) {
+    IncomingExampleLog(String message) {
         this.message = message;
     }
 

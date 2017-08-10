@@ -32,8 +32,12 @@ import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_THEORY_EVALUATOR;
 
 /**
  * Responsible for evaluateTheory the theory against the atomExamples set and/or the knowledge base.
@@ -43,6 +47,11 @@ import java.util.*;
  * @author Victor Guimarães
  */
 public class TheoryEvaluator implements Initializable {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     protected LearningSystem learningSystem;
     protected Iterable<? extends TheoryMetric> theoryMetrics;
@@ -77,6 +86,7 @@ public class TheoryEvaluator implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_THEORY_EVALUATOR.toString(), this.getClass().getName());
         List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
             fields.add(LearningSystem.class.getSimpleName());

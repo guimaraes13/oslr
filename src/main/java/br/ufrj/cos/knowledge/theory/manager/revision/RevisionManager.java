@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static br.ufrj.cos.util.log.RevisionLog.ERROR_REVISING_THEORY;
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_REVISION_MANAGER;
 
 /**
  * Responsible for applying the revision operator on the {@link br.ufrj.cos.knowledge.theory.Theory}.
@@ -95,6 +96,7 @@ public class RevisionManager implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_REVISION_MANAGER.toString(), this.getClass().getName());
         List<String> fields = new ArrayList<>();
         if (operatorSelector == null) {
             fields.add(RevisionOperatorSelector.class.getSimpleName());

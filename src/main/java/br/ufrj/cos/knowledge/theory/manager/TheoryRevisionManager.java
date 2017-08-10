@@ -47,6 +47,7 @@ import static br.ufrj.cos.util.log.PosRevisionLog.THEORY_MODIFICATION_ACCEPTED;
 import static br.ufrj.cos.util.log.PosRevisionLog.THEORY_MODIFICATION_SKIPPED;
 import static br.ufrj.cos.util.log.PreRevisionLog.CALLING_REVISION_ON_EXAMPLES;
 import static br.ufrj.cos.util.log.PreRevisionLog.SELECTED_OPERATOR;
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_THEORY_REVISION_MANAGER;
 import static br.ufrj.cos.util.log.SystemLog.THEORY_CONTENT;
 
 /**
@@ -102,6 +103,7 @@ public class TheoryRevisionManager implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_THEORY_REVISION_MANAGER.toString(), this.getClass().getName());
         List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
             fields.add(LearningSystem.class.getSimpleName());

@@ -140,7 +140,7 @@ public class MultithreadingEvaluation<V> {
         AsyncTheoryEvaluator bestClause = null;
         int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
         try {
-            logger.trace(BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
+            logger.info(BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
             Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool, examples);
 
@@ -148,7 +148,7 @@ public class MultithreadingEvaluation<V> {
             evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
                                             TimeUnit.SECONDS);
             evaluationPool.shutdownNow();
-            logger.trace(END_ASYNC_EVALUATION);
+            logger.info(END_ASYNC_EVALUATION);
             bestClause = retrieveEvaluatedMetrics(futures, null);
         } catch (InterruptedException e) {
             logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
@@ -190,7 +190,7 @@ public class MultithreadingEvaluation<V> {
                              evaluationTimeout);
             }
         }
-        logger.trace(EVALUATED_TIMEOUT_PROPORTION.toString(),
+        logger.debug(EVALUATED_TIMEOUT_PROPORTION.toString(),
                      (double) count / futures.size() * 100, futures.size());
         return bestClause;
     }

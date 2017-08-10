@@ -31,8 +31,12 @@ import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
+
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_REVISION_OPERATOR;
 
 /**
  * Responsible for changing the {@link Theory}.
@@ -48,6 +52,11 @@ import java.util.Collection;
  */
 public abstract class RevisionOperator implements Initializable {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
     protected LearningSystem learningSystem;
 
     /**
@@ -58,6 +67,7 @@ public abstract class RevisionOperator implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_REVISION_OPERATOR.toString(), this.getClass().getName());
         if (learningSystem == null) {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));

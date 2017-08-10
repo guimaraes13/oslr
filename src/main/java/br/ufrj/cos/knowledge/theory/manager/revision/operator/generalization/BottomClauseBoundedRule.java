@@ -180,6 +180,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     @Override
     public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {
+            logger.info(PERFORMING_OPERATION_ON_EXAMPLES.toString(), targets.size());
             Theory theory = learningSystem.getTheory().copy();
             for (Example example : targets) {
                 performOperationForExample(example, theory, targets);
@@ -212,13 +213,13 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 }
                 return;
             }
-            logger.info(BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
+            logger.debug(BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
             newRule = buildRuleForExample(evaluationExamples, example);
             if (theory.add(newRule)) {
-                logger.debug(RULE_APPENDED_TO_THEORY.toString(), newRule);
+                logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
             }
         } catch (TheoryRevisionException e) {
-            logger.debug(e.getMessage());
+            logger.trace(e.getMessage());
         }
     }
 
@@ -318,6 +319,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         AsyncTheoryEvaluator bestClause = initialClause;
         AsyncTheoryEvaluator currentClause = initialClause;
         int sideWayMovements = 0;
+        logger.debug(REFINING_RULE.toString(), initialClause);
         while (!isToStopBySideWayMovements(sideWayMovements) && !candidates.isEmpty()) {
             candidates = HornClauseUtils.unifyCandidates(candidates, substitutionMap);
             candidates.removeAll(currentClause.getHornClause().getBody());
@@ -327,9 +329,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             if (substitutionMap == null) { substitutionMap = new HashMap<>(); }
             if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
                     improvementThreshold) {
+                logger.debug(ACCEPTING_NEW_BEST_REFINED_CANDIDATE.toString(), currentClause);
                 bestClause = currentClause;
                 sideWayMovements = 0;
             } else {
+                logger.debug(MAKING_SIDE_MOVEMENT_FOR_CANDIDATE.toString(), currentClause);
                 sideWayMovements++;
                 if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >= 0.0 &&
                         !generic) {

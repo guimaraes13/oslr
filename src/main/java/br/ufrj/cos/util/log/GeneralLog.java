@@ -33,10 +33,12 @@ public enum GeneralLog {
 
     PROGRAM_BEGIN("Program begin!"),
     PROGRAM_END("Program end!"),
-    ERROR_MAIN_PROGRAM("Main program error, reason:"),
     COMMAND_LINE_ARGUMENTS("Command line arguments:\t{}"),
     SAVE_STANDARD_OUTPUT("Saving standard output to {}"),
+    ERROR_MAIN_PROGRAM("Main program error, reason:"),
 
+    INITIALIZING_COMMAND_LINE_INTERFACE("Initializing CommandLineInterface:\t{}"),
+    INITIALIZING_LEARNING_SYSTEM("Initializing LearningSystem:\t{}"),
     ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
     ERROR_READING_BUILD_PROPERTIES("Error reading build properties, reason:\t{}"),
 

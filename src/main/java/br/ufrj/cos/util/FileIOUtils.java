@@ -21,27 +21,34 @@
 
 package br.ufrj.cos.util;
 
-import br.ufrj.cos.cli.LearningFromIterationsCLI;
+import br.ufrj.cos.cli.CommandLineOptions;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
+import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import com.esotericsoftware.yamlbeans.YamlConfig;
 import com.esotericsoftware.yamlbeans.YamlWriter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static br.ufrj.cos.util.LanguageUtils.CLAUSE_END_OF_LINE;
+import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
+import static br.ufrj.cos.util.log.FileIOLog.READING_INPUT_FILES;
 import static br.ufrj.cos.util.log.IterationLog.ERROR_WRITING_ITERATION_INFERENCE_FILE;
+import static br.ufrj.cos.util.log.SystemLog.EXAMPLES_SIZE;
+import static br.ufrj.cos.util.log.SystemLog.READ_CLAUSE_SIZE;
 
 /**
  * Class to centralize useful method with respect with to the file IO.
@@ -51,6 +58,11 @@ import static br.ufrj.cos.util.log.IterationLog.ERROR_WRITING_ITERATION_INFERENC
  * @author Victor Guimarães
  */
 public final class FileIOUtils {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     /**
      * The default encode of the input.
@@ -228,7 +240,7 @@ public final class FileIOUtils {
                 }
             }
         } catch (IOException e) {
-            LearningFromIterationsCLI.logger.error(ERROR_WRITING_ITERATION_INFERENCE_FILE, e);
+            logger.error(ERROR_WRITING_ITERATION_INFERENCE_FILE, e);
             //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
@@ -361,4 +373,83 @@ public final class FileIOUtils {
         }
     }
 
+    /**
+     * Reads the input {@link File}s to a {@link List} of {@link Clause}s.
+     *
+     * @param inputFiles the input {@link File}s
+     * @return the {@link List} of {@link Clause}s
+     */
+    public static List<Clause> readInputKnowledge(File[] inputFiles) {
+        List<Clause> clauses = new ArrayList<>();
+        logger.trace(READING_INPUT_FILES);
+        for (File file : inputFiles) {
+            readClausesToList(file, clauses);
+        }
+        logger.debug(READ_CLAUSE_SIZE.toString(), clauses.size());
+        return clauses;
+    }
+
+    /**
+     * Parses the {@link File}'s {@link Clause}s and appends they to the {@link List}.
+     *
+     * @param file    the {@link File} to parse
+     * @param clauses the {@link List} to append to
+     */
+    public static void readClausesToList(File file, List<Clause> clauses) {
+        try {
+            BufferedReader reader;
+            KnowledgeParser parser;
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_INPUT_ENCODE));
+            parser = new KnowledgeParser(reader);
+            parser.parseKnowledgeAppend(clauses);
+        } catch (UnsupportedEncodingException | FileNotFoundException | ParseException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        }
+    }
+
+    /**
+     * Builds the {@link Examples} from the input files.
+     *
+     * @param exampleFilePaths the examples paths
+     * @return the examples
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    public static Examples buildExampleSet(String[] exampleFilePaths) throws InstantiationException,
+            IllegalAccessException, FileNotFoundException {
+        List<AtomExample> atomExamples = new ArrayList<>();
+        List<ProPprExample> proPprExamples = new ArrayList<>();
+        logger.trace(READING_INPUT_FILES);
+        File[] files = readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
+        for (File file : files) {
+            readExamplesToLists(file, atomExamples, proPprExamples);
+        }
+        logger.info(EXAMPLES_SIZE.toString(), atomExamples.size() + proPprExamples.size());
+
+        return new Examples(proPprExamples, atomExamples);
+    }
+
+    /**
+     * Parses the {@link File}'s iterator and appends they to the correspondent {@link List}.
+     *
+     * @param file           the {@link File} to parse
+     * @param atomExamples   the {@link List} to the ProbLog like iterator
+     * @param proPprExamples the {@link List} to the ProPPR like iterator
+     */
+    public static void readExamplesToLists(File file,
+                                           List<AtomExample> atomExamples,
+                                           List<ProPprExample> proPprExamples) {
+        try {
+            BufferedReader reader;
+            ExampleParser parser;
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
+                                                              DEFAULT_INPUT_ENCODE));
+            parser = new ExampleParser(reader);
+            parser.parseExamplesAppend(atomExamples, proPprExamples);
+        } catch (UnsupportedEncodingException | FileNotFoundException | br.ufrj.cos.logic.parser.example
+                .ParseException e) {
+            logger.error(ERROR_READING_FILE.toString(), e);
+        }
+    }
 }

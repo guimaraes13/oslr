@@ -42,10 +42,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
-import static br.ufrj.cos.util.log.PreRevisionLog.RULE_PROPOSED_TO_THEORY;
 import static br.ufrj.cos.util.log.PreRevisionLog.TRY_REFINE_RULE;
-import static br.ufrj.cos.util.log.RevisionLog.PROPOSED_REFINED_RULE;
-import static br.ufrj.cos.util.log.RevisionLog.REFINING_RULE;
+import static br.ufrj.cos.util.log.RevisionLog.*;
 
 /**
  * Revision operator that adds a new node on the {@link TreeTheory}.
@@ -246,7 +244,16 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
             hornClause = refineClause(hornClause, examples);
         }
         revisedClause = hornClause.getHornClause();
-        logger.debug(RULE_PROPOSED_TO_THEORY.toString(), revisedClause);
+        if (logger.isDebugEnabled()) {
+            if (removeOld) {
+                Set<Literal> body = new LinkedHashSet<>(revisedClause.getBody());
+                body.removeAll(node.getElement().getBody());
+                logger.debug(PROPOSED_ADD_LITERAL.toString(), body.toArray());
+            } else {
+                logger.debug(PROPOSED_ADD_RULE.toString(), revisedClause);
+            }
+        }
+
         Theory theory = learningSystem.getTheory().copy();
         theory.add(revisedClause);
         if (removeOld) { theory.remove(node.getElement()); }

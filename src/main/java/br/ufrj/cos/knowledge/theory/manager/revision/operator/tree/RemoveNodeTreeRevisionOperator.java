@@ -33,11 +33,11 @@ import br.ufrj.cos.util.ExceptionMessages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 import static br.ufrj.cos.util.log.PreRevisionLog.TRY_REFINE_RULE;
+import static br.ufrj.cos.util.log.RevisionLog.PROPOSED_REMOVE_LITERAL;
+import static br.ufrj.cos.util.log.RevisionLog.PROPOSED_REMOVE_RULE;
 
 /**
  * Revision operator that removes a node from the {@link TreeTheory}.
@@ -91,13 +91,15 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
         Theory theory = learningSystem.getTheory().copy();
         Iterator<HornClause> iterator = theory.iterator();
         HornClause clause;
+        final HornClause element = node.getElement();
         while (iterator.hasNext()) {
             clause = iterator.next();
-            if (node.getElement().equals(clause)) {
+            if (element.equals(clause)) {
                 iterator.remove();
                 break;
             }
         }
+        logger.debug(PROPOSED_REMOVE_RULE.toString(), element);
         return theory;
     }
 
@@ -120,6 +122,11 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
                 // this is not the revision point, simple add to the collection
                 clauses.add(clause);
             }
+        }
+        if (logger.isDebugEnabled()) {
+            Set<Literal> body = new HashSet<>(node.getElement().getBody());
+            body.removeAll(node.getParent().getElement().getBody());
+            logger.debug(PROPOSED_REMOVE_LITERAL.toString(), body.toArray());
         }
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
     }

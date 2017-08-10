@@ -30,8 +30,12 @@ import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
+
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_REVISION_OPERATOR_EVALUATOR;
 
 /**
  * Responsible for evaluating an specific {@link RevisionOperator}.
@@ -47,6 +51,11 @@ import java.util.Collection;
  * @author Victor Guimarães
  */
 public class RevisionOperatorEvaluator implements Initializable {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     protected RevisionOperator revisionOperator;
 
@@ -70,6 +79,7 @@ public class RevisionOperatorEvaluator implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_REVISION_OPERATOR_EVALUATOR.toString(), this.getClass().getName());
         revisionOperator.initialize();
     }
 

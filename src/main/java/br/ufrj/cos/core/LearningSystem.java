@@ -37,10 +37,14 @@ import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static br.ufrj.cos.util.log.GeneralLog.INITIALIZING_LEARNING_SYSTEM;
 
 /**
  * Responsible for the execution and control of the entire system.
@@ -50,6 +54,11 @@ import java.util.stream.Collectors;
  * @author Victor Guimarães
  */
 public class LearningSystem implements Initializable {
+
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
 
     /**
      * Represents a constant for no maximum depth on the transitivity of the relevant concept.
@@ -104,6 +113,7 @@ public class LearningSystem implements Initializable {
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_LEARNING_SYSTEM.toString(), this.getClass().getName());
         incomingExampleManager.initialize();
 
         theoryEvaluator.setLearningSystem(this);

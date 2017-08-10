@@ -41,6 +41,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.IncomingExampleLog.CALLING_REVISION_OF_LEAVES;
+import static br.ufrj.cos.util.log.IncomingExampleLog.EXAMPLES_PLACED_AT_LEAVES;
 import static br.ufrj.cos.util.log.PreRevisionLog.ERROR_INITIALIZING_REVISION_EXAMPLES;
 
 /**
@@ -158,9 +160,12 @@ public class TreeExampleManager extends IncomingExampleManager {
      */
     protected Map<String, Set<Node<HornClause>>> placeIncomingExamples(Iterable<? extends Example> examples) {
         Map<String, Set<Node<HornClause>>> modifiedLeavesMap = new HashMap<>();
+        int count = 0;
         for (Example example : examples) {
             placeExample(modifiedLeavesMap, example);
+            count++;
         }
+        logger.debug(EXAMPLES_PLACED_AT_LEAVES.toString(), count);
         return modifiedLeavesMap;
     }
 
@@ -250,6 +255,7 @@ public class TreeExampleManager extends IncomingExampleManager {
                     treeTheory.revisionLeaves.add(leaf);
                 }
             }
+            logger.debug(CALLING_REVISION_OF_LEAVES.toString(), targets.size(), entry.getValue());
             learningSystem.reviseTheory(targets);
         }
     }

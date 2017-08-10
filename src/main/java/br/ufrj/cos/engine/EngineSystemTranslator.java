@@ -29,11 +29,15 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.Initializable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static br.ufrj.cos.util.log.EngineSystemLog.INITIALIZING_ENGINE_SYSTEM_TRANSLATOR;
 
 /**
  * Represents an facade to be in between the system and the logic inference engine. It is useful for isolate the
@@ -51,8 +55,18 @@ import java.util.Set;
 @SuppressWarnings("AbstractClassExtendsConcreteClass")
 public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTranslator> implements Initializable {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
     protected KnowledgeBase knowledgeBase;
     protected Theory theory;
+
+    @Override
+    public void initialize() {
+        logger.debug(INITIALIZING_ENGINE_SYSTEM_TRANSLATOR.toString(), this.getClass().getName());
+    }
 
     @SuppressWarnings("AbstractMethodOverridesConcreteMethod")
     @Override

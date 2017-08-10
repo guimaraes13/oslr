@@ -29,8 +29,12 @@ import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.Initializable;
 import br.ufrj.cos.util.InitializationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
+
+import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_REVISION_OPERATOR_SELECTOR;
 
 /**
  * Responsible for selecting the best suited {@link RevisionOperator}(s).
@@ -41,10 +45,16 @@ import java.util.Collection;
  */
 public abstract class RevisionOperatorSelector implements Initializable {
 
+    /**
+     * The logger
+     */
+    public static final Logger logger = LogManager.getLogger();
+
     protected Collection<RevisionOperatorEvaluator> operatorEvaluators;
 
     @Override
     public void initialize() throws InitializationException {
+        logger.debug(INITIALIZING_REVISION_OPERATOR_SELECTOR.toString(), this.getClass().getName());
         if (operatorEvaluators == null || operatorEvaluators.isEmpty()) {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, RevisionOperatorEvaluator.class.getSimpleName()));
