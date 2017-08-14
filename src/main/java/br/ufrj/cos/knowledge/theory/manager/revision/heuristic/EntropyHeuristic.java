@@ -23,6 +23,8 @@ package br.ufrj.cos.knowledge.theory.manager.revision.heuristic;
 
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.manager.Node;
+import br.ufrj.cos.logic.HornClause;
 
 import java.util.Collection;
 
@@ -41,7 +43,7 @@ public class EntropyHeuristic extends RevisionHeuristic {
     public static final int LOG_BASE = 2;
 
     @Override
-    public double evaluate(Collection<? extends Example> examples) {
+    public double evaluate(Collection<? extends Example> examples, Node<HornClause> revisionNode) {
         int positives = countExamples(examples, true);
         int negatives = countExamples(examples, false);
         int total = positives + negatives;

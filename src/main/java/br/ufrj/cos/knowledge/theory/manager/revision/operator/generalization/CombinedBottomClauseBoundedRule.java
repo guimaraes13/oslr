@@ -113,8 +113,6 @@ public class CombinedBottomClauseBoundedRule extends BottomClauseBoundedRule {
         Set<Atom> groundedAtoms = examples.stream().flatMap(e -> e.getGroundedQuery().stream())
                 .filter(AtomExample::isPositive).map(AtomExample::getAtom).collect(Collectors.toSet());
 
-        //QUESTION: to variable examples individually?
-        //TODO: pass the variable map as parameter
         return buildVariableBottomClause(predicate, relevants, groundedAtoms);
     }
 

@@ -21,24 +21,34 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.heuristic;
 
+import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.manager.Node;
 import br.ufrj.cos.logic.HornClause;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
- * The uniform heuristic, simply returns 1.0 for any collection of examples.
+ * Calculates the number of repairable examples in the leaf. The number of repairable examples is the number of
+ * positive (negative) examples in a negative (positive) leaf.
  * <p>
- * Created on 26/06/17.
+ * Created on 14/08/17.
  *
  * @author Victor Guimarães
  */
-public class UniformHeuristic extends RevisionHeuristic {
+public class RepairableHeuristic extends RevisionHeuristic {
+
+    protected final Predicate<? super AtomExample> positiveFilter = AtomExample::isPositive;
+    protected final Predicate<? super AtomExample> negativeFilter = positiveFilter.negate();
 
     @Override
     public double evaluate(Collection<? extends Example> examples, Node<HornClause> revisionNode) {
-        return 1.0;
+        if (revisionNode.isDefaultChild()) {
+            return examples.stream().flatMap(e -> e.getGroundedQuery().stream()).filter(positiveFilter).count();
+        } else {
+            return examples.stream().flatMap(e -> e.getGroundedQuery().stream()).filter(negativeFilter).count();
+        }
     }
 
 }

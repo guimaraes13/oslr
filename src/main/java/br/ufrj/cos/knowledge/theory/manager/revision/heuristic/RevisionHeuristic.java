@@ -21,10 +21,12 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.heuristic;
 
-import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.manager.Node;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.logic.HornClause;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,7 +39,7 @@ import java.util.Comparator;
  *
  * @author Victor Guimarães
  */
-public abstract class RevisionHeuristic implements Comparator<Collection<? extends Example>> {
+public abstract class RevisionHeuristic implements Comparator<Pair<Collection<? extends Example>, Node<HornClause>>> {
 
     /**
      * The default value of the metric, it should be proper overridden by subclasses.
@@ -78,25 +80,23 @@ public abstract class RevisionHeuristic implements Comparator<Collection<? exten
     }
 
     /**
-     * Note: this comparator imposes orderings that are inconsistent with equals; in the means that two different
-     * {@link Theory}is might have the same evaluation for the same {@link Knowledge}. In addiction, two equal
-     * {@link Theory}is must have the same evaluation for the same {@link Knowledge}.
-     * <p>
      * By default, as higher the metric better the theory. Override this method, otherwise.
      * <p>
      * {@inheritDoc}
      */
     @Override
-    public int compare(Collection<? extends Example> o1, Collection<? extends Example> o2) {
-        return Double.compare(evaluate(o1), evaluate(o2));
+    public int compare(Pair<Collection<? extends Example>, Node<HornClause>> o1,
+                       Pair<Collection<? extends Example>, Node<HornClause>> o2) {
+        return -Double.compare(evaluate(o1.getKey(), o1.getValue()), evaluate(o2.getKey(), o2.getValue()));
     }
 
     /**
-     * Evaluates the example based on the inferred results.
+     * Evaluates the example to revise.
      *
-     * @param examples the {@link Examples}
+     * @param examples     the {@link Examples}
+     * @param revisionNode the revision node
      * @return the evaluated metric
      */
-    public abstract double evaluate(Collection<? extends Example> examples);
+    public abstract double evaluate(Collection<? extends Example> examples, Node<HornClause> revisionNode);
 
 }

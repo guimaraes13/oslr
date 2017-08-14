@@ -33,6 +33,7 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("unused")
 public class ClauseSubstitutionAsyncTransformer<E>
         implements AsyncEvaluatorTransformer<Map.Entry<HornClause, E>, E> {
 

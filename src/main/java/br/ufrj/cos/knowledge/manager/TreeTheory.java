@@ -174,4 +174,14 @@ public class TreeTheory implements Initializable {
         return revisionLeaves.get(revisionLeafIndex);
     }
 
+    /**
+     * Gets the current revision leaf.
+     *
+     * @param index the index
+     * @return the current revision leaf
+     */
+    public Node<HornClause> getRevisionLeaf(int index) {
+        return revisionLeaves.get(index);
+    }
+
 }

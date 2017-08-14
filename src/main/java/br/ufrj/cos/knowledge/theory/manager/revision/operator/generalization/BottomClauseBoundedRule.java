@@ -300,7 +300,6 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param evaluationExamples the evaluation examples
      * @return a {@link AsyncTheoryEvaluator} containing the best {@link HornClause} found
      */
-    @SuppressWarnings("OverlyLongMethod")
     protected AsyncTheoryEvaluator<EquivalentHornClause> refineRule(AsyncTheoryEvaluator<EquivalentHornClause>
                                                                             initialClause,
                                                                     Set<Literal> candidateLiterals,

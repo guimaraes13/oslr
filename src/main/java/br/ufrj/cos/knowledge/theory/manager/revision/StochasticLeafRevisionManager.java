@@ -80,7 +80,8 @@ public class StochasticLeafRevisionManager extends BestLeafRevisionManager {
         ImmutablePair<Integer, Double> e;
         double evaluate;
         for (int i = 0; i < revisionPoints.size(); i++) {
-            evaluate = revisionHeuristic.evaluate(revisionPoints.get(i).getTrainingExamples(trainUsingAllExamples));
+            evaluate = revisionHeuristic.evaluate(revisionPoints.get(i).getTrainingExamples(trainUsingAllExamples),
+                                                  treeTheory.getRevisionLeaf(i));
             e = new ImmutablePair<>(i, evaluate);
             list.add(e);
         }

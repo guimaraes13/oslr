@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -90,8 +91,10 @@ public class BestLeafRevisionManager extends RevisionManager {
     protected List<Pair<Integer, ? extends RevisionExamples>> sortKeepingIndexes(
             List<? extends RevisionExamples> revisionPoints, final boolean trainUsingAllExamples) {
         List<Pair<Integer, ? extends RevisionExamples>> sorted = buildIndexPairList(revisionPoints);
-        sorted.sort((o1, o2) -> revisionHeuristic.compare(o1.getValue().getTrainingExamples(trainUsingAllExamples),
-                                                          o2.getValue().getTrainingExamples(trainUsingAllExamples)));
+        sorted.sort(Comparator.comparing(
+                o -> new ImmutablePair<>(o.getValue().getTrainingExamples(trainUsingAllExamples),
+                                         treeTheory.getRevisionLeaf(o.getLeft())),
+                revisionHeuristic));
         return sorted;
     }
 
