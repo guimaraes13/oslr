@@ -102,6 +102,12 @@ public class LogicToProPprConverter extends CommandLineInterface {
      */
     public String examplesFileExtension = DEFAULT_EXAMPLES_FILE_EXTENSION;
 
+    /**
+     * Filters to remove examples that only has the negative part. If {@code true}, examples with only negative part
+     * will be removed from the output.
+     */
+    public boolean filterOnlyNegativeExamples = false;
+
     protected AtomFactory atomFactory;
     protected File[] iterationDirectories;
     protected NumberFormat numberFormat;
@@ -199,7 +205,16 @@ public class LogicToProPprConverter extends CommandLineInterface {
         negatives.stream().map(e -> new AtomExample(e, false)).forEach(atomExamples::add);
         Examples.appendAtomExamplesIntoProPpr(atomExamples, examplesByPredicate);
 
-        return examplesByPredicate.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        final Set<ProPprExample> collect;
+
+        if (filterOnlyNegativeExamples) {
+            collect = examplesByPredicate.values().stream().flatMap(Collection::stream)
+                    .filter(ProPprExample::isPositive).collect(Collectors.toSet());
+        } else {
+            collect = examplesByPredicate.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        }
+
+        return collect;
     }
 
     /**
@@ -290,6 +305,8 @@ public class LogicToProPprConverter extends CommandLineInterface {
         options.addOption(EXAMPLES_EXTENSION.getOption());
 
         options.addOption(TARGET_RELATIONS.getOption());
+
+        options.addOption(FILTER_ONLY_NEGATIVES.getOption());
     }
 
     @Override
@@ -303,6 +320,9 @@ public class LogicToProPprConverter extends CommandLineInterface {
         examplesFileExtension = commandLine.getOptionValue(EXAMPLES_EXTENSION.getOptionName(), examplesFileExtension);
 
         targetRelations = commandLine.getOptionValues(TARGET_RELATIONS.getOptionName());
+
+        filterOnlyNegativeExamples = commandLine.hasOption(FILTER_ONLY_NEGATIVES.getOptionName());
+
         return this;
     }
 
@@ -315,6 +335,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
         description.append("\t").append("Positive Extension:\t").append(positiveExtension).append("\n");
         description.append("\t").append("Negative Extension:\t").append(negativeExtension).append("\n");
         description.append("\t").append("Examples Extension:\t").append(examplesFileExtension).append("\n");
+        description.append("\t").append("Filter Negatives:\t").append(filterOnlyNegativeExamples).append("\n");
         description.append("\t").append("Target Relations:\t").append("\n");
         for (String targetRelation : targetRelations) {
             description.append("\t\t - ").append(targetRelation).append("\n");

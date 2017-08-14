@@ -117,7 +117,11 @@ public enum CommandLineOptions {
                              .withDescription("the target relation to learn the theory. If not specified, the program" +
                                                       " " +
                                                       "will try to read it from a yaml configuration file.")
-                             .create("tr"));
+                             .create("tr")),
+    FILTER_ONLY_NEGATIVES(OptionBuilder.withArgName("filterOnlyNegatives")
+                                  .withLongOpt("filterOnlyNegatives")
+                                  .withDescription("If set, removes the examples that has only the negative part.")
+                                  .create("fon"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

@@ -41,8 +41,6 @@ public class ProPprExample implements Example {
     protected final Atom goal;
     protected final List<AtomExample> atomExamples;
 
-    protected final boolean hasPositivePart;
-
     /**
      * Constructs the ProPPR iterator
      *
@@ -52,7 +50,6 @@ public class ProPprExample implements Example {
     public ProPprExample(Atom goal, List<AtomExample> atomExamples) {
         this.goal = goal;
         this.atomExamples = atomExamples;
-        this.hasPositivePart = hasPositiveExamples(atomExamples);
     }
 
     /**
@@ -90,7 +87,7 @@ public class ProPprExample implements Example {
 
     @Override
     public boolean isPositive() {
-        return hasPositivePart;
+        return hasPositiveExamples(atomExamples);
     }
 
     @Override
