@@ -102,30 +102,6 @@ public class MultithreadingEvaluation<V, E> {
     }
 
     /**
-     * Submits the candidate {@link HornClause}s to the evaluation pool.
-     *
-     * @param candidates     the candidates
-     * @param evaluationPool the pool
-     * @param examples       the examples
-     * @return the {@link Set} of {@link Future} evaluations.
-     */
-    protected Set<Future<AsyncTheoryEvaluator>> submitCandidates(Iterable<? extends V> candidates,
-                                                                 ExecutorService evaluationPool,
-                                                                 Collection<? extends Example> examples) {
-        Set<Future<AsyncTheoryEvaluator>> futures = new LinkedHashSet<>();
-        AsyncTheoryEvaluator evaluator;
-        for (V candidate : candidates) {
-            evaluator = new AsyncTheoryEvaluator(examples,
-                                                 learningSystem.getTheoryEvaluator(),
-                                                 theoryMetric, evaluationTimeout);
-            evaluator = transformer.transform(evaluator, candidate);
-            futures.add(MultithreadingEvaluation.submitCandidate(evaluator, evaluationPool));
-        }
-        futures.remove(null);
-        return futures;
-    }
-
-    /**
      * Evaluates the candidate clauses against the metric, and returns the best evaluated {@link HornClause}.
      * <p>
      * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
@@ -134,15 +110,15 @@ public class MultithreadingEvaluation<V, E> {
      * @param examples   the examples
      * @return the best evaluated {@link HornClause}
      */
-    public AsyncTheoryEvaluator getBestClausesFromCandidates(Collection<? extends V> candidates,
-                                                             Collection<? extends Example> examples) {
+    public AsyncTheoryEvaluator<E> getBestClausesFromCandidates(Collection<? extends V> candidates,
+                                                                Collection<? extends Example> examples) {
         if (candidates == null || candidates.isEmpty()) { return null; }
-        AsyncTheoryEvaluator bestClause = null;
+        AsyncTheoryEvaluator<E> bestClause = null;
         int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
         try {
             logger.info(BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
-            Set<Future<AsyncTheoryEvaluator>> futures = submitCandidates(candidates, evaluationPool, examples);
+            Set<Future<AsyncTheoryEvaluator<E>>> futures = submitCandidates(candidates, evaluationPool, examples);
 
             evaluationPool.shutdown();
             evaluationPool.awaitTermination((int) (evaluationTimeout * (futures.size() + 1.0) / numberOfThreads),
@@ -157,6 +133,30 @@ public class MultithreadingEvaluation<V, E> {
     }
 
     /**
+     * Submits the candidate {@link HornClause}s to the evaluation pool.
+     *
+     * @param candidates     the candidates
+     * @param evaluationPool the pool
+     * @param examples       the examples
+     * @return the {@link Set} of {@link Future} evaluations.
+     */
+    protected Set<Future<AsyncTheoryEvaluator<E>>> submitCandidates(Iterable<? extends V> candidates,
+                                                                    ExecutorService evaluationPool,
+                                                                    Collection<? extends Example> examples) {
+        Set<Future<AsyncTheoryEvaluator<E>>> futures = new LinkedHashSet<>();
+        AsyncTheoryEvaluator<E> evaluator;
+        for (V candidate : candidates) {
+            evaluator = new AsyncTheoryEvaluator<>(examples,
+                                                   learningSystem.getTheoryEvaluator(),
+                                                   theoryMetric, evaluationTimeout);
+            evaluator = transformer.transform(evaluator, candidate);
+            futures.add(MultithreadingEvaluation.submitCandidate(evaluator, evaluationPool));
+        }
+        futures.remove(null);
+        return futures;
+    }
+
+    /**
      * Retrieves the evaluations from the {@link Future} {@link AsyncTheoryEvaluator}s and appends it to a
      * {@link Map}. Also, returns the best evaluated {@link HornClause}.
      *
@@ -165,13 +165,13 @@ public class MultithreadingEvaluation<V, E> {
      * @return the best evaluated {@link HornClause}
      */
     @SuppressWarnings("SameParameterValue")
-    public AsyncTheoryEvaluator retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator>> futures,
-                                                         Map<HornClause, Double> evaluationMap) {
-        AsyncTheoryEvaluator evaluated;
+    public AsyncTheoryEvaluator<E> retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator<E>>> futures,
+                                                            Map<HornClause, Double> evaluationMap) {
+        AsyncTheoryEvaluator<E> evaluated;
         double bestClauseValue = theoryMetric.getDefaultValue();
-        AsyncTheoryEvaluator bestClause = null;
+        AsyncTheoryEvaluator<E> bestClause = null;
         int count = 0;
-        for (Future<AsyncTheoryEvaluator> future : futures) {
+        for (Future<AsyncTheoryEvaluator<E>> future : futures) {
             try {
                 evaluated = future.get();
                 if (!evaluated.isEvaluationFinished()) { continue; }

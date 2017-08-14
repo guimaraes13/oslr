@@ -246,7 +246,7 @@ public final class HornClauseUtils {
         EquivalentHornClause equivalentHornClause;
         for (int i = 0; i < size; i++) {
             equivalentHornClause = queue.remove();
-            queue.addAll(equivalentHornClause.buildClauseCandidates(candidates, skipAtom, skipClause));
+            queue.addAll(equivalentHornClause.buildInitialClauseCandidates(candidates, skipAtom, skipClause));
         }
     }
 
@@ -463,7 +463,7 @@ public final class HornClauseUtils {
         fixedTerms.addAll(head.getTerms());
         for (Literal candidate : candidates) {
             if (Collections.disjoint(fixedTerms, candidate.getTerms()) ||
-                    !HornClauseUtils.willBeRuleSafe(head, body, candidate)) {
+                    !HornClauseUtils.willRuleBeSafe(head, body, candidate)) {
                 continue;
             }
             currentAtom = new EquivalentAtom(candidate, fixedTerms);
@@ -500,7 +500,7 @@ public final class HornClauseUtils {
      * @return {@code true} if the {@link HornClause} is safe, {@code false} otherwise
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean willBeRuleSafe(Atom head, Iterable<Literal> body, Literal candidate) {
+    public static boolean willRuleBeSafe(Atom head, Iterable<Literal> body, Literal candidate) {
         Set<Term> nonSafe = getNonSafeTerms(head, body);
         if (candidate.isNegated()) {
             appendNonConstantTerms(candidate, nonSafe);

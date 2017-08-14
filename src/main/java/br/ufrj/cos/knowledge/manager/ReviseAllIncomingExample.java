@@ -72,8 +72,12 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
     public void incomingExamples(Iterable<? extends Example> examples) {
         this.revisionExamples = new RevisionExamples(learningSystem, sampleSelector);
         this.singleton = Collections.singletonList(revisionExamples);
-        for (Example example : convertToProPprExamples(examples)) { revisionExamples.addExample(example); }
-        logger.info(CALLING_REVISION_OF_EXAMPLE.toString(), singleton.size());
+        int size = 0;
+        for (Example example : convertToProPprExamples(examples)) {
+            revisionExamples.addExample(example);
+            size++;
+        }
+        logger.info(CALLING_REVISION_OF_EXAMPLE.toString(), size);
         learningSystem.reviseTheory(singleton);
     }
 

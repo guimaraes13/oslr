@@ -38,7 +38,7 @@ public class LiteralAppendAsyncTransformer implements AsyncEvaluatorTransformer<
     protected HornClause initialClause;
 
     @Override
-    public AsyncTheoryEvaluator<Object> transform(AsyncTheoryEvaluator evaluator, Literal literal) {
+    public AsyncTheoryEvaluator<Object> transform(AsyncTheoryEvaluator<Object> evaluator, Literal literal) {
         HornClause clause = new HornClause(initialClause.getHead(), new Conjunction(initialClause.getBody()));
         clause.getBody().add(literal);
         evaluator.setHornClause(clause);

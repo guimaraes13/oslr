@@ -30,14 +30,13 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.util.*;
-import br.ufrj.cos.util.multithreading.ClauseSubstitutionAsyncTransformer;
+import br.ufrj.cos.util.multithreading.EquivalentHornClauseAsyncTransformer;
 import br.ufrj.cos.util.multithreading.MultithreadingEvaluation;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -155,7 +154,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      */
     public int numberOfThreads = MultithreadingEvaluation.DEFAULT_NUMBER_OF_THREADS;
 
-    protected MultithreadingEvaluation<Map.Entry<HornClause, Map<Term, Term>>, Map<Term, Term>> multithreading;
+    protected MultithreadingEvaluation<EquivalentHornClause, EquivalentHornClause> multithreading;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -172,8 +171,8 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                     FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_GETTING_VARIABLE_GENERATOR_CLASS.toString(),
                                                  variableGeneratorClassName), e);
         }
-        multithreading = new MultithreadingEvaluation(learningSystem, theoryMetric, evaluationTimeout,
-                                                      new ClauseSubstitutionAsyncTransformer());
+        multithreading = new MultithreadingEvaluation<>(learningSystem, theoryMetric, evaluationTimeout,
+                                                        new EquivalentHornClauseAsyncTransformer());
         multithreading.numberOfThreads = numberOfThreads;
     }
 
@@ -214,7 +213,9 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 return;
             }
             logger.debug(BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-            newRule = buildRuleBottomClause(evaluationExamples, buildBottomClause(example));
+            final HornClause bottomClause = buildBottomClause(example);
+            logger.info(BOTTOM_CLAUSE_SIZE.toString(), bottomClause.getBody().size());
+            newRule = buildRuleFromBottomClause(evaluationExamples, bottomClause);
             if (theory.add(newRule)) {
                 logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
             }
@@ -249,23 +250,20 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return a {@link HornClause}
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    protected HornClause buildRuleBottomClause(Collection<? extends Example> evaluationExamples,
-                                               HornClause bottomClause) throws TheoryRevisionException {
+    protected HornClause buildRuleFromBottomClause(Collection<? extends Example> evaluationExamples,
+                                                   HornClause bottomClause) throws TheoryRevisionException {
         logger.debug(FIND_MINIMAL_SAFE_CLAUSES);
-//        Set<EquivalentHornClause> candidateClauses = HornClauseUtils.buildMinimalSafeEquivalentClauses(bottomClause);
-        Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
+        Set<EquivalentHornClause> candidateClauses = HornClauseUtils.buildMinimalSafeEquivalentClauses(bottomClause);
         logger.debug(EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
-//        AsyncTheoryEvaluator<Map<Term, Term>> bestClause = null;
-        AsyncTheoryEvaluator<Map<Term, Term>> bestClause =
-                multithreading.getBestClausesFromCandidates(candidateClauses.entrySet(), evaluationExamples);
+        AsyncTheoryEvaluator<EquivalentHornClause> bestClause =
+                multithreading.getBestClausesFromCandidates(candidateClauses, evaluationExamples);
         if (bestClause == null) {
             logger.debug(ERROR_EVALUATING_MINIMAL_CLAUSES);
             return null;
         }
 
         if (refine) {
-            bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getElement(),
-                                    evaluationExamples);
+            bestClause = refineRule(bestClause, bottomClause.getBody(), evaluationExamples);
         }
         return bestClause.getHornClause();
     }
@@ -297,30 +295,26 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * <p>
      * After it finishes, it return the best {@link HornClause} found, based on the {@link #generic} criteria.
      *
-     * @param initialClause       the initial minimal candidate clause
-     * @param candidateLiterals   the candidate literals
-     * @param initialSubstitution the initial substitution map
-     * @param evaluationExamples  the evaluation examples
+     * @param initialClause      the initial minimal candidate clause
+     * @param candidateLiterals  the candidate literals
+     * @param evaluationExamples the evaluation examples
      * @return a {@link AsyncTheoryEvaluator} containing the best {@link HornClause} found
      */
     @SuppressWarnings("OverlyLongMethod")
-    protected AsyncTheoryEvaluator refineRule(AsyncTheoryEvaluator<Map<Term, Term>> initialClause,
-                                              Set<Literal> candidateLiterals,
-                                              Map<Term, Term> initialSubstitution,
-                                              Collection<? extends Example> evaluationExamples) {
-        Set<Literal> candidates = candidateLiterals;
-        Map<Term, Term> substitutionMap = initialSubstitution;
-        AsyncTheoryEvaluator<Map<Term, Term>> bestClause = initialClause;
-        AsyncTheoryEvaluator<Map<Term, Term>> currentClause = initialClause;
+    protected AsyncTheoryEvaluator<EquivalentHornClause> refineRule(AsyncTheoryEvaluator<EquivalentHornClause>
+                                                                            initialClause,
+                                                                    Set<Literal> candidateLiterals,
+                                                                    Collection<? extends Example> evaluationExamples) {
+        Set<Literal> candidates = new LinkedHashSet<>(candidateLiterals);
+        AsyncTheoryEvaluator<EquivalentHornClause> bestClause = initialClause;
+        AsyncTheoryEvaluator<EquivalentHornClause> currentClause = initialClause;
+        removeEquivalentCandidates(candidates, initialClause.getElement());
         int sideWayMovements = 0;
         logger.debug(REFINING_RULE.toString(), initialClause);
         while (!isToStopBySideWayMovements(sideWayMovements) && !candidates.isEmpty()) {
-            candidates = HornClauseUtils.unifyCandidates(candidates, substitutionMap);
-            candidates.removeAll(currentClause.getHornClause().getBody());
-            currentClause = specifyRule(currentClause.getHornClause(), candidates, evaluationExamples);
+            removeLastLiteralEquivalentCandidates(candidates, currentClause.getElement());
+            currentClause = specifyRule(currentClause.getElement(), candidates, evaluationExamples);
             if (currentClause == null) { break; }
-            substitutionMap = currentClause.getElement();
-            if (substitutionMap == null) { substitutionMap = new HashMap<>(); }
             if (theoryMetric.difference(currentClause.getEvaluation(), bestClause.getEvaluation()) >
                     improvementThreshold) {
                 logger.debug(ACCEPTING_NEW_BEST_REFINED_CANDIDATE.toString(), currentClause);
@@ -336,6 +330,34 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             }
         }
         return bestClause;
+    }
+
+    /**
+     * Removes all the equivalent candidates of the body of the clause from the candidate set.
+     *
+     * @param candidates       the candidate set
+     * @param equivalentClause the {@link EquivalentHornClause}
+     */
+    protected static void removeEquivalentCandidates(Set<Literal> candidates,
+                                                     EquivalentHornClause equivalentClause) {
+        for (Literal literal : equivalentClause.getClauseBody()) {
+            for (Map<Term, Term> substitutions : equivalentClause.getSubstitutionMaps()) {
+                candidates.remove(LanguageUtils.applySubstitution(literal, substitutions));
+            }
+        }
+    }
+
+    /**
+     * Removes all the equivalent candidates of the body of the clause from the candidate set.
+     *
+     * @param candidates       the candidate set
+     * @param equivalentClause the {@link EquivalentHornClause}
+     */
+    protected static void removeLastLiteralEquivalentCandidates(Set<Literal> candidates,
+                                                                EquivalentHornClause equivalentClause) {
+        for (Map<Term, Term> substitutions : equivalentClause.getSubstitutionMaps()) {
+            candidates.remove(LanguageUtils.applySubstitution(equivalentClause.getLastLiteral(), substitutions));
+        }
     }
 
     /**
@@ -385,12 +407,11 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param evaluationExamples the evaluation examples
      * @return the best obtained clause
      */
-    protected AsyncTheoryEvaluator specifyRule(HornClause clause, Iterable<Literal> candidates,
-                                               Collection<? extends Example> evaluationExamples) {
-        Set<Pair<HornClause, Map<Term, Term>>> clauses =
-                HornClauseUtils.buildAllCandidatesFromClause(clause.getHead(), clause.getBody(), candidates);
-
-        return multithreading.getBestClausesFromCandidates(clauses, evaluationExamples);
+    protected AsyncTheoryEvaluator<EquivalentHornClause> specifyRule(EquivalentHornClause clause,
+                                                                     Collection<Literal> candidates,
+                                                                     Collection<? extends Example> evaluationExamples) {
+        return multithreading.getBestClausesFromCandidates(clause.buildAppendCandidatesFromClause(candidates),
+                                                           evaluationExamples);
     }
 
     /**
@@ -402,9 +423,9 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @return the evaluation value
      */
     public double evaluateTheory(Collection<? extends Example> examples) {
-        AsyncTheoryEvaluator evaluator = new AsyncTheoryEvaluator(examples,
-                                                                  learningSystem.getTheoryEvaluator(), theoryMetric,
-                                                                  evaluationTimeout);
+        AsyncTheoryEvaluator<EquivalentHornClause> evaluator
+                = new AsyncTheoryEvaluator(examples, learningSystem.getTheoryEvaluator(), theoryMetric,
+                                           evaluationTimeout);
         return evaluator.call().getEvaluation();
     }
 

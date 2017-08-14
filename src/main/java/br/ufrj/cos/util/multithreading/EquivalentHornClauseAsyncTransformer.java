@@ -22,25 +22,23 @@
 package br.ufrj.cos.util.multithreading;
 
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
-import br.ufrj.cos.logic.HornClause;
-
-import java.util.Map;
+import br.ufrj.cos.logic.EquivalentHornClause;
 
 /**
- * Encapsulates entries of HornClause and substitutions into the AsyncTheoryEvaluator.
+ * Transforms a {@link EquivalentHornClause} into a {@link AsyncEvaluatorTransformer}.
  * <p>
- * Created on 25/06/17.
+ * Created on 14/08/17.
  *
  * @author Victor Guimarães
  */
-public class ClauseSubstitutionAsyncTransformer<E>
-        implements AsyncEvaluatorTransformer<Map.Entry<HornClause, E>, E> {
+public class EquivalentHornClauseAsyncTransformer implements
+        AsyncEvaluatorTransformer<EquivalentHornClause, EquivalentHornClause> {
 
     @Override
-    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator<E> evaluator,
-                                             Map.Entry<HornClause, E> mapEntry) {
-        evaluator.setHornClause(mapEntry.getKey());
-        evaluator.setElement(mapEntry.getValue());
+    public AsyncTheoryEvaluator<EquivalentHornClause> transform(AsyncTheoryEvaluator<EquivalentHornClause> evaluator,
+                                                                EquivalentHornClause equivalentHornClause) {
+        evaluator.setHornClause(equivalentHornClause.getHornClause());
+        evaluator.setElement(equivalentHornClause);
 
         return evaluator;
     }

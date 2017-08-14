@@ -85,7 +85,8 @@ public class CombinedBottomClauseBoundedRule extends BottomClauseBoundedRule {
                 examples = entry.getValue();
                 logger.info(BUILDING_CLAUSE_FROM_PREDICATE_EXAMPLES.toString(), predicate, examples.size());
                 HornClause bottomClause = buildCombinedBottomClause(predicate, examples);
-                newRule = buildRuleBottomClause(targets, bottomClause);
+                logger.info(BOTTOM_CLAUSE_SIZE.toString(), bottomClause.getBody().size());
+                newRule = buildRuleFromBottomClause(targets, bottomClause);
                 if (theory.add(newRule)) {
                     logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
                 }

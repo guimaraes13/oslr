@@ -39,6 +39,6 @@ public interface AsyncEvaluatorTransformer<V, E> {
      * @param v         the element
      * @return the {@link AsyncTheoryEvaluator}
      */
-    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator evaluator, V v);
+    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator<E> evaluator, V v);
 
 }
