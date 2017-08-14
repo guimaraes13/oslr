@@ -149,6 +149,39 @@ public final class HornClauseUtils {
     }
 
     /**
+     * Gets, from a possibly safe {@link HornClause}, another {@link HornClause} with the minimal set of
+     * {@link Literal} in the body that makes the clause safe. As this set may not be unique, returns all the sets
+     * tied to be the minimal.
+     *
+     * @param bottomClause the bottom clause
+     * @return a {@link Map} of {@link HornClause} where the clause has the minimal necessary {@link Literal} to be
+     * safe.
+     * @throws TheoryRevisionException in an error occurs during the revision
+     */
+    public static List<EquivalentHornClause> buildMinimalSafeRule2(HornClause bottomClause)
+            throws TheoryRevisionException {
+        if (!HornClauseUtils.mayRuleBeSafe(bottomClause)) {
+            throw new TheoryRevisionException(ExceptionMessages.GENERATED_RULE_NOT_SAVE.toString());
+        }
+
+        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
+        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
+        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
+        queue.add(new EquivalentHornClause(bottomClause.getHead()));
+        List<EquivalentHornClause> safeClauses = null;
+        for (int i = 0; i < candidateLiterals.size(); i++) {
+            appendAllCandidatesToQueue(queue, candidateLiterals, new HashMap<>(), new HashMap<>());
+            safeClauses = queue.stream().filter(e -> isRuleSafe(e.getHead(), e.getClauseBody()))
+                    .collect(Collectors.toList());
+            if (!safeClauses.isEmpty()) {
+                return safeClauses;
+            }
+        }
+
+        return safeClauses;
+    }
+
+    /**
      * Checks if a {@link HornClause} can become safe by removing {@link Literal} from its body. A {@link HornClause}
      * is safe when all the variables of the clause appear, at least once, in a non-negated literal of the body.
      * Including the variables in the head.
@@ -184,6 +217,40 @@ public final class HornClauseUtils {
     }
 
     /**
+     * Creates a list of {@link EquivalentHornClause} containing a {@link EquivalentHornClause} for each substitution
+     * of each candidate, skipping equivalent clauses.
+     * <p>
+     * It skips equivalents clauses, by checking if the free variables at the candidate atom can be renamed
+     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
+     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
+     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
+     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
+     * the selected rule.
+     *
+     * @param queue      the {@link Queue} with the initial clauses
+     * @param candidates the {@link List} of candidates
+     * @param skipAtom
+     * @param skipClause
+     */
+    @SuppressWarnings("OverlyLongMethod")
+    public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates,
+                                                  Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom,
+                                                  Map<EquivalentClauseAtom, EquivalentHornClause> skipClause) {
+
+        // ... equivalent to the current
+        // ... substitution  map  of the chosen atom equivalent to the current, so substitution of variable of the ...
+        // ... current can be stored
+
+        int size = queue.size();    // the initial size of the queue
+
+        EquivalentHornClause equivalentHornClause;
+        for (int i = 0; i < size; i++) {
+            equivalentHornClause = queue.remove();
+            queue.addAll(equivalentHornClause.buildClauseCandidates(candidates, skipAtom, skipClause));
+        }
+    }
+
+    /**
      * For each {@link Set} of candidates in the {@link Queue}, removes the {@link Set} and add a new one for each
      * candidate at the {@link Iterable}.
      * <p>
@@ -195,7 +262,7 @@ public final class HornClauseUtils {
      * the selected rule.
      *
      * @param head       the rule's head
-     * @param queue      the {@link Queue} if {@link Set}s of candidates
+     * @param queue      the {@link Queue} with the {@link Set}s of candidates
      * @param candidates the {@link Iterable} of candidates
      */
     @SuppressWarnings("OverlyLongMethod")
@@ -228,7 +295,7 @@ public final class HornClauseUtils {
         int size = queue.size();    // the initial size of the queue
 
         for (int i = 0; i < size; i++) {
-            entry = queue.poll();
+            entry = queue.remove();
             currentSetBase = entry.getLeft();
             fixedTerms = currentSetBase.stream().flatMap(l -> l.getTerms().stream()).collect(Collectors.toSet());
             fixedTerms.addAll(head.getTerms());
@@ -240,7 +307,7 @@ public final class HornClauseUtils {
                 if (equivalentAtom == null) {
                     substitutionMap = new HashMap<>(entry.getRight());
 
-                    currentSet = new HashSet<>(currentSetBase);
+                    currentSet = new LinkedHashSet<>(currentSetBase);
                     currentSet.add(candidate);
 
                     pair = new ImmutablePair<>(currentSet, substitutionMap);
@@ -330,8 +397,8 @@ public final class HornClauseUtils {
      * @param fixedTerms     the fixed terms
      * @return the substitution map.
      */
-    protected static Map<Term, Term> getSubstitutionMap(EquivalentAtom currentAtom, EquivalentAtom equivalentAtom,
-                                                        Set<Term> fixedTerms) {
+    public static Map<Term, Term> getSubstitutionMap(EquivalentAtom currentAtom, EquivalentAtom equivalentAtom,
+                                                     Set<Term> fixedTerms) {
         // if the currentAtom was tested for equal against the equivalentAtom, it saved the substitution map
         Map<Term, Term> subMap = currentAtom.getSubstitutionMap();
         if (subMap != null) {

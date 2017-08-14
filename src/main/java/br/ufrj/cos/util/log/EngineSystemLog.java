@@ -35,12 +35,7 @@ public enum EngineSystemLog {
     TRAINING_PARAMETERS("Training the parameters of the engine system."),
     SAVING_TRAINED_PARAMETERS_AS_CURRENT("Saving the trained parameters as current."),
     SAVING_PARAMETERS_TO_FILE("Saving the trained parameters to file:\t{}"),
-    LOADING_PARAMETERS_FROM_FILE("Loading the parameters from file:\t{}"),
-
-    CALLING_REVISION_OF_EXAMPLE("Calling the revision for\t{} examples."),
-
-    EXAMPLES_PLACED_AT_LEAVES("New examples placed at the leaves of the tree, total:\t{}"),
-    CALLING_REVISION_OF_LEAVES("Calling the revision for\t{} modified leaves of predicate:\t{}."),;
+    LOADING_PARAMETERS_FROM_FILE("Loading the parameters from file:\t{}");
 
     protected final String message;
 

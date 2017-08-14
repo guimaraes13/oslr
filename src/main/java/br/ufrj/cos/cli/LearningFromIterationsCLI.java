@@ -658,7 +658,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     }
 
     /**
-     * Gets the filename filter for the reation files.
+     * Gets the filename filter for the relation files.
      *
      * @return the filename filter
      */

@@ -61,7 +61,7 @@ public class Features extends ArrayList<Atom> {
 
     @Override
     public String toString() {
-        return LanguageUtils.listToString(this);
+        return LanguageUtils.iterableToString(this);
     }
 
 }

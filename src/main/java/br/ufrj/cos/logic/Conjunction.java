@@ -99,7 +99,7 @@ public class Conjunction extends LinkedHashSet<Literal> {
 
     @Override
     public String toString() {
-        return LanguageUtils.listToString(this);
+        return LanguageUtils.iterableToString(this);
     }
 
 }

@@ -166,7 +166,7 @@ public class LanguageTest {
         return String.format("%s%s%s%s",
                              atomName,
                              PREDICATE_OPEN_ARGUMENT_CHARACTER,
-                             LanguageUtils.listToString(terms),
+                             LanguageUtils.iterableToString(terms),
                              LanguageUtils.PREDICATE_CLOSE_ARGUMENT_CHARACTER);
     }
 

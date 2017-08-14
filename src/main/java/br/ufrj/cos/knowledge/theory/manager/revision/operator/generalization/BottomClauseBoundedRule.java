@@ -214,12 +214,12 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
                 return;
             }
             logger.debug(BUILDING_CLAUSE_FROM_EXAMPLE.toString(), example);
-            newRule = buildRuleForExample(evaluationExamples, example);
+            newRule = buildRuleBottomClause(evaluationExamples, buildBottomClause(example));
             if (theory.add(newRule)) {
                 logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
             }
-        } catch (TheoryRevisionException e) {
-            logger.trace(e.getMessage());
+        } catch (TheoryRevisionException | IllegalAccessException | InstantiationException e) {
+            logger.trace(ERROR_REVISING_EXAMPLE, e);
         }
     }
 
@@ -242,39 +242,31 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
     }
 
     /**
-     * Builds a {@link HornClause} from a target example, based on the Guimarães and Paes rule creation algorithm.
+     * Builds a {@link HornClause} from a bottom clause, based on the Guimarães and Paes rule creation algorithm.
      *
      * @param evaluationExamples the evaluation examples
-     * @param example            the target example
+     * @param bottomClause       the bottom clause to generate the rule
      * @return a {@link HornClause}
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    protected HornClause buildRuleForExample(Collection<? extends Example> evaluationExamples,
-                                             Example example) throws TheoryRevisionException {
-        try {
-            logger.debug(BUILDING_THE_BOTTOM_CLAUSE.toString(), example);
-            HornClause bottomClause = buildBottomClause(example);
+    protected HornClause buildRuleBottomClause(Collection<? extends Example> evaluationExamples,
+                                               HornClause bottomClause) throws TheoryRevisionException {
+        logger.debug(FIND_MINIMAL_SAFE_CLAUSES);
+        Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
 
-            logger.debug(FIND_MINIMAL_SAFE_CLAUSES);
-            Map<HornClause, Map<Term, Term>> candidateClauses = HornClauseUtils.buildMinimalSafeRule(bottomClause);
-
-            logger.debug(EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
-            AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet(),
-                                                                                          evaluationExamples);
-            if (bestClause == null) {
-                logger.debug(ERROR_EVALUATING_MINIMAL_CLAUSES);
-                return null;
-            }
-
-            if (refine) {
-                logger.debug(REFINING_RULE_FROM_EXAMPLE.toString(), example);
-                bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap(),
-                                        evaluationExamples);
-            }
-            return bestClause.getHornClause();
-        } catch (Exception e) {
-            throw new TheoryRevisionException(ERROR_REVISING_THEORY.toString(), e);
+        logger.debug(EVALUATION_INITIAL_THEORIES.toString(), candidateClauses.size());
+        AsyncTheoryEvaluator bestClause = multithreading.getBestClausesFromCandidates(candidateClauses.entrySet(),
+                                                                                      evaluationExamples);
+        if (bestClause == null) {
+            logger.debug(ERROR_EVALUATING_MINIMAL_CLAUSES);
+            return null;
         }
+
+        if (refine) {
+            bestClause = refineRule(bestClause, bottomClause.getBody(), bestClause.getSubstitutionMap(),
+                                    evaluationExamples);
+        }
+        return bestClause.getHornClause();
     }
 
     /**

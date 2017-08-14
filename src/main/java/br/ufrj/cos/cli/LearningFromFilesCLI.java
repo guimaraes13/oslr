@@ -430,10 +430,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
 
     /**
      * Builds the {@link EngineSystemTranslator}.
-     *
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
      */
-    protected void buildEngineSystemTranslator() throws InitializationException {
+    protected void buildEngineSystemTranslator() {
         if (engineSystemTranslator == null) { engineSystemTranslator = new ProPprEngineSystemTranslator<>(); }
         logger.info(BUILDING_ENGINE_SYSTEM_TRANSLATOR.toString(),
                     engineSystemTranslator.getClass().getSimpleName());

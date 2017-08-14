@@ -359,7 +359,7 @@ public class LearningSystem implements Initializable {
      * @param safeStop       if is to stop the search when the found atoms is sufficient to make the terms safe
      * @return the relevant {@link Atom}s to the seed {@link Term}s
      */
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "Duplicates"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
     public Set<Atom> relevantsBreadthFirstSearch(Iterable<? extends Term> terms, int relevantsDepth, boolean safeStop) {
         Map<Term, Integer> termDistance = new HashMap<>();
         Queue<Term> queue = new ArrayDeque<>();

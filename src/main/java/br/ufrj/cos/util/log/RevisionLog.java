@@ -43,9 +43,9 @@ public enum RevisionLog {
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
 
+    FOUND_PREDICATES("Number of predicates found among the examples:\t{}"),
+    BUILDING_CLAUSE_FROM_PREDICATE_EXAMPLES("Building rule for predicate\t{} and\t{} examples."),
     BUILDING_CLAUSE_FROM_EXAMPLE("Building clause from the example:\t{}"),
-    BUILDING_THE_BOTTOM_CLAUSE("Building the bottom clause from the example:\t{}"),
-    REFINING_RULE_FROM_EXAMPLE("Refining rule from the example:\t{}"),
     REFINING_RULE("Refining rule :\t{}"),
 
     PROPOSED_REFINED_RULE("Proposed refined rule:\t{}"),
@@ -58,6 +58,7 @@ public enum RevisionLog {
     PROPOSED_REMOVE_RULE("Propose to remove the rule:\t{}"),
     PROPOSED_REMOVE_LITERAL("Propose to remove the literal:\t{}"),
 
+    ERROR_REVISING_EXAMPLE("Error when revising the example, reason:\t{}"),
     ERROR_EVALUATING_MINIMAL_CLAUSES("No minimal safe clause could be evaluated. There are two possible reasons: " +
                                              "the timeout is too low; or the metric returns the default value for " +
                                              "all" + " evaluations"),

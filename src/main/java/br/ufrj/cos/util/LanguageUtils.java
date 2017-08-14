@@ -186,14 +186,24 @@ public final class LanguageUtils {
      * @return the formatted {@link String}
      */
     public static String formatHornClause(HornClause hornClause) {
+        return formatHornClause(hornClause.getHead(), hornClause.getBody());
+    }
+
+    /**
+     * Formats a {@link HornClause} to {@link String}.
+     *
+     * @param head the {@link HornClause}'s head
+     * @param body the {@link HornClause}'s body
+     * @return the formatted {@link String}
+     */
+    public static String formatHornClause(Atom head, Collection<?> body) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(hornClause.getHead());
+        stringBuilder.append(head);
         stringBuilder.append(" ");
         stringBuilder.append(IMPLICATION_SIGN);
         stringBuilder.append(" ");
-        Conjunction body = hornClause.getBody();
         if (body != null && !body.isEmpty()) {
-            stringBuilder.append(body);
+            stringBuilder.append(LanguageUtils.iterableToString(body));
         } else {
             stringBuilder.append(Literal.TRUE_LITERAL);
         }
@@ -247,6 +257,20 @@ public final class LanguageUtils {
     }
 
     /**
+     * Formats a {@link Iterable} of {@link Object}s to {@link String}, separated by
+     * {@link #LIST_ARGUMENTS_SEPARATOR}. It calls the {@link #toString} method for each {@link Object}.
+     *
+     * @param objects the {@link Iterable} of {@link Object}s
+     * @return the formatted {@link String}
+     */
+    public static String iterableToString(Iterable<?> objects) {
+        StringBuilder stringBuilder = new StringBuilder();
+        objects.forEach(o -> stringBuilder.append(o).append(LIST_ARGUMENTS_SEPARATOR));
+        stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
+        return stringBuilder.toString().trim();
+    }
+
+    /**
      * Formats the {@link Atom} to {@link String}.
      *
      * @param atom the {@link Atom}
@@ -258,24 +282,10 @@ public final class LanguageUtils {
         stringBuilder.append(atom.getName());
         if (terms != null && !terms.isEmpty()) {
             stringBuilder.append(PREDICATE_OPEN_ARGUMENT_CHARACTER);
-            stringBuilder.append(listToString(terms));
+            stringBuilder.append(iterableToString(terms));
             stringBuilder.append(PREDICATE_CLOSE_ARGUMENT_CHARACTER);
         }
 
-        return stringBuilder.toString().trim();
-    }
-
-    /**
-     * Formats a {@link Iterable} of {@link Object}s to {@link String}, separated by
-     * {@link #LIST_ARGUMENTS_SEPARATOR}. It calls the {@link #toString} method for each {@link Object}.
-     *
-     * @param objects the {@link Iterable} of {@link Object}s
-     * @return the formatted {@link String}
-     */
-    public static String listToString(Iterable<?> objects) {
-        StringBuilder stringBuilder = new StringBuilder();
-        objects.forEach(o -> stringBuilder.append(o).append(LIST_ARGUMENTS_SEPARATOR));
-        stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
         return stringBuilder.toString().trim();
     }
 
