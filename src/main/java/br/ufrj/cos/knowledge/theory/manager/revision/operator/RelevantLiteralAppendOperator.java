@@ -91,7 +91,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
      */
     public int relevantsDepth = 0;
 
-    protected MultithreadingEvaluation<Literal> multithreading;
+    protected MultithreadingEvaluation<Literal, Object> multithreading;
     protected LiteralAppendAsyncTransformer literalTransformer;
 
     @Override

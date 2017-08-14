@@ -30,7 +30,7 @@ import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
  *
  * @author Victor Guimarães
  */
-public interface AsyncEvaluatorTransformer<V> {
+public interface AsyncEvaluatorTransformer<V, E> {
 
     /**
      * Transforms a element of type {@link V} into a {@link AsyncTheoryEvaluator}.
@@ -39,6 +39,6 @@ public interface AsyncEvaluatorTransformer<V> {
      * @param v         the element
      * @return the {@link AsyncTheoryEvaluator}
      */
-    public AsyncTheoryEvaluator transform(AsyncTheoryEvaluator evaluator, V v);
+    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator evaluator, V v);
 
 }

@@ -33,12 +33,12 @@ import br.ufrj.cos.logic.Literal;
  *
  * @author Victor Guimarães
  */
-public class LiteralAppendAsyncTransformer implements AsyncEvaluatorTransformer<Literal> {
+public class LiteralAppendAsyncTransformer implements AsyncEvaluatorTransformer<Literal, Object> {
 
     protected HornClause initialClause;
 
     @Override
-    public AsyncTheoryEvaluator transform(AsyncTheoryEvaluator evaluator, Literal literal) {
+    public AsyncTheoryEvaluator<Object> transform(AsyncTheoryEvaluator evaluator, Literal literal) {
         HornClause clause = new HornClause(initialClause.getHead(), new Conjunction(initialClause.getBody()));
         clause.getBody().add(literal);
         evaluator.setHornClause(clause);

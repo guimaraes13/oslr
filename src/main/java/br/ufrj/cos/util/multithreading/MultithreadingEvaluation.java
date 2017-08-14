@@ -44,7 +44,7 @@ import static br.ufrj.cos.util.log.InferenceLog.*;
  *
  * @author Victor Guimarães
  */
-public class MultithreadingEvaluation<V> {
+public class MultithreadingEvaluation<V, E> {
 
     /**
      * The logger
@@ -61,7 +61,7 @@ public class MultithreadingEvaluation<V> {
     protected final LearningSystem learningSystem;
     protected final TheoryMetric theoryMetric;
     protected final int evaluationTimeout;
-    protected final AsyncEvaluatorTransformer<V> transformer;
+    protected final AsyncEvaluatorTransformer<V, E> transformer;
     /**
      * The maximum number of threads this class is allowed to create.
      */
@@ -77,7 +77,7 @@ public class MultithreadingEvaluation<V> {
      */
     public MultithreadingEvaluation(LearningSystem learningSystem,
                                     TheoryMetric theoryMetric, int evaluationTimeout,
-                                    AsyncEvaluatorTransformer<V> transformer) {
+                                    AsyncEvaluatorTransformer<V, E> transformer) {
         this.learningSystem = learningSystem;
         this.theoryMetric = theoryMetric;
         this.evaluationTimeout = evaluationTimeout;
@@ -91,10 +91,10 @@ public class MultithreadingEvaluation<V> {
      * @param evaluationPool the pool
      * @return the {@link Future} value
      */
-    public static Future<AsyncTheoryEvaluator> submitCandidate(AsyncTheoryEvaluator evaluator,
-                                                               ExecutorService evaluationPool) {
+    public static <E> Future<AsyncTheoryEvaluator<E>> submitCandidate(AsyncTheoryEvaluator<E> evaluator,
+                                                                      ExecutorService evaluationPool) {
         try {
-            return evaluationPool.submit((Callable<AsyncTheoryEvaluator>) evaluator);
+            return evaluationPool.submit((Callable<AsyncTheoryEvaluator<E>>) evaluator);
         } catch (Exception e) {
             logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
         }

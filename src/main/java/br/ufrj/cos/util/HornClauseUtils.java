@@ -158,7 +158,7 @@ public final class HornClauseUtils {
      * safe.
      * @throws TheoryRevisionException in an error occurs during the revision
      */
-    public static List<EquivalentHornClause> buildMinimalSafeRule2(HornClause bottomClause)
+    public static Set<EquivalentHornClause> buildMinimalSafeEquivalentClauses(HornClause bottomClause)
             throws TheoryRevisionException {
         if (!HornClauseUtils.mayRuleBeSafe(bottomClause)) {
             throw new TheoryRevisionException(ExceptionMessages.GENERATED_RULE_NOT_SAVE.toString());
@@ -168,11 +168,11 @@ public final class HornClauseUtils {
         candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
         Queue<EquivalentHornClause> queue = new ArrayDeque<>();
         queue.add(new EquivalentHornClause(bottomClause.getHead()));
-        List<EquivalentHornClause> safeClauses = null;
+        Set<EquivalentHornClause> safeClauses = null;
         for (int i = 0; i < candidateLiterals.size(); i++) {
             appendAllCandidatesToQueue(queue, candidateLiterals, new HashMap<>(), new HashMap<>());
             safeClauses = queue.stream().filter(e -> isRuleSafe(e.getHead(), e.getClauseBody()))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             if (!safeClauses.isEmpty()) {
                 return safeClauses;
             }
@@ -196,6 +196,7 @@ public final class HornClauseUtils {
      * @param hornClause the {@link HornClause}
      * @return {@code true} if the {@link HornClause} can be safe, {@code false} otherwise
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean mayRuleBeSafe(HornClause hornClause) {
         return mayRuleBeSafe(hornClause.getHead(), hornClause.getBody());
     }
@@ -229,10 +230,9 @@ public final class HornClauseUtils {
      *
      * @param queue      the {@link Queue} with the initial clauses
      * @param candidates the {@link List} of candidates
-     * @param skipAtom
-     * @param skipClause
+     * @param skipAtom   the atoms to skip
+     * @param skipClause the clauses to skip
      */
-    @SuppressWarnings("OverlyLongMethod")
     public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates,
                                                   Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom,
                                                   Map<EquivalentClauseAtom, EquivalentHornClause> skipClause) {
@@ -367,7 +367,7 @@ public final class HornClauseUtils {
 
     /**
      * Unifies the equivalent {@link Atom}s of the candidates by replacing the variable names using the
-     * substitutionMap.
+     * element.
      *
      * @param candidate       the candidates
      * @param substitutionMap the substitution map
@@ -376,7 +376,7 @@ public final class HornClauseUtils {
      */
     public static <T extends Literal> Set<Literal> unifyCandidates(Iterable<T> candidate,
                                                                    Map<Term, Term> substitutionMap) {
-//        if (substitutionMap.isEmpty()) { return new HashSet<>(); }
+//        if (element.isEmpty()) { return new HashSet<>(); }
         Set<Literal> candidateSet = new HashSet<>();
         for (T t : candidate) {
             candidateSet.add(LanguageUtils.applySubstitution(t, substitutionMap));

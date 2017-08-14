@@ -26,13 +26,11 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.time.TimeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static br.ufrj.cos.util.log.InferenceLog.ERROR_EVALUATING_CANDIDATE_THEORY;
@@ -46,7 +44,7 @@ import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_THEORY_TIMEOUT;
  *
  * @author Victor Guimarães
  */
-public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvaluator> {
+public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEvaluator<E>> {
 
     /**
      * The logger
@@ -64,7 +62,7 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     protected final Collection<? extends Example> examples;
 
     protected HornClause hornClause;
-    protected Map<Term, Term> substitutionMap;
+    protected E element;
 
     protected int timeout = NO_TIMEOUT;
 
@@ -103,13 +101,29 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     }
 
     /**
+     * Copies this class into another class of different parametrized type.
+     *
+     * @param <V> the other type
+     * @return the copy
+     */
+    public <V> AsyncTheoryEvaluator<V> copy() {
+        AsyncTheoryEvaluator<V> copy = new AsyncTheoryEvaluator(examples, theoryEvaluator, theoryMetric);
+        copy.hornClause = hornClause;
+        copy.timeout = timeout;
+        copy.evaluation = evaluation;
+        copy.evaluationFinished = evaluationFinished;
+
+        return copy;
+    }
+
+    /**
      * Use this method to evaluateTheory the {@link Theory} with the given timeout.
      * <p>
      * {@inheritDoc}
      */
     @SuppressWarnings("IntegerMultiplicationImplicitCastToLong")
     @Override
-    public AsyncTheoryEvaluator call() {
+    public AsyncTheoryEvaluator<E> call() {
         try {
             Thread thread = new Thread(this);
             thread.start();
@@ -174,21 +188,21 @@ public class AsyncTheoryEvaluator implements Runnable, Callable<AsyncTheoryEvalu
     }
 
     /**
-     * Gets the substitution map.
+     * Gets the element.
      *
-     * @return the substitution map
+     * @return the element
      */
-    public Map<Term, Term> getSubstitutionMap() {
-        return substitutionMap;
+    public E getElement() {
+        return element;
     }
 
     /**
-     * Sets the substitution map.
+     * Sets the element.
      *
-     * @param substitutionMap the substitution map
+     * @param element the element
      */
-    public void setSubstitutionMap(Map<Term, Term> substitutionMap) {
-        this.substitutionMap = substitutionMap;
+    public void setElement(E element) {
+        this.element = element;
     }
 
     @Override

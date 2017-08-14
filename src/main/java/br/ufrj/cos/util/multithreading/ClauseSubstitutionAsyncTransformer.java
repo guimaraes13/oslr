@@ -23,7 +23,6 @@ package br.ufrj.cos.util.multithreading;
 
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.logic.HornClause;
-import br.ufrj.cos.logic.Term;
 
 import java.util.Map;
 
@@ -34,15 +33,16 @@ import java.util.Map;
  *
  * @author Victor Guimarães
  */
-public class ClauseSubstitutionAsyncTransformer
-        implements AsyncEvaluatorTransformer<Map.Entry<HornClause, Map<Term, Term>>> {
+public class ClauseSubstitutionAsyncTransformer<E>
+        implements AsyncEvaluatorTransformer<Map.Entry<HornClause, E>, E> {
 
     @Override
-    public AsyncTheoryEvaluator transform(AsyncTheoryEvaluator evaluator,
-                                          Map.Entry<HornClause, Map<Term, Term>> hornClauseMapEntry) {
-        evaluator.setHornClause(hornClauseMapEntry.getKey());
-        evaluator.setSubstitutionMap(hornClauseMapEntry.getValue());
+    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator evaluator,
+                                             Map.Entry<HornClause, E> mapEntry) {
+        AsyncTheoryEvaluator<E> rule = evaluator.copy();
+        rule.setHornClause(mapEntry.getKey());
+        rule.setElement(mapEntry.getValue());
 
-        return evaluator;
+        return rule;
     }
 }
