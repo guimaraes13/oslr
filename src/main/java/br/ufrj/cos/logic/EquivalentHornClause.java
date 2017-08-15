@@ -182,6 +182,7 @@ public class EquivalentHornClause {
         EquivalentHornClause equivalentHornClause;
         for (int j = 0; j < currentCandidates.size(); j++) {
             candidate = currentCandidates.get(j);
+            if (clauseBody.contains(candidate)) { continue; }
             currentAtom = new EquivalentClauseAtom(clauseBody, candidate, fixedTerms);
             equivalentAtom = skipAtom.get(currentAtom);
             if (equivalentAtom == null) {

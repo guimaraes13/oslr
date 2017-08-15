@@ -29,10 +29,7 @@ import br.ufrj.cos.logic.HornClause;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static br.ufrj.cos.util.log.InferenceLog.*;
@@ -125,7 +122,14 @@ public class MultithreadingEvaluation<V, E> {
                                             TimeUnit.SECONDS);
             evaluationPool.shutdownNow();
             logger.info(END_ASYNC_EVALUATION);
-            bestClause = retrieveEvaluatedMetrics(futures, null);
+            if (logger.isDebugEnabled()) {
+                final Map<HornClause, Double> evaluationMap = new HashMap<>();
+                bestClause = retrieveEvaluatedMetrics(futures, evaluationMap);
+                evaluationMap.entrySet().stream().sorted(Comparator.comparing(e -> -e.getValue(), theoryMetric))
+                        .forEach(e -> logger.debug(EVALUATION_FOR_RULE.toString(), e.getValue(), e.getKey()));
+            } else {
+                bestClause = retrieveEvaluatedMetrics(futures, null);
+            }
         } catch (InterruptedException e) {
             logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
         }
@@ -146,6 +150,7 @@ public class MultithreadingEvaluation<V, E> {
         Set<Future<AsyncTheoryEvaluator<E>>> futures = new LinkedHashSet<>();
         AsyncTheoryEvaluator<E> evaluator;
         for (V candidate : candidates) {
+            logger.trace(SUBMITTING_CANDIDATE.toString(), candidate);
             evaluator = new AsyncTheoryEvaluator<>(examples,
                                                    learningSystem.getTheoryEvaluator(),
                                                    theoryMetric, evaluationTimeout);
@@ -190,8 +195,8 @@ public class MultithreadingEvaluation<V, E> {
                              evaluationTimeout);
             }
         }
-        logger.debug(EVALUATED_TIMEOUT_PROPORTION.toString(),
-                     (double) count / futures.size() * 100, futures.size());
+        logger.info(EVALUATED_TIMEOUT_PROPORTION.toString(),
+                    (double) count / futures.size() * 100, futures.size());
         return bestClause;
     }
 

@@ -40,6 +40,8 @@ public enum InferenceLog {
     EVALUATION_UNDER_METRIC("Evaluation of the theory under the metric:\t{}\t=\t{}"),
 
     BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation of {} candidates."),
+    SUBMITTING_CANDIDATE("Submitting candidate:\t{}"),
+    EVALUATION_FOR_RULE("Evaluation: {}\t for rule:\t{}"),
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),

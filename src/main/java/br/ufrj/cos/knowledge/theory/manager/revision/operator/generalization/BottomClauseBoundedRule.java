@@ -343,6 +343,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             for (Map<Term, Term> substitutions : equivalentClause.getSubstitutionMaps()) {
                 candidates.remove(LanguageUtils.applySubstitution(literal, substitutions));
             }
+            candidates.remove(literal);
         }
     }
 
@@ -357,6 +358,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
         for (Map<Term, Term> substitutions : equivalentClause.getSubstitutionMaps()) {
             candidates.remove(LanguageUtils.applySubstitution(equivalentClause.getLastLiteral(), substitutions));
         }
+        candidates.remove(equivalentClause.getLastLiteral());
     }
 
     /**
