@@ -29,8 +29,6 @@ import br.ufrj.cos.logic.Atom;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A template for metrics that simply accumulates a value for each proved ground example.
@@ -69,16 +67,12 @@ public abstract class AccumulatorMetric<J, K> extends TheoryMetric {
         J result = initialAccumulatorValue();
 
         if (inferredResult.isEmpty()) { return null; }
-        Set<Example> provedExamples;
-        provedExamples = examples.stream().filter(e -> inferredResult.keySet().contains(e)).collect(Collectors.toSet());
-        boolean proved = false;
-        for (Example example : provedExamples) {
+        for (Example example : examples) {
             atomValues = inferredResult.getOrDefault(example, Collections.emptyMap());
             result = accumulate(result, evaluateExamples(example.getGroundedQuery(), atomValues));
-            proved |= true;
         }
 
-        return proved ? result : null;
+        return result;
     }
 
     /**
