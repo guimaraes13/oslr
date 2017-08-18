@@ -47,7 +47,7 @@ public enum RevisionLog {
     BUILDING_CLAUSE_FROM_PREDICATE_EXAMPLES("Building rule for predicate\t{} and\t{} examples."),
     BUILDING_CLAUSE_FROM_EXAMPLE("Building clause from the example:\t{}"),
     BOTTOM_CLAUSE_SIZE("Bottom clause body size:\t{}"),
-    REFINING_RULE("Refining rule :\t{}"),
+    REFINING_RULE("Refining rule:\t{}"),
 
     PROPOSED_REFINED_RULE("Proposed refined rule:\t{}"),
     ACCEPTING_NEW_BEST_REFINED_CANDIDATE("Accepting new best refined candidate:\t{}"),

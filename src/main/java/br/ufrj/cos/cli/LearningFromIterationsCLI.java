@@ -761,7 +761,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     @Override
     protected void buildOutputDirectory(String configFileContent) {
-        outputDirectory = new File(outputDirectoryPath,
+        outputDirectory = new File(outputDirectoryPath, targetRelation.toUpperCase() + "_" +
                                    String.format(OUTPUT_RUN_DIRECTORY, TimeUtils.getCurrentTime()));
     }
 
