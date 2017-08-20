@@ -154,7 +154,7 @@ public final class HornClauseUtils {
      * tied to be the minimal.
      *
      * @param bottomClause the bottom clause
-     * @return a {@link Map} of {@link HornClause} where the clause has the minimal necessary {@link Literal} to be
+     * @return a {@link Set} of {@link HornClause} where the clause has the minimal necessary {@link Literal} to be
      * safe.
      * @throws TheoryRevisionException in an error occurs during the revision
      */
@@ -170,7 +170,7 @@ public final class HornClauseUtils {
         queue.add(new EquivalentHornClause(bottomClause.getHead()));
         Set<EquivalentHornClause> safeClauses = null;
         for (int i = 0; i < candidateLiterals.size(); i++) {
-            appendAllCandidatesToQueue(queue, candidateLiterals, new HashMap<>(), new HashMap<>());
+            appendAllCandidatesToQueue(queue, candidateLiterals);
             safeClauses = queue.stream().filter(e -> isRuleSafe(e.getHead(), e.getClauseBody()))
                     .collect(Collectors.toSet());
             if (!safeClauses.isEmpty()) {
@@ -179,6 +179,33 @@ public final class HornClauseUtils {
         }
 
         return safeClauses;
+    }
+
+    /**
+     * Creates a list of {@link EquivalentHornClause} containing a {@link EquivalentHornClause} for each substitution
+     * of each candidate, skipping equivalent clauses.
+     * <p>
+     * It skips equivalents clauses, by checking if the free variables at the candidate atom can be renamed
+     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
+     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
+     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
+     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
+     * the selected rule.
+     *
+     * @param queue      the {@link Queue} with the initial clauses
+     * @param candidates the {@link List} of candidates
+     */
+    public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates) {
+        Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom = new HashMap<>();
+        Map<EquivalentClauseAtom, EquivalentHornClause> skipClause = new HashMap<>();
+
+        int size = queue.size();    // the initial size of the queue
+
+        EquivalentHornClause equivalentHornClause;
+        for (int i = 0; i < size; i++) {
+            equivalentHornClause = queue.remove();
+            queue.addAll(equivalentHornClause.buildInitialClauseCandidates(candidates, skipAtom, skipClause));
+        }
     }
 
     /**
@@ -218,36 +245,19 @@ public final class HornClauseUtils {
     }
 
     /**
-     * Creates a list of {@link EquivalentHornClause} containing a {@link EquivalentHornClause} for each substitution
-     * of each candidate, skipping equivalent clauses.
-     * <p>
-     * It skips equivalents clauses, by checking if the free variables at the candidate atom can be renamed
-     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
-     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
-     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
-     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
-     * the selected rule.
+     * Gets all the candidate clauses with one literal at the body.
      *
-     * @param queue      the {@link Queue} with the initial clauses
-     * @param candidates the {@link List} of candidates
-     * @param skipAtom   the atoms to skip
-     * @param skipClause the clauses to skip
+     * @param bottomClause  the bottom clause
+     * @param maxClauseSize the max clause size
+     * @return a {@link Set} of {@link HornClause}s.
      */
-    public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates,
-                                                  Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom,
-                                                  Map<EquivalentClauseAtom, EquivalentHornClause> skipClause) {
-
-        // ... equivalent to the current
-        // ... substitution  map  of the chosen atom equivalent to the current, so substitution of variable of the ...
-        // ... current can be stored
-
-        int size = queue.size();    // the initial size of the queue
-
-        EquivalentHornClause equivalentHornClause;
-        for (int i = 0; i < size; i++) {
-            equivalentHornClause = queue.remove();
-            queue.addAll(equivalentHornClause.buildInitialClauseCandidates(candidates, skipAtom, skipClause));
-        }
+    public static Set<EquivalentHornClause> buildMinimalEquivalentClauses(HornClause bottomClause, int maxClauseSize) {
+        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
+        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
+        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
+        queue.add(new EquivalentHornClause(bottomClause.getHead()));
+        for (int i = 0; i < maxClauseSize; i++) { appendAllCandidatesToQueue(queue, candidateLiterals); }
+        return new HashSet<>(queue);
     }
 
     /**

@@ -194,11 +194,26 @@ public class TheoryEvaluator implements Initializable {
     public double evaluateTheoryAppendingClauses(TheoryMetric metric, Collection<? extends Example> examples,
                                                  HornClause... appendClauses) {
         Iterable<HornClause> iterable = Arrays.asList(appendClauses);
+        return evaluateTheoryAppendingClauses(metric, examples, iterable);
+    }
+
+    /**
+     * Evaluates the {@link Theory} against the represented metric, appending new {@link HornClause}.
+     * <p>
+     * The parameters and theory changes due the call of this method should not be stored.
+     *
+     * @param metric        the {@link TheoryMetric}
+     * @param examples      the {@link Examples}
+     * @param appendClauses new {@link HornClause}s to append to the theory.
+     * @return the evaluation value
+     */
+    public double evaluateTheoryAppendingClauses(TheoryMetric metric, Collection<? extends Example> examples,
+                                                 Iterable<? extends HornClause> appendClauses) {
         Map<Example, Map<Atom, Double>> evaluationResult;
         if (metric.parametersRetrainedBeforeEvaluate) {
-            evaluationResult = learningSystem.inferExampleTrainingParameters(iterable, examples);
+            evaluationResult = learningSystem.inferExampleTrainingParameters(appendClauses, examples);
         } else {
-            evaluationResult = learningSystem.inferExamples(iterable, examples);
+            evaluationResult = learningSystem.inferExamples(appendClauses, examples);
         }
 
         return metric.evaluate(evaluationResult, examples);

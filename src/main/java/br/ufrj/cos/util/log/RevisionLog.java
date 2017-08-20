@@ -41,6 +41,7 @@ public enum RevisionLog {
     PERFORMING_OPERATION_ON_EXAMPLES("Performing operation on\t{} examples."),
 
     FIND_MINIMAL_SAFE_CLAUSES("Finding the minimal safe clauses from the bottom clause."),
+    FIND_CLAUSES_OF_SIZE("Finding the clauses, from the bottom clause, of size:\t{}"),
     SKIPPING_COVERED_EXAMPLE("Skipping covered example:\t{}"),
 
     FOUND_PREDICATES("Number of predicates found among the examples:\t{}"),
@@ -51,6 +52,8 @@ public enum RevisionLog {
 
     PROPOSED_REFINED_RULE("Proposed refined rule:\t{}"),
     ACCEPTING_NEW_BEST_REFINED_CANDIDATE("Accepting new best refined candidate:\t{}"),
+    CANDIDATE_CLAUSES("Candidate clauses:\t{}"),
+    CANDIDATE_EVALUATION("Candidates evaluation:\t{}"),
     MAKING_SIDE_MOVEMENT_FOR_CANDIDATE("Making side movement for candidate:\t{}"),
 
     PROPOSED_ADD_RULE("Propose to add the rule:\t{}"),

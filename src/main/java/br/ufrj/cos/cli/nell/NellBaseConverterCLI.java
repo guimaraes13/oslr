@@ -471,7 +471,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
     }
 
     /**
-     * Calculates the average probability from a string representation of a array of doubles.
+     * Calculates the average probability from a string representation of an array of doubles.
      *
      * @param fields the array of doubles
      * @return the average probability

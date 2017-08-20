@@ -394,6 +394,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
      * @param sideWayMovements the number of iterations without improvements
      * @return {@code true} if it is to stop, {@code false} if it is to continue
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected boolean isToStopBySideWayMovements(int sideWayMovements) {
         return maximumSideWayMovements > NO_MAXIMUM_SIDE_WAY_MOVEMENTS && sideWayMovements > maximumSideWayMovements;
     }

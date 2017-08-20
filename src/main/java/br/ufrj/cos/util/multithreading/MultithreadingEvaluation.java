@@ -103,15 +103,32 @@ public class MultithreadingEvaluation<V, E> {
      * <p>
      * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
      *
-     * @param candidates the candidate clauses
-     * @param examples   the examples
+     * @param candidates    the candidate clauses
+     * @param examples      the examples
      * @return the best evaluated {@link HornClause}
      */
     public AsyncTheoryEvaluator<E> getBestClausesFromCandidates(Collection<? extends V> candidates,
                                                                 Collection<? extends Example> examples) {
+        return getBestClausesFromCandidates(candidates, examples, null);
+    }
+
+    /**
+     * Evaluates the candidate clauses against the metric, and returns the best evaluated {@link HornClause}.
+     * <p>
+     * Performs the evaluation in parallel, using {@link #numberOfThreads} threads.
+     *
+     * @param candidates    the candidate clauses
+     * @param examples      the examples
+     * @param evaluationMap the map of rules and their evaluations
+     * @return the best evaluated {@link HornClause}
+     */
+    public AsyncTheoryEvaluator<E> getBestClausesFromCandidates(Collection<? extends V> candidates,
+                                                                Collection<? extends Example> examples,
+                                                                Map<AsyncTheoryEvaluator<E>, Double> evaluationMap) {
         if (candidates == null || candidates.isEmpty()) { return null; }
         AsyncTheoryEvaluator<E> bestClause = null;
         int numberOfThreads = Math.max(Math.min(this.numberOfThreads, candidates.size()), 1);
+        final Map<AsyncTheoryEvaluator<E>, Double> localMap = evaluationMap != null ? evaluationMap : new HashMap<>();
         try {
             logger.info(BEGIN_ASYNC_EVALUATION.toString(), candidates.size());
             ExecutorService evaluationPool = Executors.newFixedThreadPool(numberOfThreads);
@@ -122,13 +139,11 @@ public class MultithreadingEvaluation<V, E> {
                                             TimeUnit.SECONDS);
             evaluationPool.shutdownNow();
             logger.info(END_ASYNC_EVALUATION);
+            bestClause = retrieveEvaluatedMetrics(futures, localMap);
             if (logger.isDebugEnabled()) {
-                final Map<HornClause, Double> evaluationMap = new HashMap<>();
-                bestClause = retrieveEvaluatedMetrics(futures, evaluationMap);
-                evaluationMap.entrySet().stream().sorted(Comparator.comparing(e -> -e.getValue(), theoryMetric))
-                        .forEach(e -> logger.debug(EVALUATION_FOR_RULE.toString(), e.getValue(), e.getKey()));
-            } else {
-                bestClause = retrieveEvaluatedMetrics(futures, null);
+                localMap.entrySet().stream().sorted(Comparator.comparing(e -> -e.getValue(), theoryMetric))
+                        .forEach(e -> logger.debug(EVALUATION_FOR_RULE.toString(),
+                                                   e.getValue(), e.getKey().getHornClause()));
             }
         } catch (InterruptedException e) {
             logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);
@@ -171,7 +186,7 @@ public class MultithreadingEvaluation<V, E> {
      */
     @SuppressWarnings("SameParameterValue")
     public AsyncTheoryEvaluator<E> retrieveEvaluatedMetrics(Set<Future<AsyncTheoryEvaluator<E>>> futures,
-                                                            Map<HornClause, Double> evaluationMap) {
+                                                            Map<AsyncTheoryEvaluator<E>, Double> evaluationMap) {
         AsyncTheoryEvaluator<E> evaluated;
         double bestClauseValue = theoryMetric.getDefaultValue();
         AsyncTheoryEvaluator<E> bestClause = null;
@@ -182,7 +197,7 @@ public class MultithreadingEvaluation<V, E> {
                 if (!evaluated.isEvaluationFinished()) { continue; }
                 count++;
                 if (evaluationMap != null) {
-                    evaluationMap.put(evaluated.getHornClause(), evaluated.getEvaluation());
+                    evaluationMap.put(evaluated, evaluated.getEvaluation());
                 }
                 if (theoryMetric.compare(evaluated.getEvaluation(), bestClauseValue) >= 0) {
                     bestClauseValue = evaluated.getEvaluation();

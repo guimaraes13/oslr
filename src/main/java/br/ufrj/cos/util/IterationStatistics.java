@@ -313,13 +313,13 @@ public class IterationStatistics<T> {
      * @param label               the label of the evaluation type {@code {Train, Test}}
      */
     @SuppressWarnings("MethodWithTooManyParameters")
-    protected void appendEvaluation(List sortedMetrics, StringBuilder description, int index,
-                                    List<Map> iterationEvaluation, String label) {
+    protected static void appendEvaluation(List sortedMetrics, StringBuilder description, int index,
+                                           List<Map> iterationEvaluation, String label) {
         Object value;
         if (index < iterationEvaluation.size()) {
             description.append("\t\t\t- ").append(label).append(" Evaluation:\n");
             for (Object key : sortedMetrics) {
-                value = iterationTrainEvaluation.get(index).get(key);
+                value = iterationEvaluation.get(index).get(key);
                 if (value != null) {
                     description.append("\t\t\t\t- ").append(key).append(":\t").append(value).append("\n");
                 }

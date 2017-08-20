@@ -191,7 +191,9 @@ public class TheoryRevisionManager implements Initializable {
             revisedTheory = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
             if (revisedTheory != null) {
                 learningSystem.setTheory(revisedTheory);
-                learningSystem.trainParameters(examples.getTrainingExamples(trainUsingAllExamples));
+                if (learningSystem.concurrent || !operatorEvaluator.isTrained()) {
+                    learningSystem.trainParameters(examples.getTrainingExamples(trainUsingAllExamples));
+                }
                 learningSystem.saveTrainedParameters();
                 operatorEvaluator.theoryRevisionAccepted(revisedTheory);
                 logMessage = THEORY_MODIFICATION_ACCEPTED;

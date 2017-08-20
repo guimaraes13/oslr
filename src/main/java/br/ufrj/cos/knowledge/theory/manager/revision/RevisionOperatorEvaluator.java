@@ -176,4 +176,13 @@ public class RevisionOperatorEvaluator implements Initializable {
         return revisionOperator.getClass().getCanonicalName();
     }
 
+    /**
+     * Checks if the {@link RevisionOperator} calls the train of the parameters.
+     *
+     * @return {@code true} if it does, {@code false} otherwise
+     */
+    public boolean isTrained() {
+        return revisionOperator.getTheoryMetric().parametersRetrainedBeforeEvaluate;
+    }
+
 }

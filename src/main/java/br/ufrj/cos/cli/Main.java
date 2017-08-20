@@ -40,7 +40,6 @@ import edu.cmu.ml.proppr.QueryAnswerer;
 import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.graph.ArrayLearningGraphBuilder;
 import edu.cmu.ml.proppr.prove.InnerProductWeighter;
-import edu.cmu.ml.proppr.prove.wam.plugins.FactsPlugin;
 import edu.cmu.ml.proppr.util.*;
 import edu.cmu.ml.proppr.util.Dictionary;
 import edu.cmu.ml.proppr.util.math.ParamVector;
@@ -70,7 +69,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
-        test();
+        run();
+//        test();
         System.exit(0);
         long begin = TimeUtils.getNanoTime();
         logger.info("Begin Program!");
@@ -152,13 +152,13 @@ public class Main {
     }
 
     protected static void run() {
-        System.out.println(TimeUtils.getCurrentTime());
-        System.exit(0);
+//        System.out.println(TimeUtils.getCurrentTime());
+//        System.exit(0);
 //        Smokers Experiment
-        String prefix = "/Users/Victor/IdeaProjects/PLLData/TestSmokers";
+        String prefix = "/Users/Victor/Desktop";
         String grounded = new File(prefix, "smokers_train.data.grounded").getAbsolutePath();
 
-        String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "smokers.wam").getAbsolutePath
+        String[] groundingArguments = new String[]{"--programFiles", new File(prefix, "rules.wam").getAbsolutePath
                 () + ":" + new File(prefix, "smokers.graph").getAbsolutePath() + ":" + new File(prefix, "smokers" +
                 ".cfacts").getAbsolutePath(), "--queries", new File(prefix, "smokers_train.data").getAbsolutePath(),
                 "--grounded", grounded, "--prover", "dpr:0.03:0.2",
@@ -172,11 +172,12 @@ public class Main {
 
         String[] inferenceArguments = new String[]{
                 "--programFiles",
-                new File(prefix, "smokers_four.wam").getAbsolutePath() + ":"
-                        + new File(prefix, "smokers2.graph").getAbsolutePath()
-                        + ":" + new File(prefix, "smokers2" + ".cfacts").getAbsolutePath(),
-                "--queries", new File(prefix, "smokers_test2.data").getAbsolutePath(),
-                "--solutions", new File(prefix, "pre2.training.solutions.txt").getAbsolutePath(),
+                new File(prefix, "rules.wam").getAbsolutePath() + ":"
+                        + new File(prefix, "data.facts").getAbsolutePath(),
+//                        + ":" + new File(prefix, "smokers2" + ".cfacts").getAbsolutePath(),
+                "--queries", new File(prefix, "Experiments/nell_converter/data_t90/ITERATION_0/athleteplayssport.p" +
+                ".data").getAbsolutePath(),
+                "--solutions", new File(prefix, "pre.training.solutions.txt").getAbsolutePath(),
                 "--prover", "dpr"};
 
 //        grounder(1e-2, 0.1, new String[]{"--help"});
@@ -205,8 +206,8 @@ public class Main {
             QueryAnswerer qa = new QueryAnswerer(c.apr, c.program, c.plugins, c.prover, c.normalize, c.nthreads, c
                     .topk);
 //            ((FactsPlugin)c.plugins[1]).addFact("true");
-            ((FactsPlugin) c.plugins[1]).addFact("true", "true");
-            ((FactsPlugin) c.plugins[1]).addFact("false", "true");
+//            ((FactsPlugin) c.plugins[1]).addFact("true", "true");
+//            ((FactsPlugin) c.plugins[1]).addFact("false", "true");
             if (log.isInfoEnabled()) {
                 log.info("Running queries from " + c.queryFile + "; saving results to " + c.solutionsFile);
             }

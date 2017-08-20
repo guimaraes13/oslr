@@ -272,10 +272,10 @@ public class LogicToProPprConverter extends CommandLineInterface {
     }
 
     /**
-     * Finds the index of the minimum size value in a array of collections.
+     * Finds the index of the minimum size value in an array of collections.
      *
      * @param values the array of collections
-     * @return the index of the minimum size value in a array of collections
+     * @return the index of the minimum size value in an array of collections
      */
     public static int getMinimumArgumentIndex(Collection<?>[] values) {
         int minIndex = 0;

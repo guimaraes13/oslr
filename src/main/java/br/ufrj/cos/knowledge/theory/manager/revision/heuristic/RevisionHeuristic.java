@@ -68,7 +68,7 @@ public abstract class RevisionHeuristic implements Comparator<Pair<Collection<? 
      * <p>
      * If they are equal, it should return 0.
      * <p>
-     * Preferably, the implementation must have the same properties as {@link #compare(Collection, Collection)}.
+     * Preferably, the implementation must have the same properties as {@link #compare(Pair, Pair)}.
      *
      * @param candidate the candidate value
      * @param current   the current value

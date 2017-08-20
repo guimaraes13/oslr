@@ -143,15 +143,17 @@ public class EquivalentHornClause {
         currentCandidates = new ArrayList<>(substitutionMaps.size());
         currentSubstitutionMaps = new ArrayList<>(substitutionMaps.size());
         Literal literal;
+        //noinspection IfStatementWithNegatedCondition
         if (!Collections.disjoint(fixedTerms, candidate.getTerms())) {
             literal = LanguageUtils.applySubstitution(candidate, substitutionMaps.get(0));
             testAndAdd(filter, literal, substitutionMaps.get(0));
-        }
-        for (Map<Term, Term> substitutionMap : substitutionMaps) {
-            for (Map.Entry<Term, Term> entry : substitutionMap.entrySet()) {
-                if (candidate.getTerms().contains(entry.getKey()) && fixedTerms.contains(entry.getValue())) {
-                    literal = LanguageUtils.applySubstitution(candidate, substitutionMap);
-                    testAndAdd(filter, literal, substitutionMap);
+        } else {
+            for (Map<Term, Term> substitutionMap : substitutionMaps) {
+                for (Map.Entry<Term, Term> entry : substitutionMap.entrySet()) {
+                    if (candidate.getTerms().contains(entry.getKey()) && fixedTerms.contains(entry.getValue())) {
+                        literal = LanguageUtils.applySubstitution(candidate, substitutionMap);
+                        testAndAdd(filter, literal, substitutionMap);
+                    }
                 }
             }
         }
@@ -281,7 +283,7 @@ public class EquivalentHornClause {
     public int hashCode() {
         int result = head.hashCode();
         result = 31 * result + clauseBody.hashCode();
-        result = 31 * result + substitutionMaps.hashCode();
+//        result = 31 * result + substitutionMaps.hashCode();
 //        result = 31 * result + nextCandidateIndex;
         return result;
     }

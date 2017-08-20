@@ -48,7 +48,10 @@ public enum InferenceLog {
     @SuppressWarnings("unused") GROUNDING_EXAMPLE_TIMEOUT("Grounding iterator {} timed out."),
 
     EVALUATION_INITIAL_THEORIES("Evaluating the initial {} theory(es)."),
+    EVALUATION_THEORIES_OF_SIZE("Evaluating {} theory(es) of size:\t{}"),
     EVALUATION_THEORY_TIMEOUT("Evaluation of the theory timed out after {} seconds."),
+
+    BIGGEST_GAP_THRESHOLD("The biggest gap threshold was:\t{}"),
 
     ERROR_GROUNDING_EXAMPLE("Error when grounding the example, reason:"),
     @SuppressWarnings("unused") ERROR_BUILDING_ATOM("Error when building an atom, reason:"),
