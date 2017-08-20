@@ -84,6 +84,8 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
             points.add(buildROCPoint(truePositive, falsePositive, positives, negatives));
             current = auxiliary;
         }
+        points.add(buildROCPoint(truePositive, falsePositive, positives, negatives));
+
         return points;
     }
 
@@ -95,14 +97,15 @@ public class RocCurveMetric extends AccumulatorMetric<List<Pair<AtomExample, Dou
      * @param points the points of the curve
      * @return the area under the ROC curve
      */
-    protected static double integrateRocCurve(List<Pair<Double, Double>> points) {
+    public static double integrateRocCurve(List<Pair<Double, Double>> points) {
         double sum = 0;
         Pair<Double, Double> previous = points.get(0);
         Pair<Double, Double> current;
         for (int i = 1; i < points.size(); i++) {
             current = points.get(i);
             // accumulating the area of the trapezoid
-            sum += (current.getRight() - previous.getRight()) * ((current.getLeft() + previous.getLeft()) / 2);
+//            sum += (current.getRight() - previous.getRight()) * ((current.getLeft() + previous.getLeft()) / 2);
+            sum += (current.getLeft() - previous.getLeft()) * ((current.getRight() + previous.getRight()) / 2);
             previous = current;
         }
         return sum;

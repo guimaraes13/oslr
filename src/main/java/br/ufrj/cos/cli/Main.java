@@ -175,8 +175,7 @@ public class Main {
                 new File(prefix, "rules.wam").getAbsolutePath() + ":"
                         + new File(prefix, "data.facts").getAbsolutePath(),
 //                        + ":" + new File(prefix, "smokers2" + ".cfacts").getAbsolutePath(),
-                "--queries", new File(prefix, "Experiments/nell_converter/data_t90/ITERATION_0/athleteplayssport.p" +
-                ".data").getAbsolutePath(),
+                "--queries", new File(prefix, "test1.data").getAbsolutePath(),
                 "--solutions", new File(prefix, "pre.training.solutions.txt").getAbsolutePath(),
                 "--prover", "dpr"};
 
