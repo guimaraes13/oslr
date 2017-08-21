@@ -21,12 +21,15 @@
 
 package br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic;
 
+import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.logic.Predicate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,6 +37,7 @@ import java.util.List;
  *
  * @author Victor Guimarães
  */
+@SuppressWarnings("ALL")
 public class RocCurveTest {
 
     @Test
@@ -60,6 +64,200 @@ public class RocCurveTest {
 
         double expectedAreaUnderRoc = 0.563010497079;
         double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_ALL_RIGHT_ROC() {
+        double expectedAreaUnderRoc = 1.0;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_ALL_WRONG_ROC() {
+        double expectedAreaUnderRoc = 0.0;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_ALL_TRUE_ROC() {
+        double expectedAreaUnderRoc = 1.0;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_ALL_FALSE_ROC() {
+        double expectedAreaUnderRoc = 0.0;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_HALF_RIGHT_ROC() {
+        double expectedAreaUnderRoc = 0.6;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_HALF_RIGHT_ROC2() {
+        double expectedAreaUnderRoc = 0.4;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_LAST_FALSE_ROC() {
+        double expectedAreaUnderRoc = 0.0;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_MIDDLE_FALSE_ROC() {
+        double expectedAreaUnderRoc = 0.55555;
+
+        Predicate predicate = new Predicate("dumb");
+        List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.17678417));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.23162987));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.27172821));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.28730114));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, false), 0.29486018));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.35861145));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.37020265));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.4659956));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.8009047));
+        pairs.add(new ImmutablePair<>(new AtomExample(predicate, true), 0.91826629));
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(pairs);
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
+        Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
+    }
+
+    @Test
+    public void TEST_EMPTY_ROC() {
+        double expectedAreaUnderRoc = 1.0;
+
+        List<Pair<Double, Double>> points = RocCurveMetric.buildRocCurve(Collections.emptyList());
+        double calculatedArea = RocCurveMetric.integrateRocCurve(points);
+
         Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
     }
 

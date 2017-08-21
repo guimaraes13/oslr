@@ -201,7 +201,7 @@ public class TheoryRevisionManager implements Initializable {
                 theoryChanged = true;
             }
         }
-        logger.debug(logMessage.toString(), improve, improvementThreshold);
+        logger.debug(logMessage.toString(), improve, currentEvaluation, improvementThreshold);
         logger.debug(THEORY_CONTENT.toString(), learningSystem.getTheory().toString());
         return theoryChanged;
     }
