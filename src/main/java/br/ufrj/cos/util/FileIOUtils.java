@@ -235,7 +235,7 @@ public final class FileIOUtils {
                     // expected
                     writer.write(atomExample.isPositive() ? POSITIVE_VALUE : NEGATIVE_VALUE);
                     writer.write(INFERENCE_FILE_SEPARATOR);
-                    inference = inferredAtoms.getOrDefault(atomExample, UNKNOWN_VALUE);
+                    inference = inferredAtoms.getOrDefault(atomExample.getAtom(), UNKNOWN_VALUE);
                     writer.write(inference.toString());
                     writer.write(INFERENCE_FILE_SEPARATOR);
                     writer.write("\n");

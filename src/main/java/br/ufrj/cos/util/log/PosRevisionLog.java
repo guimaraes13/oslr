@@ -31,6 +31,7 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings("JavaDoc")
 public enum PosRevisionLog {
 
+    REVISED_THEORY_EVALUATION("Revised theory evaluation:\t{}"),
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, over {}, threshold of {}."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
                                         "over {}, threshold of {}.");

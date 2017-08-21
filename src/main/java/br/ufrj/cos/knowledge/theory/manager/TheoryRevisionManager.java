@@ -43,8 +43,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static br.ufrj.cos.util.log.PosRevisionLog.THEORY_MODIFICATION_ACCEPTED;
-import static br.ufrj.cos.util.log.PosRevisionLog.THEORY_MODIFICATION_SKIPPED;
+import static br.ufrj.cos.util.log.PosRevisionLog.*;
 import static br.ufrj.cos.util.log.PreRevisionLog.CALLING_REVISION_ON_EXAMPLES;
 import static br.ufrj.cos.util.log.PreRevisionLog.SELECTED_OPERATOR;
 import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_THEORY_REVISION_MANAGER;
@@ -179,16 +178,14 @@ public class TheoryRevisionManager implements Initializable {
     protected boolean applyRevision(RevisionOperatorEvaluator operatorEvaluator, RevisionExamples examples,
                                     double currentEvaluation,
                                     double improvementThreshold) throws TheoryRevisionException {
-        double revised;
-//        revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
-        revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
-
+        double revised = operatorEvaluator.evaluateOperator(examples.getRelevantSample(), theoryMetric);
+        logger.debug(REVISED_THEORY_EVALUATION.toString(), revised);
         double improve = theoryMetric.difference(revised, currentEvaluation);
         PosRevisionLog logMessage = THEORY_MODIFICATION_SKIPPED;
         boolean theoryChanged = false;
         if (improve >= improvementThreshold) {
-            Theory revisedTheory;
-            revisedTheory = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
+            Theory revisedTheory
+                    = operatorEvaluator.getRevisedTheory(examples.getTrainingExamples(trainUsingAllExamples));
             if (revisedTheory != null) {
                 learningSystem.setTheory(revisedTheory);
                 if (learningSystem.concurrent || !operatorEvaluator.isTrained()) {
