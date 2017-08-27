@@ -57,9 +57,14 @@ public enum CommandLineOptions {
                      .hasArgs(Option.UNLIMITED_VALUES)
                      .withDescription("the input example file(s).")
                      .create("e")),
+    TEST(OptionBuilder.withArgName("test")
+                 .withLongOpt("test")
+                 .hasArgs(Option.UNLIMITED_VALUES)
+                 .withDescription("the test example file(s).")
+                 .create("test")),
     OUTPUT_DIRECTORY(OptionBuilder.withArgName("output")
                              .withLongOpt("outputDirectory")
-                             .hasArgs(Option.UNLIMITED_VALUES)
+                             .hasArg()
                              .withDescription("the directory to save the files in. If not specified, a new directory," +
                                                       " in the current directory will be created.")
                              .create("o")),
@@ -118,6 +123,11 @@ public enum CommandLineOptions {
                                                       " " +
                                                       "will try to read it from a yaml configuration file.")
                              .create("tr")),
+    FORCE_INDEX(OptionBuilder.withArgName("forceIndex")
+                        .withLongOpt("forceIndex")
+                        .hasArg()
+                        .withDescription("the index of the term to become a variable.")
+                        .create("ind")),
     FILTER_ONLY_NEGATIVES(OptionBuilder.withArgName("filterOnlyNegatives")
                                   .withLongOpt("filterOnlyNegatives")
                                   .withDescription("If set, removes the examples that has only the negative part.")

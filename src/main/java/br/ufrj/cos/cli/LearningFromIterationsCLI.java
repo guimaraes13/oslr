@@ -34,6 +34,7 @@ import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.statistics.IterationStatistics;
 import br.ufrj.cos.util.time.*;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
@@ -52,8 +53,6 @@ import static br.ufrj.cos.util.log.GeneralLog.*;
 import static br.ufrj.cos.util.log.IterationLog.*;
 import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
-import static br.ufrj.cos.util.time.RunTimeStamp.BEGIN_INITIALIZE;
-import static br.ufrj.cos.util.time.RunTimeStamp.END_INITIALIZE;
 import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
 
 /**
@@ -91,21 +90,9 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     public static final String DEFAULT_EXAMPLES_FILE_EXTENSION = ".data";
     /**
-     * The statistic output file name.
-     */
-    public static final String STATISTICS_FILE_NAME = "statistics.yaml";
-    /**
      * The name of the file that logs the output.
      */
     public static final String STDOUT_LOG_FILE_NAME = "output.txt";
-    /**
-     * The name of the file to save the train inference.
-     */
-    public static final String TRAIN_INFERENCE_FILE_NAME = "inference.train.tsv";
-    /**
-     * The name of the file to save the test inference.
-     */
-    public static final String TEST_INFERENCE_FILE_NAME = "inference.test.tsv";
 
     private static final File[] FILES = new File[0];
     /**
@@ -166,9 +153,9 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected List<Examples> iterationExamples;
     protected AtomFactory atomFactory;
 
-    protected IterationStatistics<TimeStampTag> iterationStatistics;
-    protected TimeMeasure<TimeStampTag> timeMeasure;
-    protected IterationTimeStampFactory timeStampFactory;
+    private IterationStatistics<TimeStampTag> iterationStatistics;
+    private TimeMeasure<TimeStampTag> timeMeasure;
+    private IterationTimeStampFactory timeStampFactory;
     protected Map<Example, Map<Atom, Double>> trainInferredExamples;
     protected Map<Example, Map<Atom, Double>> testInferredExamples;
 
@@ -194,7 +181,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     public void initialize() throws InitializationException {
         timeMeasure = new TimeMeasure<>();
         timeMeasure.measure(RunTimeStamp.BEGIN);
-        timeMeasure.measure(BEGIN_INITIALIZE);
+        timeMeasure.measure(RunTimeStamp.BEGIN_INITIALIZE);
         super.initialize();
         try {
             timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
@@ -209,7 +196,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             iterationStatistics.setIterationPrefix(iterationPrefix);
             iterationStatistics.setTargetRelation(targetRelation);
             iterationStatistics.setTimeMeasure(timeMeasure);
-            timeMeasure.measure(END_INITIALIZE);
+            timeMeasure.measure(RunTimeStamp.END_INITIALIZE);
         } catch (IOException | ParseException |
                 br.ufrj.cos.logic.parser.example.ParseException | ReflectiveOperationException e) {
             throw new InitializationException(e);
@@ -234,10 +221,15 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         }
     }
 
+    @Override
+    protected void buildExamples() {
+        trainExamples = new Examples();
+    }
+
     /**
      * Saves the statistics of the run to a yaml file.
      */
-    protected void saveStatistics() {
+    private void saveStatistics() {
         try {
             IterationStatistics<String> statistics = new IterationStatistics<>();
             statistics.setNumberOfIterations(iterationStatistics.getNumberOfIterations());
@@ -261,7 +253,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     /**
      * Logs the elapsed times of the run.
      */
-    protected void logElapsedTimes() {
+    private void logElapsedTimes() {
         long initializeTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE);
         long allTrainingTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_TRAIN, RunTimeStamp.END_TRAIN);
         long outputTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_DISK_OUTPUT, RunTimeStamp.END_DISK_OUTPUT);
@@ -270,49 +262,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         logger.warn(TOTAL_INITIALIZATION_TIME.toString(), formatNanoDifference(initializeTime));
         logger.warn(TOTAL_TRAINING_TIME.toString(), formatNanoDifference(allTrainingTime));
 
-        detailedTimeBySteps();
+        logDetailedTimeBySteps();
 
         logger.warn(TOTAL_OUTPUT_TIME.toString(), formatNanoDifference(outputTime));
         logger.warn(TOTAL_PROGRAM_TIME.toString(), formatNanoDifference(totalProgramTime));
-    }
-
-    /**
-     * A detailed log which logs the total time of the iterations by each step. The step are: loading knowledge,
-     * revision, inference, output files.
-     */
-    protected void detailedTimeBySteps() {
-        long iterationLoadTime = 0;
-        long iterationRevisionTime = 0;
-        long iterationInferenceTime = 0;
-        long iterationOutputTime = 0;
-        for (int i = 0; i < iterationKnowledge.size(); i++) {
-            iterationLoadTime += timeMeasure.timeBetweenStamps(
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.BEGIN),
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
-            iterationRevisionTime += timeMeasure.timeBetweenStamps(
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE),
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE));
-            iterationInferenceTime += timeMeasure.timeBetweenStamps(
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE),
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE));
-            iterationOutputTime += timeMeasure.timeBetweenStamps(
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE),
-                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.END));
-        }
-
-        logger.warn(ITERATIONS_KNOWLEDGE_LOAD_TIME.toString(), formatNanoDifference(iterationLoadTime));
-        logger.warn(ITERATIONS_REVISION_TIME.toString(), formatNanoDifference(iterationRevisionTime));
-        logger.warn(ITERATIONS_EVALUATION_TIME.toString(), formatNanoDifference(iterationOutputTime));
-        logger.warn(ITERATIONS_SAVING_FILES_TIME.toString(), formatNanoDifference(iterationInferenceTime));
-    }
-
-    /**
-     * Gets the statistics file name.
-     *
-     * @return the statistics file name
-     */
-    public File getStatisticsFile() {
-        return new File(outputDirectory, STATISTICS_FILE_NAME);
     }
 
     /**
@@ -617,9 +570,34 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         }
     }
 
-    @Override
-    protected void buildExamples() {
-        examples = new Examples();
+    /**
+     * A detailed log which logs the total time of the iterations by each step. The step are: loading knowledge,
+     * revision, inference, output files.
+     */
+    private void logDetailedTimeBySteps() {
+        long iterationLoadTime = 0;
+        long iterationRevisionTime = 0;
+        long iterationInferenceTime = 0;
+        long iterationOutputTime = 0;
+        for (int i = 0; i < iterationKnowledge.size(); i++) {
+            iterationLoadTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.BEGIN),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
+            iterationRevisionTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.LOAD_KNOWLEDGE_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE));
+            iterationInferenceTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.REVISION_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE));
+            iterationOutputTime += timeMeasure.timeBetweenStamps(
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.EVALUATION_DONE),
+                    timeStampFactory.getTimeStamp(i, IterationTimeMessage.END));
+        }
+
+        logger.warn(ITERATIONS_KNOWLEDGE_LOAD_TIME.toString(), formatNanoDifference(iterationLoadTime));
+        logger.warn(ITERATIONS_REVISION_TIME.toString(), formatNanoDifference(iterationRevisionTime));
+        logger.warn(ITERATIONS_EVALUATION_TIME.toString(), formatNanoDifference(iterationOutputTime));
+        logger.warn(ITERATIONS_SAVING_FILES_TIME.toString(), formatNanoDifference(iterationInferenceTime));
     }
 
     @Override

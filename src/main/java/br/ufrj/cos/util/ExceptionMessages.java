@@ -34,6 +34,7 @@ import java.util.List;
 public enum ExceptionMessages {
     //No additional parameters to format
     GENERAL_ERROR("Main program error:\t"),
+    ERROR_BUILD_LEARNING_SYSTEM("Error building the Learning System:\t"),
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),

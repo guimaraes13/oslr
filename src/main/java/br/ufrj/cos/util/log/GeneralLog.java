@@ -44,6 +44,7 @@ public enum GeneralLog {
 
     TOTAL_INITIALIZATION_TIME("Total initialization time:\t{}"),
     TOTAL_TRAINING_TIME("Total training time:\t\t{}"),
+    TOTAL_EVALUATION_TIME("Total evaluation time:\t\t{}"),
     ITERATIONS_KNOWLEDGE_LOAD_TIME("\t- Iteration loading knowledge time:\t{}"),
     ITERATIONS_REVISION_TIME("\t- Iterations revision time:\t\t\t{}"),
     ITERATIONS_EVALUATION_TIME("\t- Iterations evaluation time:\t\t{}"),

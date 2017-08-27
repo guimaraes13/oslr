@@ -32,7 +32,7 @@ import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.FileIOUtils;
-import br.ufrj.cos.util.IterationStatistics;
+import br.ufrj.cos.util.statistics.RunStatistics;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import edu.cmu.ml.proppr.Grounder;
@@ -69,8 +69,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
-        run();
-//        test();
+//        run();
+        test();
         System.exit(0);
         long begin = TimeUtils.getNanoTime();
         logger.info("Begin Program!");
@@ -96,10 +96,10 @@ public class Main {
 
         YamlReader reader = null;
         try {
-            final String pathname = "/Users/Victor/Desktop/nell/STD_OUT";
-            final String filename = "statistics_2017_08_07_16h34min56s.yaml";
+            final String pathname = "/Users/Victor/IdeaProjects/PLLData/developer-IMDB";
+            final String filename = "statistics.yaml";
             reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
-            IterationStatistics it = (IterationStatistics) reader.read();
+            Object it = (RunStatistics) reader.read();
             System.out.println(it);
 //            LanguageUtils.writeObjectToYamlFile(it, new File(pathname, "out_" + filename), false);
         } catch (Exception e) {

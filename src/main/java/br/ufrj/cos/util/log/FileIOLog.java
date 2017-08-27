@@ -31,7 +31,7 @@ package br.ufrj.cos.util.log;
 @SuppressWarnings({"JavaDoc"})
 public enum FileIOLog {
 
-    READING_INPUT_FILES("Reading input file(s)."),
+    READING_INPUT_FILES("Reading input file(s):\t{}"),
 
     ERROR_READING_FILE("Error when reading file, reason: {}"),
     ERROR_WRITING_FILE("Error when writing file, reason: {}");

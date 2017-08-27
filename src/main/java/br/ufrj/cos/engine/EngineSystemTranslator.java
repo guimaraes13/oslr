@@ -40,7 +40,7 @@ import java.util.Set;
 import static br.ufrj.cos.util.log.EngineSystemLog.INITIALIZING_ENGINE_SYSTEM_TRANSLATOR;
 
 /**
- * Represents an facade to be in between the system and the logic inference engine. It is useful for isolate the
+ * Represents an facade to be in between the system and the logic inference engine. It is useful to isolate the
  * internal representation of the system from the logic representation of the inference engine, so the logic engine
  * could be easily replaced by simplify implementing another subclass of this one.
  * <p>

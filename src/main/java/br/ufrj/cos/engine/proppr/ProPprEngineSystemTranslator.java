@@ -68,7 +68,7 @@ import static edu.cmu.ml.proppr.Trainer.DEFAULT_CAPACITY;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
 
 /**
- * Translator to convert the system's syntax to ProPPR, and vice versa
+ * Translator to convert the system's syntax to ProPPR, and vice versa.
  * <p>
  * Created on 25/04/17.
  *

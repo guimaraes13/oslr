@@ -53,7 +53,9 @@ import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Clause;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.util.*;
-import br.ufrj.cos.util.time.TimeUtils;
+import br.ufrj.cos.util.statistics.RunStatistics;
+import br.ufrj.cos.util.time.RunTimeStamp;
+import br.ufrj.cos.util.time.TimeMeasure;
 import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -68,10 +70,10 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static br.ufrj.cos.util.log.GeneralLog.*;
-import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
-import static br.ufrj.cos.util.log.ParsingLog.ERROR_READING_INPUT_FILES;
+import static br.ufrj.cos.util.log.IterationLog.ERROR_WRITING_STATISTICS_FILE;
 import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
+import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
 
 /**
  * A Command Line Interface which allows experiments of learning from files.
@@ -92,9 +94,22 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public static final String DEFAULT_YAML_CONFIGURATION_FILE = "default.yml";
     /**
+     * The statistic output file name.
+     */
+    public static final String STATISTICS_FILE_NAME = "statistics.yaml";
+    /**
      * The name of the saved theory file.
      */
     public static final String THEORY_FILE_NAME = "theory.pl";
+    /**
+     * The name of the file to save the train inference.
+     */
+    public static final String TRAIN_INFERENCE_FILE_NAME = "inference.train.tsv";
+    /**
+     * The name of the file to save the test inference.
+     */
+    public static final String TEST_INFERENCE_FILE_NAME = "inference.test.tsv";
+
     private static final String[] STRINGS = new String[0];
     /**
      * The knowledge base collection class name.
@@ -140,6 +155,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * Input example files.
      */
     public String[] exampleFilePaths = STRINGS;
+    /**
+     * Input test files.
+     */
+    public String[] testFilePaths = STRINGS;
     /**
      * The evaluation metrics for the {@link TheoryEvaluator}.
      */
@@ -223,9 +242,13 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected Theory theory;
     /**
-     * Examples representation.
+     * The train examples.
      */
-    protected Examples examples;
+    protected Examples trainExamples;
+    /**
+     * The test examples.
+     */
+    protected Examples testExamples;
     /**
      * The learning system.
      */
@@ -235,6 +258,9 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The integer number format.
      */
     protected NumberFormat integerFormat;
+
+    private TimeMeasure<RunTimeStamp> timeMeasure;
+    private RunStatistics<RunTimeStamp> runStatistics;
 
     /**
      * The main method
@@ -257,19 +283,49 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     @Override
     public void run() {
         try {
-            long begin = TimeUtils.getNanoTime();
-            build();
+            timeMeasure.measure(RunTimeStamp.BEGIN_TRAIN);
             reviseExamples();
+            timeMeasure.measure(RunTimeStamp.END_TRAIN);
+            timeMeasure.measure(RunTimeStamp.BEGIN_EVALUATION);
+            evaluateModel();
+            timeMeasure.measure(RunTimeStamp.END_EVALUATION);
+            timeMeasure.measure(RunTimeStamp.BEGIN_DISK_OUTPUT);
             saveParameters();
-            printMetrics();
-            long end = TimeUtils.getNanoTime();
-            logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
-        } catch (ReflectiveOperationException e) {
-            logger.error(ERROR_READING_INPUT_FILES, e);
-        } catch (InitializationException e) {
-            logger.error(ERROR_INITIALIZING_COMPONENTS, e);
+            timeMeasure.measure(RunTimeStamp.END_DISK_OUTPUT);
+            timeMeasure.endMeasure(RunTimeStamp.END);
+            logger.warn(runStatistics);
+            logElapsedTimes();
+            saveStatistics();
         } catch (IOException e) {
             logger.error(ERROR_READING_CONFIGURATION_FILE, e);
+        }
+    }
+
+    /**
+     * Call the method to revise the examples
+     */
+    protected void reviseExamples() {
+        //IMPROVE: delegate this function to the ExampleStream
+        if (passAllExampleAtOnce) {
+            learningSystem.incomingExampleManager.incomingExamples(trainExamples);
+        } else {
+            passEachExampleAtTime();
+        }
+    }
+
+    /**
+     * Evaluates the model.
+     */
+    protected void evaluateModel() {
+        Map<Example, Map<Atom, Double>> inferredExamples = learningSystem.inferExamples(trainExamples);
+        runStatistics.setTrainEvaluation(learningSystem.evaluate(trainExamples, inferredExamples));
+        FileIOUtils.saveInferencesToTsvFile(inferredExamples, trainExamples,
+                                            new File(outputDirectory, TRAIN_INFERENCE_FILE_NAME));
+        if (!testExamples.isEmpty()) {
+            inferredExamples = learningSystem.inferExamples(testExamples);
+            runStatistics.setTestEvaluation(learningSystem.evaluate(testExamples, inferredExamples));
+            FileIOUtils.saveInferencesToTsvFile(inferredExamples, testExamples,
+                                                new File(outputDirectory, TEST_INFERENCE_FILE_NAME));
         }
     }
 
@@ -306,12 +362,21 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         return metrics;
     }
 
-    @Override
-    public void initialize() throws InitializationException {
-        super.initialize();
-        integerFormat = NumberFormat.getIntegerInstance();
-        instantiateClasses();
-        saveConfigurations();
+    /**
+     * Logs the elapsed times of the run.
+     */
+    private void logElapsedTimes() {
+        long initializeTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_INITIALIZE, RunTimeStamp.END_INITIALIZE);
+        long trainingTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_TRAIN, RunTimeStamp.END_TRAIN);
+        long evaluationTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_EVALUATION, RunTimeStamp.END_EVALUATION);
+        long outputTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN_DISK_OUTPUT, RunTimeStamp.END_DISK_OUTPUT);
+        long totalProgramTime = timeMeasure.timeBetweenStamps(RunTimeStamp.BEGIN, RunTimeStamp.END);
+
+        logger.warn(TOTAL_INITIALIZATION_TIME.toString(), formatNanoDifference(initializeTime));
+        logger.warn(TOTAL_TRAINING_TIME.toString(), formatNanoDifference(trainingTime));
+        logger.warn(TOTAL_EVALUATION_TIME.toString(), formatNanoDifference(evaluationTime));
+        logger.warn(TOTAL_OUTPUT_TIME.toString(), formatNanoDifference(outputTime));
+        logger.warn(TOTAL_PROGRAM_TIME.toString(), formatNanoDifference(totalProgramTime));
     }
 
     /**
@@ -339,48 +404,49 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
     }
 
-    @Override
-    protected void initializeOptions() {
-        super.initializeOptions();
-        if (options == null) { options = new Options(); }
-
-        options.addOption(CommandLineOptions.KNOWLEDGE_BASE.getOption());
-        options.addOption(CommandLineOptions.THEORY.getOption());
-        options.addOption(CommandLineOptions.EXAMPLES.getOption());
-        options.addOption(CommandLineOptions.YAML.getOption());
-        options.addOption(CommandLineOptions.OUTPUT_DIRECTORY.getOption());
-    }
-
-    @Override
-    public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
+    /**
+     * Saves the statistics of the run to a yaml file.
+     */
+    private void saveStatistics() {
         try {
-            super.parseOptions(commandLine);
-            LearningFromFilesCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
-            cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine,
-                                                            CommandLineOptions.KNOWLEDGE_BASE.getOptionName(),
-                                                            cli.knowledgeBaseFilePaths);
-            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName(),
-                                                     cli.theoryFilePaths);
-            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName(),
-                                                      cli.exampleFilePaths);
-            cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName(),
-                                                                 cli.outputDirectoryPath);
-            return cli;
-        } catch (FileNotFoundException | YamlException e) {
-            throw new CommandLineInterrogationException(e);
+            RunStatistics<String> statistics = new RunStatistics<>();
+
+            statistics.setKnowledgeSize(runStatistics.getKnowledgeSize());
+            statistics.setExamplesSize(runStatistics.getExamplesSize());
+            statistics.setTestSize(runStatistics.getTestSize());
+
+            statistics.setTrainEvaluation(runStatistics.getTrainEvaluation());
+            statistics.setTestEvaluation(runStatistics.getTestEvaluation());
+
+            statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(RunTimeStamp::name));
+
+            FileIOUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
+        } catch (IOException e) {
+            logger.error(ERROR_WRITING_STATISTICS_FILE, e);
         }
     }
 
     /**
-     * Logs the metrics.
+     * Passes a example at a time to the learning system.
      */
-    protected void printMetrics() {
-        List<Map.Entry<TheoryMetric, Double>> evaluations = new ArrayList<>(learningSystem.evaluate(examples)
-                                                                                    .entrySet());
-        evaluations.sort(Comparator.comparing(o -> o.getKey().toString()));
-        for (Map.Entry<TheoryMetric, Double> entry : evaluations) {
-            logger.warn(EVALUATION_UNDER_METRIC.toString(), entry.getKey(), entry.getValue());
+    protected void passEachExampleAtTime() {
+        int count = 1;
+        final int size = trainExamples.size();
+        for (Example example : trainExamples) {
+            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
+                    .format(size));
+            learningSystem.incomingExampleManager.incomingExamples(example);
+            count++;
         }
+    }
+
+    /**
+     * Gets the statistics file name.
+     *
+     * @return the statistics file name
+     */
+    public File getStatisticsFile() {
+        return new File(outputDirectory, STATISTICS_FILE_NAME);
     }
 
     /**
@@ -398,15 +464,23 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         buildLearningSystem();
     }
 
-    /**
-     * Builds the examples
-     *
-     * @throws InstantiationException if an error occurs when instantiating a new set
-     * @throws IllegalAccessException if an error occurs when instantiating a new set
-     * @throws FileNotFoundException  if a file does not exists
-     */
-    protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
-        examples = FileIOUtils.buildExampleSet(exampleFilePaths);
+    @Override
+    public void initialize() throws InitializationException {
+        timeMeasure = new TimeMeasure<>();
+        timeMeasure.measure(RunTimeStamp.BEGIN);
+        timeMeasure.measure(RunTimeStamp.BEGIN_INITIALIZE);
+        super.initialize();
+        integerFormat = NumberFormat.getIntegerInstance();
+        instantiateClasses();
+        saveConfigurations();
+        runStatistics = new RunStatistics<>();
+        try {
+            build();
+        } catch (ReflectiveOperationException | IOException e) {
+            throw new InitializationException(ExceptionMessages.ERROR_BUILD_LEARNING_SYSTEM.toString(), e);
+        }
+        runStatistics.setTimeMeasure(timeMeasure);
+        timeMeasure.measure(RunTimeStamp.END_INITIALIZE);
     }
 
     /**
@@ -442,30 +516,38 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         if (loadedPreTrainedParameters) { engineSystemTranslator.loadParameters(outputDirectory); }
     }
 
-    /**
-     * Call the method to revise the examples
-     */
-    protected void reviseExamples() {
-        //IMPROVE: delegate this function to the ExampleStream
-        if (passAllExampleAtOnce) {
+    @Override
+    protected void initializeOptions() {
+        super.initializeOptions();
+        if (options == null) { options = new Options(); }
 
-            learningSystem.incomingExampleManager.incomingExamples(examples);
-        } else {
-            passEachExampleAtTime();
-        }
+        options.addOption(CommandLineOptions.KNOWLEDGE_BASE.getOption());
+        options.addOption(CommandLineOptions.THEORY.getOption());
+        options.addOption(CommandLineOptions.EXAMPLES.getOption());
+        options.addOption(CommandLineOptions.TEST.getOption());
+        options.addOption(CommandLineOptions.YAML.getOption());
+        options.addOption(CommandLineOptions.OUTPUT_DIRECTORY.getOption());
     }
 
-    /**
-     * Passes a example at a time to the learning system.
-     */
-    protected void passEachExampleAtTime() {
-        int count = 1;
-        final int size = examples.size();
-        for (Example example : examples) {
-            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
-                    .format(size));
-            learningSystem.incomingExampleManager.incomingExamples(example);
-            count++;
+    @Override
+    public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
+        try {
+            super.parseOptions(commandLine);
+            LearningFromFilesCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
+            cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine,
+                                                            CommandLineOptions.KNOWLEDGE_BASE.getOptionName(),
+                                                            cli.knowledgeBaseFilePaths);
+            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName(),
+                                                     cli.theoryFilePaths);
+            cli.exampleFilePaths = getFilesFromOption(commandLine, CommandLineOptions.EXAMPLES.getOptionName(),
+                                                      cli.exampleFilePaths);
+            cli.testFilePaths = getFilesFromOption(commandLine, CommandLineOptions.TEST.getOptionName(),
+                                                   cli.testFilePaths);
+            cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName(),
+                                                                 cli.outputDirectoryPath);
+            return cli;
+        } catch (FileNotFoundException | YamlException e) {
+            throw new CommandLineInterrogationException(e);
         }
     }
 
@@ -581,24 +663,17 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Builds the {@link KnowledgeBase} from the input files.
+     * Builds the examples
      *
-     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
-     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
      * @throws FileNotFoundException  if a file does not exists
      */
-    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
-                                                                                           CommandLineOptions
-                                                                                                   .KNOWLEDGE_BASE
-                                                                                                   .getOptionName()));
-
-        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
-        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
-        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
-
-        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
-        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
+    protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
+        trainExamples = FileIOUtils.buildExampleSet(exampleFilePaths);
+        testExamples = FileIOUtils.buildExampleSet(testFilePaths);
+        runStatistics.setExamplesSize((int) trainExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
+        runStatistics.setTestSize((int) testExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
     }
 
     /**
@@ -656,6 +731,28 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         return this.engineSystemTranslator != null;
     }
 
+    /**
+     * Builds the {@link KnowledgeBase} from the input files.
+     *
+     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
+                                                                                           CommandLineOptions
+                                                                                                   .KNOWLEDGE_BASE
+                                                                                                   .getOptionName()));
+
+        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
+        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
+        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+
+        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
+        runStatistics.setKnowledgeSize(knowledgeBase.size());
+        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
+    }
+
     @Override
     public String toString() {
         String description = "\t" +
@@ -667,11 +764,15 @@ public class LearningFromFilesCLI extends CommandLineInterface {
                 "\n" +
                 "\t" +
                 "Theory files:\t\t\t" +
-                Arrays.deepToString(theoryFilePaths) +
+                Arrays.deepToString(theoryFilePaths != null ? theoryFilePaths : STRINGS) +
                 "\n" +
                 "\t" +
                 "Example files:\t\t\t" +
-                Arrays.deepToString(exampleFilePaths);
+                Arrays.deepToString(exampleFilePaths) +
+                "\n" +
+                "\t" +
+                "Test files:\t\t\t\t" +
+                Arrays.deepToString(testFilePaths);
 
         return description.trim();
     }

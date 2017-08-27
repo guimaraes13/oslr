@@ -384,7 +384,7 @@ public final class FileIOUtils {
     public static List<Clause> readInputKnowledge(File[] inputFiles) {
         List<Clause> clauses = new ArrayList<>();
         if (inputFiles == null) { return clauses; }
-        logger.trace(READING_INPUT_FILES);
+        logger.debug(READING_INPUT_FILES.toString(), Arrays.deepToString(inputFiles));
         for (File file : inputFiles) {
             readClausesToList(file, clauses);
         }
@@ -423,7 +423,7 @@ public final class FileIOUtils {
             IllegalAccessException, FileNotFoundException {
         List<AtomExample> atomExamples = new ArrayList<>();
         List<ProPprExample> proPprExamples = new ArrayList<>();
-        logger.trace(READING_INPUT_FILES);
+        logger.info(READING_INPUT_FILES.toString(), Arrays.deepToString(exampleFilePaths));
         File[] files = readPathsToFiles(exampleFilePaths, CommandLineOptions.EXAMPLES.getOptionName());
         for (File file : files) {
             readExamplesToLists(file, atomExamples, proPprExamples);

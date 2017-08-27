@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.util;
+package br.ufrj.cos.util.statistics;
 
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
 import br.ufrj.cos.util.time.TimeMeasure;
@@ -271,8 +271,12 @@ public class IterationStatistics<T> {
         description.append(this.getClass().getSimpleName()).append("\n");
 
         description.append("\t").append("Number of Iterations:\t").append(numberOfIterations).append("\n");
-        description.append("\t").append("Iterations Prefix:\t").append(iterationPrefix).append("\n");
-        description.append("\t").append("Target Relation:\t\t").append(targetRelation).append("\n");
+        if (iterationPrefix != null) {
+            description.append("\t").append("Iterations Prefix:\t").append(iterationPrefix).append("\n");
+        }
+        if (targetRelation != null) {
+            description.append("\t").append("Target Relation:\t\t").append(targetRelation).append("\n");
+        }
     }
 
     /**
