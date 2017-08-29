@@ -123,22 +123,31 @@ public class EvaluateCrossValidationCLI extends CommandLineInterface {
             File[] folds = findFolds();
             final List<Pair<Map<Example, Map<Atom, Double>>, Collection<? extends Example>>> evaluations
                     = evaluateFolds(folds);
-
-            Map<Example, Map<Atom, Double>> inferredExample = new HashMap<>();
-            Collection<Example> examples = new HashSet<>();
-            for (Pair<Map<Example, Map<Atom, Double>>, Collection<? extends Example>> pair : evaluations) {
-                inferredExample.putAll(pair.getKey());
-                examples.addAll(pair.getValue());
-            }
-            logger.info(MICRO_EVALUATION);
-            evaluateExamples(inferredExample, examples);
-            logger.info(EMPTY);
+            evaluateMicroMetrics(evaluations);
             evaluatedAverage(evaluations);
             final long end = TimeUtils.getNanoTime();
             logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         } catch (IOException e) {
             logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);
         }
+    }
+
+    /**
+     * Evaluates the micro metrics, i.e. the evaluation of the concatenation of all the folds.
+     *
+     * @param evaluations the evaluation of each fold.
+     */
+    protected static void evaluateMicroMetrics(
+            List<Pair<Map<Example, Map<Atom, Double>>, Collection<? extends Example>>> evaluations) {
+        Map<Example, Map<Atom, Double>> inferredExample = new HashMap<>();
+        Collection<Example> examples = new HashSet<>();
+        for (Pair<Map<Example, Map<Atom, Double>>, Collection<? extends Example>> pair : evaluations) {
+            inferredExample.putAll(pair.getKey());
+            examples.addAll(pair.getValue());
+        }
+        logger.info(MICRO_EVALUATION);
+        evaluateExamples(inferredExample, examples);
+        logger.info(EMPTY);
     }
 
     /**
