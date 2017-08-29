@@ -41,6 +41,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import java.io.*;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -216,6 +217,33 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             logger.info(main.toString());
             main.run();
         }
+    }
+
+    /**
+     * The main method. It runs a instance of this class, measuring the running total time and logging it along with
+     * the command line arguments and if the program ends normally.
+     *
+     * @param instance the instance of this class
+     * @param logger   the logger of the instance
+     * @param args     the command line arguments
+     */
+    protected static void mainProgram(CommandLineInterface instance, Logger logger, String[] args) {
+        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
+        final String startingTime = TimeUtils.getLocalizedCurrentTime();
+        final long begin = TimeUtils.getNanoTime();
+        boolean success = true;
+        try {
+            CommandLineInterface main = instance.parseOptions(args);
+            run(main, args);
+        } catch (Exception e) {
+            logger.error(ERROR_MAIN_PROGRAM, e);
+            success = false;
+        } finally {
+            long end = TimeUtils.getNanoTime();
+            final String endingTime = TimeUtils.getLocalizedCurrentTime();
+            logger.fatal(programEndWithDescription(begin, end, startingTime, endingTime, success, args));
+        }
+        if (!success) { System.exit(1); }
     }
 
     /**

@@ -49,7 +49,7 @@ import static br.ufrj.cos.cli.CommandLineOptions.*;
 import static br.ufrj.cos.cli.CommandLineOptions.NEGATIVE_EXTENSION;
 import static br.ufrj.cos.cli.CommandLineOptions.POSITIVE_EXTENSION;
 import static br.ufrj.cos.cli.LearningFromIterationsCLI.DEFAULT_EXAMPLES_FILE_EXTENSION;
-import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
@@ -115,16 +115,8 @@ public class LogicToProPprConverter extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new LogicToProPprConverter();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new LogicToProPprConverter();
+        mainProgram(instance, logger, args);
     }
 
     @Override

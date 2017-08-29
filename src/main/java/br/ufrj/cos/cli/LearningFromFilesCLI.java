@@ -268,16 +268,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new LearningFromFilesCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new LearningFromFilesCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

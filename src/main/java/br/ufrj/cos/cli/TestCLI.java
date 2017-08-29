@@ -41,10 +41,11 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 
 /**
@@ -100,16 +101,8 @@ public class TestCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new TestCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new TestCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

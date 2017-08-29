@@ -21,6 +21,10 @@
 
 package br.ufrj.cos.util.log;
 
+import br.ufrj.cos.util.time.TimeUtils;
+
+import java.util.Arrays;
+
 /**
  * Centralizes log messages from the system.
  * <p>
@@ -39,7 +43,7 @@ public enum GeneralLog {
 
     INITIALIZING_COMMAND_LINE_INTERFACE("Initializing CommandLineInterface:\t{}"),
     INITIALIZING_LEARNING_SYSTEM("Initializing LearningSystem:\t{}"),
-    ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
+    @SuppressWarnings("unused") ERROR_INITIALIZING_COMPONENTS("Error when initializing the components, reason:"),
     ERROR_READING_BUILD_PROPERTIES("Error reading build properties, reason:\t{}"),
 
     TOTAL_INITIALIZATION_TIME("Total initialization time:\t{}"),
@@ -59,6 +63,7 @@ public enum GeneralLog {
     ERROR_READING_CONFIGURATION_FILE("Error when reading the configuration file, reason:"),
     ERROR_WRITING_OUTPUT_FILE("Error when writing the output files, reason:\t{}");
 
+    public static final String USER_DIRECTORY = "user.dir";
     protected final String message;
 
     GeneralLog(String message) {
@@ -68,6 +73,26 @@ public enum GeneralLog {
     @Override
     public String toString() {
         return message;
+    }
+
+    @SuppressWarnings({"HardCodedStringLiteral", "MethodWithTooManyParameters"})
+    public static String programEndWithDescription(long begin, long end,
+                                                   String startingTime, String endingTime,
+                                                   boolean success, String... args) {
+        final StringBuilder message = new StringBuilder();
+        message.append(PROGRAM_END).append("\n");
+        message.append("Current Directory:\t").append(System.getProperty(USER_DIRECTORY)).append("\n");
+        if (args != null && args.length > 0) {
+            message.append("Arguments:\n");
+            Arrays.stream(args).forEach(a -> message.append("\t").append(a).append("\n"));
+        }
+
+        message.append("Starting Time:\t").append(startingTime).append("\n");
+        message.append("Ending Time:\t").append(endingTime).append("\n");
+        message.append("Total time:\t\t").append(TimeUtils.formatNanoDifference(begin, end)).append("\n");
+        message.append("Success:\t\t\t").append(success);
+
+        return message.toString().trim();
     }
 
 }

@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.SystemLog.KNOWLEDGE_BASE_SIZE;
 
 /**
@@ -83,19 +83,9 @@ public class CheckBaseCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        CheckBaseCLI main = new CheckBaseCLI();
-        try {
-            main = (CheckBaseCLI) main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.warn(PROGRAM_END);
-        }
-        if (!main.success) {
-            System.exit(1);
-        }
+        CheckBaseCLI instance = new CheckBaseCLI();
+        mainProgram(instance, logger, args);
+        if (!instance.success) { System.exit(2); }
     }
 
     @Override
@@ -117,12 +107,10 @@ public class CheckBaseCLI extends CommandLineInterface {
      * Builds the {@link KnowledgeBase} from the input files.
      *
      * @return the bases
-     * @throws ReflectiveOperationException if an error occurs when instantiating a new object by reflection
      * @throws FileNotFoundException        if a file does not exists
      */
-    protected List<Set<Atom>> buildKnowledgeBase() throws ReflectiveOperationException, FileNotFoundException {
+    protected List<Set<Atom>> buildKnowledgeBase() throws FileNotFoundException {
         List<Set<Atom>> clauses = new ArrayList<>(knowledgeBasePaths.length);
-
         int total = 0;
         for (String knowledgeBasePath : knowledgeBasePaths) {
             final List<Clause> clauseList = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles

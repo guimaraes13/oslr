@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 
 import static br.ufrj.cos.util.FileIOUtils.DEFAULT_INPUT_ENCODE;
 import static br.ufrj.cos.util.FileIOUtils.FILES;
-import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.NellConverterLog.EMPTY;
 import static br.ufrj.cos.util.log.UtilsLog.*;
 
@@ -111,23 +111,15 @@ public class EvaluateCrossValidationCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new EvaluateCrossValidationCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new EvaluateCrossValidationCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override
     public void run() {
         if (dataDirectory == null) { return; }
         try {
-            long begin = TimeUtils.getNanoTime();
+            final long begin = TimeUtils.getNanoTime();
             File[] folds = findFolds();
             final List<Pair<Map<Example, Map<Atom, Double>>, Collection<? extends Example>>> evaluations
                     = evaluateFolds(folds);
@@ -142,7 +134,7 @@ public class EvaluateCrossValidationCLI extends CommandLineInterface {
             evaluateExamples(inferredExample, examples);
             logger.info(EMPTY);
             evaluatedAverage(evaluations);
-            long end = TimeUtils.getNanoTime();
+            final long end = TimeUtils.getNanoTime();
             logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         } catch (IOException e) {
             logger.error(ExceptionMessages.GENERAL_ERROR.toString(), e);

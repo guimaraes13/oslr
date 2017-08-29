@@ -32,11 +32,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
-import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 import static br.ufrj.cos.util.log.NellConverterLog.DONE_RELATION;
 import static br.ufrj.cos.util.log.NellConverterLog.PROCESSING_RELATION;
 
@@ -67,16 +68,8 @@ public class NellBaseConverterRelationCLI extends NellBaseConverterCLI {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new NellBaseConverterRelationCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new NellBaseConverterRelationCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

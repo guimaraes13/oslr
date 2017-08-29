@@ -165,16 +165,8 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new LearningFromIterationsCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new LearningFromIterationsCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override
@@ -182,11 +174,10 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure = new TimeMeasure<>();
         timeMeasure.measure(RunTimeStamp.BEGIN);
         timeMeasure.measure(RunTimeStamp.BEGIN_INITIALIZE);
-        super.initialize();
         try {
             timeStampFactory = new IterationTimeStampFactory(iterationPrefix);
             iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
-            build();
+            super.initialize();
             atomFactory = new AtomFactory();
             iterationStatistics = new IterationStatistics();
             buildIterationExamples();
@@ -740,7 +731,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     @Override
     protected void buildOutputDirectory(String configFileContent) {
         outputDirectory = new File(outputDirectoryPath, targetRelation.toUpperCase() + "_" +
-                                   String.format(OUTPUT_RUN_DIRECTORY, TimeUtils.getCurrentTime()));
+                String.format(OUTPUT_RUN_DIRECTORY, TimeUtils.getCurrentTime()));
     }
 
 }

@@ -35,12 +35,9 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Locale;
 
 import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.*;
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
-import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
@@ -78,16 +75,8 @@ public class NellHashCheckerCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new NellHashCheckerCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new NellHashCheckerCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

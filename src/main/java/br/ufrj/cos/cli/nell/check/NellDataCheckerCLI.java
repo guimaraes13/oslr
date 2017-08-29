@@ -34,12 +34,9 @@ import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
-import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 
 /**
  * Created on 31/07/17.
@@ -54,16 +51,8 @@ public class NellDataCheckerCLI extends NellHashCheckerCLI {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new NellDataCheckerCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new NellDataCheckerCLI();
+        mainProgram(instance, logger, args);
     }
 
     @SuppressWarnings("HardCodedStringLiteral")

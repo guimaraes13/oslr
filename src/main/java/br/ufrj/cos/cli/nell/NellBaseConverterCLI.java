@@ -58,7 +58,7 @@ import java.util.zip.ZipInputStream;
 
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_READING_FILE;
 import static br.ufrj.cos.util.log.FileIOLog.ERROR_WRITING_FILE;
-import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
@@ -283,16 +283,8 @@ public class NellBaseConverterCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new NellBaseConverterCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new NellBaseConverterCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

@@ -28,11 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Locale;
 import java.util.Set;
-
-import static br.ufrj.cos.util.log.GeneralLog.ERROR_MAIN_PROGRAM;
-import static br.ufrj.cos.util.log.GeneralLog.PROGRAM_END;
 
 /**
  * Class to convert a Knowledge base from Nell's csv files to a set of logic files.
@@ -60,16 +56,8 @@ public class NellConverterSelectedRelationCLI extends NellBaseConverterRelationC
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new NellConverterSelectedRelationCLI();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new NellConverterSelectedRelationCLI();
+        mainProgram(instance, logger, args);
     }
 
     @Override

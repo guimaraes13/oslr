@@ -50,6 +50,17 @@ public final class TimeUtils {
      */
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_DEFAULT_FORMATTER);
     /**
+     * The format of the timestamp.
+     *
+     * @see DateTimeFormatter
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    public static final String TIMESTAMP_SPACED_FORMATTER = "uuuu/MM/dd HH'h'mm'min'ss's'";
+    /**
+     * The localized date formatter.
+     */
+    public static final DateTimeFormatter SPACED_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_SPACED_FORMATTER);
+    /**
      * A constant to divide a number in nano seconds scale and get a number in seconds scale.
      */
     public static final long NANO_TO_SECONDS_DENOMINATOR = 1000000000L;
@@ -138,6 +149,15 @@ public final class TimeUtils {
      */
     public static String getCurrentTime() {
         return LocalDateTime.now().format(DATE_FORMATTER);
+    }
+
+    /**
+     * Gets the formatted current time.
+     *
+     * @return the formatted current time
+     */
+    public static String getLocalizedCurrentTime() {
+        return LocalDateTime.now().format(SPACED_FORMATTER);
     }
 
 }

@@ -24,7 +24,6 @@ package br.ufrj.cos.cli.nell;
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
-import br.ufrj.cos.util.AtomFactory;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.time.TimeUtils;
@@ -36,14 +35,13 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Locale;
 
 import static br.ufrj.cos.cli.CommandLineOptions.*;
 import static br.ufrj.cos.cli.CommandLineOptions.ITERATION_PREFIX;
 import static br.ufrj.cos.cli.CommandLineOptions.NEGATIVE_EXTENSION;
 import static br.ufrj.cos.cli.CommandLineOptions.POSITIVE_EXTENSION;
 import static br.ufrj.cos.cli.LearningFromIterationsCLI.getIterationDirectory;
-import static br.ufrj.cos.util.log.GeneralLog.*;
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
 /**
@@ -74,9 +72,7 @@ public class IterationLogicToProPprConverter extends LogicToProPprConverter {
      */
     public boolean filterOnlyNegativeExamples = false;
 
-    protected AtomFactory atomFactory;
     protected File[] iterationDirectories;
-    protected NumberFormat numberFormat;
 
     /**
      * The main method
@@ -84,22 +80,13 @@ public class IterationLogicToProPprConverter extends LogicToProPprConverter {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Locale.setDefault(new Locale(DEFAULT_LANGUAGE, DEFAULT_COUNTRY));
-        try {
-            CommandLineInterface main = new IterationLogicToProPprConverter();
-            main = main.parseOptions(args);
-            run(main, args);
-        } catch (Exception e) {
-            logger.error(ERROR_MAIN_PROGRAM, e);
-        } finally {
-            logger.fatal(PROGRAM_END);
-        }
+        CommandLineInterface instance = new IterationLogicToProPprConverter();
+        mainProgram(instance, logger, args);
     }
 
     @Override
     public void initialize() throws InitializationException {
         numberFormat = NumberFormat.getIntegerInstance();
-        atomFactory = new AtomFactory();
         iterationDirectories = getIterationDirectory(dataDirectoryPath, iterationPrefix);
         buildOutputDirectory("");
     }
