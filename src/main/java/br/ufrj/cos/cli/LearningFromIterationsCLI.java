@@ -80,7 +80,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     /**
      * The iteration suffix pattern.
      */
-    public static final String ITERATION_SUFFIX_PATTERN = "[0-9]+";
+    public static final String NUMERIC_SUFFIX_PATTERN = "[0-9]+";
     /**
      * The start string regex.
      */
@@ -445,7 +445,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * @return the iteration directories
      */
     public static File[] getIterationDirectory(String dataDirectoryPath, String iterationPrefix) {
-        Pattern pattern = Pattern.compile(iterationPrefix + ITERATION_SUFFIX_PATTERN);
+        Pattern pattern = Pattern.compile(iterationPrefix + NUMERIC_SUFFIX_PATTERN);
         File[] iterations = new File(dataDirectoryPath).listFiles((dir, name) -> pattern.matcher(name).matches());
         if (iterations == null) { return FILES; }
         Arrays.sort(iterations,
@@ -500,7 +500,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      * @param file            the iteration file
      * @return the number of the iteration
      */
-    protected static int getIterationNumber(String iterationPrefix, File file) {
+    public static int getIterationNumber(String iterationPrefix, File file) {
         return Integer.parseInt(file.getName().replaceAll(START_STRING + iterationPrefix, ""));
     }
 

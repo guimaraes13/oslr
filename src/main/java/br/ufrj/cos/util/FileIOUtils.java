@@ -88,7 +88,10 @@ public final class FileIOUtils {
      * The parameter mark from the log's format
      */
     public static final String LOG_PARAMETER_MARK = "{}";
-    private static final File[] FILES = new File[0];
+    /**
+     * Default empty files.
+     */
+    public static final File[] FILES = new File[0];
 
     private FileIOUtils() {
     }

@@ -21,9 +21,11 @@
 
 package br.ufrj.cos.cli;
 
-import br.ufrj.cos.cli.nell.NellBaseConverterCLI;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
+
+import static br.ufrj.cos.cli.nell.NellBaseConverterCLI.*;
+import static br.ufrj.cos.cli.util.EvaluateCrossValidationCLI.DEFAULT_FOLD_PREFIX;
 
 /**
  * Centralizes all the command line options from the system.
@@ -88,20 +90,24 @@ public enum CommandLineOptions {
     ITERATION_PREFIX(OptionBuilder.withArgName("iterationPrefix")
                              .withLongOpt("iterationPrefix")
                              .hasArg()
-                             .withDescription("the iteration prefix, default is (" +
-                                                      NellBaseConverterCLI.DEFAULT_ITERATION_PREFIX + ").")
+                             .withDescription("the iteration prefix, default is (" + DEFAULT_ITERATION_PREFIX + ").")
+                             .create("p")),
+    FOLD_PREFIX(OptionBuilder.withArgName("foldPrefix")
+                        .withLongOpt("foldPrefix")
+                        .hasArg()
+                        .withDescription("the fold prefix, default is (" + DEFAULT_FOLD_PREFIX + ").")
                              .create("p")),
     POSITIVE_EXTENSION(OptionBuilder.withArgName("positiveExtension")
                                .withLongOpt("positiveExtension")
                                .hasArg()
                                .withDescription("the positive relation extension, default is (" +
-                                                        NellBaseConverterCLI.DEFAULT_POSITIVE_EXTENSION + ").")
+                                                        DEFAULT_POSITIVE_EXTENSION + ").")
                                .create("pos")),
     NEGATIVE_EXTENSION(OptionBuilder.withArgName("negativeExtension")
                                .withLongOpt("negativeExtension")
                                .hasArg()
                                .withDescription("the negative relation extension, default is (" +
-                                                        NellBaseConverterCLI.DEFAULT_NEGATIVE_EXTENSION + ").")
+                                                        DEFAULT_NEGATIVE_EXTENSION + ").")
                                .create("neg")),
     EXAMPLES_EXTENSION(OptionBuilder.withArgName("examplesExtension")
                                .withLongOpt("examplesExtension")
