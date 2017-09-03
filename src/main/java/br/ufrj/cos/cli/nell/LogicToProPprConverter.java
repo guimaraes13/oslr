@@ -272,8 +272,8 @@ public class LogicToProPprConverter extends CommandLineInterface {
                                                                   Collection<? extends Atom> negatives) {
         Map<Predicate, Set<Atom>> atomsByPredicate = new HashMap<>();
         LanguageUtils.splitAtomsByPredicate(positives, atomsByPredicate, Atom::getPredicate);
-        LanguageUtils.splitAtomsByPredicate(negatives, atomsByPredicate, Atom::getPredicate);
         Map<Predicate, Integer> predicateVariableMap = calculateIndexToVariable(atomsByPredicate);
+        LanguageUtils.splitAtomsByPredicate(negatives, atomsByPredicate, Atom::getPredicate);
         Map<Predicate, Set<ProPprExample>> examplesByPredicate = getProPprGoals(atomsByPredicate,
                                                                                 predicateVariableMap);
 
@@ -309,7 +309,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
         for (Map.Entry<Predicate, Set<Atom>> entry : atomsByPredicate.entrySet()) {
             predicate = entry.getKey();
             if (predicate.getArity() == 0) { continue; }
-            if (forceIndex > 0) {
+            if (forceIndex >= 0) {
                 minIndex = forceIndex;
             } else {
                 values = new Set[predicate.getArity()];

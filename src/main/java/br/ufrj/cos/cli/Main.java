@@ -96,11 +96,17 @@ public class Main {
 
         YamlReader reader = null;
         try {
-            final String pathname = "/Users/Victor/IdeaProjects/PLLData/developer-IMDB";
-            final String filename = "statistics.yaml";
-            reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
-            Object it = (RunStatistics) reader.read();
-            System.out.println(it);
+            long totalTime = 0;
+            for (int i = 1; i < 6; i++) {
+                final String pathname = "/Users/Victor/Desktop/Experiments/Bases/uw-cse-testebinario/FOLD_" + i;
+                final String filename = "statistics.yaml";
+                reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
+                RunStatistics it = (RunStatistics) reader.read();
+                totalTime += it.getTimeMeasure().timeFirstAndLastStamp();
+                final String[] x = it.toString().split("\n");
+                System.out.println("Fold:\t" + i + x[x.length - 1]);
+            }
+            System.out.println("Total Time:\t" + TimeUtils.formatNanoDifference(totalTime));
 //            LanguageUtils.writeObjectToYamlFile(it, new File(pathname, "out_" + filename), false);
         } catch (Exception e) {
             e.printStackTrace();
