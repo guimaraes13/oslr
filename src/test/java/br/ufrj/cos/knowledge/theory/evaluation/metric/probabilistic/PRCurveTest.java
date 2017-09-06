@@ -38,12 +38,12 @@ import java.util.List;
  * @author Victor Guimarães
  */
 @SuppressWarnings("ALL")
-public class RocCurveTest {
+public class PRCurveTest {
 
-    private CurveMetric curveMetric = new RocCurveMetric();
+    private CurveMetric curveMetric = new PrecisionRecallCurveMetric();
 
     @Test
-    public void TEST_AREA_UNDER_ROC() {
+    public void TEST_AREA_UNDER_PR() {
         List<Pair<Double, Double>> points = new ArrayList<>();
         points.add(new ImmutablePair<>(0.0, 0.0));
         points.add(new ImmutablePair<>(0.03185343170044681, 0.04939547101684706));
@@ -70,7 +70,7 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_ALL_RIGHT_ROC() {
+    public void TEST_ALL_RIGHT_PR() {
         double expectedAreaUnderRoc = 1.0;
 
         Predicate predicate = new Predicate("dumb");
@@ -88,13 +88,12 @@ public class RocCurveTest {
 
         List<Pair<Double, Double>> points = curveMetric.buildCurve(pairs);
         double calculatedArea = CurveMetric.integrateCurve(points);
-
         Assert.assertEquals(expectedAreaUnderRoc, calculatedArea, 1e-4);
     }
 
     @Test
-    public void TEST_ALL_WRONG_ROC() {
-        double expectedAreaUnderRoc = 0.0;
+    public void TEST_ALL_WRONG_PR() {
+        double expectedAreaUnderRoc = 0.30437;
 
         Predicate predicate = new Predicate("dumb");
         List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
@@ -116,7 +115,7 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_ALL_TRUE_ROC() {
+    public void TEST_ALL_TRUE_PR() {
         double expectedAreaUnderRoc = 1.0;
 
         Predicate predicate = new Predicate("dumb");
@@ -139,7 +138,7 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_ALL_FALSE_ROC() {
+    public void TEST_ALL_FALSE_PR() {
         double expectedAreaUnderRoc = 0.0;
 
         Predicate predicate = new Predicate("dumb");
@@ -162,8 +161,8 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_HALF_RIGHT_ROC() {
-        double expectedAreaUnderRoc = 0.6;
+    public void TEST_HALF_RIGHT_PR() {
+        double expectedAreaUnderRoc = 0.63937;
 
         Predicate predicate = new Predicate("dumb");
         List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
@@ -185,8 +184,8 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_HALF_RIGHT_ROC2() {
-        double expectedAreaUnderRoc = 0.4;
+    public void TEST_HALF_RIGHT_PR2() {
+        double expectedAreaUnderRoc = 0.41063;
 
         Predicate predicate = new Predicate("dumb");
         List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
@@ -208,8 +207,8 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_LAST_FALSE_ROC() {
-        double expectedAreaUnderRoc = 0.0;
+    public void TEST_LAST_FALSE_PR() {
+        double expectedAreaUnderRoc = 0.73567;
 
         Predicate predicate = new Predicate("dumb");
         List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
@@ -231,8 +230,8 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_MIDDLE_FALSE_ROC() {
-        double expectedAreaUnderRoc = 0.55555;
+    public void TEST_MIDDLE_FALSE_PR() {
+        double expectedAreaUnderRoc = 0.94308;
 
         Predicate predicate = new Predicate("dumb");
         List<Pair<AtomExample, Double>> pairs = new ArrayList<>();
@@ -254,7 +253,7 @@ public class RocCurveTest {
     }
 
     @Test
-    public void TEST_EMPTY_ROC() {
+    public void TEST_EMPTY_PR() {
         double expectedAreaUnderRoc = 1.0;
 
         List<Pair<Double, Double>> points = curveMetric.buildCurve(Collections.emptyList());

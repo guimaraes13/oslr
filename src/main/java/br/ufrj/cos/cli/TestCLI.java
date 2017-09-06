@@ -192,7 +192,7 @@ public class TestCLI extends CommandLineInterface {
             List<Pair<AtomExample, Double>> pairs;
             pairs = rocCurveMetric.calculateEvaluation(inferredExamples, examples);
             if (pairs != null) {
-                Plot2D plot2D = Plot2D.createRocPlot(RocCurveMetric.buildRocCurve(pairs));
+                Plot2D plot2D = Plot2D.createRocPlot(rocCurveMetric.buildCurve(pairs));
                 plot2D.plot();
             }
         }

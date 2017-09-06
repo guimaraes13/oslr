@@ -25,20 +25,20 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * Calculates the are under de ROC Curve.
+ * Calculates the are under de Precision-Recall Curve.
  * <p>
- * Created on 20/05/17.
+ * Created on 05/09/17.
  *
  * @author Victor Guimarães
  */
-public class RocCurveMetric extends CurveMetric {
+public class PrecisionRecallCurveMetric extends CurveMetric {
 
     @Override
-    protected Pair<Double, Double> buildPoint(int truePositive, int falsePositive, int positives,
-                                              int negatives) {
-        double truePositiveRate = positives > 0 ? ((double) truePositive) / (positives) : 1.0;
-        double falsePositiveRate = negatives > 0 ? ((double) falsePositive) / (negatives) : 0.0;
-        return new ImmutablePair<>(falsePositiveRate, truePositiveRate);
+    protected Pair<Double, Double> buildPoint(int truePositive, int falsePositive, int positives, int negatives) {
+        double precision =
+                truePositive + falsePositive > 0 ? ((double) truePositive) / (truePositive + falsePositive) : 1.0;
+        double recall = positives > 0 ? ((double) truePositive) / (positives) : 1.0;
+        return new ImmutablePair<>(recall, precision);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class RocCurveMetric extends CurveMetric {
 
     @Override
     public String toString() {
-        return "ROC Curve\t";
+        return "PR Curve\t";
     }
 
 }

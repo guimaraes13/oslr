@@ -160,7 +160,7 @@ public abstract class TheoryMetric implements Comparator<Double>, Initializable 
         if (!this.getClass().equals(o.getClass())) { return false; }
 
         TheoryMetric metric = (TheoryMetric) o;
-
+        if (!this.getClass().getName().equals(o.getClass().getName())) { return false; }
         if (parametersRetrainedBeforeEvaluate != metric.parametersRetrainedBeforeEvaluate) { return false; }
         return Double.compare(metric.defaultValue, defaultValue) == 0;
     }
