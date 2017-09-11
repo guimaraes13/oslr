@@ -98,7 +98,8 @@ public class Main {
         try {
             long totalTime = 0;
             for (int i = 0; i < 5; i++) {
-                final String pathname = "/Users/Victor/Desktop/Experiments/Bases/uw-cse-compare/FOLD_NR_2N_" + i;
+//                final String pathname = "/Users/Victor/Desktop/Experiments/Bases/uw-cse-compare/FOLD_NR_2N_" + i;
+                final String pathname = "/Users/Victor/Desktop/FOLD_NR_2N_" + i;
                 final String filename = "statistics.yaml";
                 reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
                 RunStatistics it = (RunStatistics) reader.read();

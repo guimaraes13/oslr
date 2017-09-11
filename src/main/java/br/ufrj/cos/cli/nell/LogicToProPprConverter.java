@@ -33,7 +33,6 @@ import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
-import com.sun.istack.internal.NotNull;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
@@ -356,7 +355,6 @@ public class LogicToProPprConverter extends CommandLineInterface {
      * @param <E>    the type of the elements
      * @return a list of n random elements from the list
      */
-    @NotNull
     public static <E> List<E> pickNRandomElements(List<E> list, int n, Random random) {
         int length = list.size();
 
