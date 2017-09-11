@@ -24,7 +24,6 @@ package br.ufrj.cos.cli.nell;
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.knowledge.example.AtomExample;
-import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.Atom;
@@ -34,6 +33,7 @@ import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.time.TimeUtils;
+import com.sun.istack.internal.NotNull;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
@@ -71,6 +71,14 @@ public class LogicToProPprConverter extends CommandLineInterface {
      */
     public static final String DEFAULT_VARIABLE_NAME = "X1";
     /**
+     * No negative portion filter.
+     */
+    public static final double DEFAULT_NEGATIVE_PORTION_FILTER = -1.0;
+    /**
+     * The default random seed.
+     */
+    public static final long DEFAULT_RANDOM_SEED = 1234L;
+    /**
      * The variable name to be used at the examples format.
      */
     @SuppressWarnings("CanBeFinal")
@@ -103,6 +111,11 @@ public class LogicToProPprConverter extends CommandLineInterface {
      * will be removed from the output.
      */
     public boolean filterOnlyNegativeExamples = false;
+
+    /**
+     * The portion of negative examples. If {@link #DEFAULT_NEGATIVE_PORTION_FILTER}, no portion filter will be applied.
+     */
+    protected double negativePortionFilter = DEFAULT_NEGATIVE_PORTION_FILTER;
 
     protected AtomFactory atomFactory;
     protected String[] logicFiles;
@@ -141,6 +154,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
         options.addOption(EXAMPLES_EXTENSION.getOption());
 
         options.addOption(FILTER_ONLY_NEGATIVES.getOption());
+        options.addOption(NEGATIVES_PORTION_FILTER.getOption());
         options.addOption(FORCE_INDEX.getOption());
     }
 
@@ -159,6 +173,9 @@ public class LogicToProPprConverter extends CommandLineInterface {
         }
 
         filterOnlyNegativeExamples = commandLine.hasOption(FILTER_ONLY_NEGATIVES.getOptionName());
+        negativePortionFilter = Double.parseDouble(commandLine.getOptionValue(NEGATIVES_PORTION_FILTER.getOptionName(),
+                                                                              String.valueOf(negativePortionFilter)));
+        if (negativePortionFilter >= 0.0) { filterOnlyNegativeExamples = true; }
         return this;
     }
 
@@ -208,11 +225,80 @@ public class LogicToProPprConverter extends CommandLineInterface {
         FileIOUtils.readAtomKnowledgeFromFile(negativeFile, negatives, atomFactory);
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(negatives.size()));
-        final Collection<? extends Example> examples = convertAtomToExamples(positives, negatives);
+        Collection<? extends ProPprExample> examples = convertAtomToExamples(positives, negatives);
+        if (negativePortionFilter >= 0.0) {
+            examples = filterNegativePortion(examples);
+        }
         logger.debug(TOTAL_NUMBER_EXAMPLES_PROPPR.toString(), numberFormat.format(examples.size()));
         final File outputFile = new File(outputDirectory, filePrefix + examplesFileExtension);
         FileIOUtils.saveExamplesToFile(examples, outputFile);
         logger.debug(EXAMPLES_SAVING.toString(), outputFile.getName());
+    }
+
+    /**
+     * Converts the atoms to the ProPPR's example format.
+     *
+     * @param positives the positive atoms
+     * @param negatives the positive atoms
+     * @return the examples in the ProPPR's format.
+     */
+    protected Collection<? extends ProPprExample> convertAtomToExamples(Collection<? extends Atom> positives,
+                                                                        Collection<? extends Atom> negatives) {
+        if (positives.isEmpty()) { return Collections.emptyList(); }
+        Map<Predicate, Set<Atom>> atomsByPredicate = new HashMap<>();
+        LanguageUtils.splitAtomsByPredicate(positives, atomsByPredicate, Atom::getPredicate);
+        Map<Predicate, Integer> predicateVariableMap = calculateIndexToVariable(atomsByPredicate);
+        LanguageUtils.splitAtomsByPredicate(negatives, atomsByPredicate, Atom::getPredicate);
+        Map<Predicate, Set<ProPprExample>> examplesByPredicate = getProPprGoals(atomsByPredicate,
+                                                                                predicateVariableMap);
+
+        Collection<AtomExample> atomExamples = new HashSet<>(positives.size() + negatives.size());
+        positives.stream().map(e -> new AtomExample(e, true)).forEach(atomExamples::add);
+        negatives.stream().map(e -> new AtomExample(e, false)).forEach(atomExamples::add);
+        Examples.appendAtomExamplesIntoProPpr(atomExamples, examplesByPredicate);
+
+        final List<ProPprExample> examples;
+
+        if (filterOnlyNegativeExamples) {
+            examples = examplesByPredicate.values().stream().flatMap(Collection::stream)
+                    .filter(ProPprExample::isPositive).collect(Collectors.toList());
+        } else {
+            examples = examplesByPredicate.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+        }
+
+        return new LinkedHashSet<>(examples);
+    }
+
+    /**
+     * Filters the negative examples so the portion of negatives become approximately {@link #negativePortionFilter}
+     * times the portion of positive.
+     *
+     * @param examples the examples to filter
+     * @return the filtered examples
+     */
+    protected Collection<? extends ProPprExample> filterNegativePortion(Collection<? extends ProPprExample> examples) {
+        Random random = new Random(DEFAULT_RANDOM_SEED);
+        Map<Boolean, ? extends List<? extends AtomExample>> split;
+        Set<ProPprExample> answer = new LinkedHashSet<>(examples.size());
+        ProPprExample newExample;
+        for (ProPprExample example : examples) {
+            newExample = example;
+            split = example.getGroundedQuery().stream().collect(Collectors.groupingBy(AtomExample::isPositive));
+            final List<? extends AtomExample> positivePart = split.get(true);
+            final List<? extends AtomExample> negativePart = split.get(false);
+            if (positivePart == null || positivePart.isEmpty()) { continue; }
+            if (negativePart != null && !negativePart.isEmpty()) {
+                final int negativeSize = (int) Math.round(positivePart.size() * negativePortionFilter);
+                if (negativePart.size() > negativeSize) {
+                    final List<AtomExample> goals = new ArrayList<>(positivePart.size() + negativeSize);
+                    goals.addAll(positivePart);
+                    goals.addAll(pickNRandomElements(negativePart, negativeSize, random));
+                    newExample = new ProPprExample(example.getGoal(), goals);
+                }
+            }
+            answer.add(newExample);
+        }
+        return answer;
     }
 
     /**
@@ -233,7 +319,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
             examplesByPredicate.put(entry.getKey(), values);
             for (Atom atom : entry.getValue()) {
                 terms = new ArrayList<>(atom.getTerms());
-                terms.set(predicateVariableMap.get(atom.getPredicate()), variable);
+                terms.set(predicateVariableMap.getOrDefault(atom.getPredicate(), 0), variable);
                 values.add(new ProPprExample(new Atom(entry.getKey(), terms), new ArrayList<>()));
             }
         }
@@ -262,36 +348,24 @@ public class LogicToProPprConverter extends CommandLineInterface {
     }
 
     /**
-     * Converts the atoms to the ProPPR's example format.
+     * Gets n random elements from the list.
      *
-     * @param positives the positive atoms
-     * @param negatives the positive atoms
-     * @return the examples in the ProPPR's format.
+     * @param list   the list
+     * @param n      the number of elements
+     * @param random the random
+     * @param <E>    the type of the elements
+     * @return a list of n random elements from the list
      */
-    protected Collection<? extends Example> convertAtomToExamples(Collection<? extends Atom> positives,
-                                                                  Collection<? extends Atom> negatives) {
-        Map<Predicate, Set<Atom>> atomsByPredicate = new HashMap<>();
-        LanguageUtils.splitAtomsByPredicate(positives, atomsByPredicate, Atom::getPredicate);
-        Map<Predicate, Integer> predicateVariableMap = calculateIndexToVariable(atomsByPredicate);
-        LanguageUtils.splitAtomsByPredicate(negatives, atomsByPredicate, Atom::getPredicate);
-        Map<Predicate, Set<ProPprExample>> examplesByPredicate = getProPprGoals(atomsByPredicate,
-                                                                                predicateVariableMap);
+    @NotNull
+    public static <E> List<E> pickNRandomElements(List<E> list, int n, Random random) {
+        int length = list.size();
 
-        Collection<AtomExample> atomExamples = new HashSet<>(positives.size() + negatives.size());
-        positives.stream().map(e -> new AtomExample(e, true)).forEach(atomExamples::add);
-        negatives.stream().map(e -> new AtomExample(e, false)).forEach(atomExamples::add);
-        Examples.appendAtomExamplesIntoProPpr(atomExamples, examplesByPredicate);
+        if (length < n) { return list; }
 
-        final List<ProPprExample> examples;
-
-        if (filterOnlyNegativeExamples) {
-            examples = examplesByPredicate.values().stream().flatMap(Collection::stream)
-                    .filter(ProPprExample::isPositive).collect(Collectors.toList());
-        } else {
-            examples = examplesByPredicate.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+        for (int i = length - 1; i >= length - n; --i) {
+            Collections.swap(list, i, random.nextInt(i + 1));
         }
-
-        return new LinkedHashSet<>(examples);
+        return list.subList(length - n, length);
     }
 
     /**

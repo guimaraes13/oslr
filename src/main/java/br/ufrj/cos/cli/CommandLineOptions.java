@@ -96,7 +96,7 @@ public enum CommandLineOptions {
                         .withLongOpt("foldPrefix")
                         .hasArg()
                         .withDescription("the fold prefix, default is (" + DEFAULT_FOLD_PREFIX + ").")
-                             .create("p")),
+                        .create("p")),
     POSITIVE_EXTENSION(OptionBuilder.withArgName("positiveExtension")
                                .withLongOpt("positiveExtension")
                                .hasArg()
@@ -137,7 +137,21 @@ public enum CommandLineOptions {
     FILTER_ONLY_NEGATIVES(OptionBuilder.withArgName("filterOnlyNegatives")
                                   .withLongOpt("filterOnlyNegatives")
                                   .withDescription("If set, removes the examples that has only the negative part.")
-                                  .create("fon"));
+                                  .create("fon")),
+    NEGATIVES_PORTION_FILTER(OptionBuilder.withArgName("negativePortionFilter")
+                                     .withLongOpt("negativePortionFilter")
+                                     .hasArg()
+                                     .withDescription("If there are more negatives examples than positive ones, " +
+                                                              "filter " +
+                                                              "the negatives such that the number of negatives become" +
+                                                              " " +
+                                                              "<negativePortionFilter> times the number of positives," +
+                                                              " " +
+                                                              "approximately.\nSetting this options automatically " +
+                                                              "sets " +
+                                                              "the " + FILTER_ONLY_NEGATIVES.getOptionName() + " " +
+                                                              "option.")
+                                     .create("npf"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

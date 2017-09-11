@@ -99,6 +99,7 @@ public class IterationLogicToProPprConverter extends LogicToProPprConverter {
                 logger.info(PROCESSING_ITERATION.toString(), iteration.getName());
                 for (String targetRelation : targetRelations) {
                     logger.info(PROCESSING_RELATION.toString(), targetRelation);
+                    outputDirectory = iteration;
                     convertExamplesFromLogic(iteration, targetRelation);
                     logger.info(EMPTY);
                 }
