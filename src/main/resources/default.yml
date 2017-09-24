@@ -12,7 +12,9 @@ theoryCollectionClassName:          java.util.ArrayList
 theoryPredicateClassName:
 theoryBaseAncestralClassName:
 
-controlConcurrence: false
+controlConcurrence:           false
+loadedPreTrainedParameters:   false
+passAllExampleAtOnce:         false
 
 engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    useTernayIndex:         false
@@ -39,12 +41,13 @@ theoryMetrics:
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMetric    {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric {}
    - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric      {}
+   - !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.PrecisionRecallCurveMetric {}
 
 revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.BestRevisionOperatorSelector {}
 theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
 theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager
    theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
-   delta:                  0.2
+   delta:                  1e-6
    trainUsingAllExamples:  true
 
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager
@@ -61,7 +64,7 @@ revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
       revisionOperator:    !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator
          treeTheory:       *tree
-         refine:                       true
+         refine:                       false
          maximumSideWayMovements:      0
          improvementThreshold:         0.0
          generic:                      true

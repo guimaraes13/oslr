@@ -96,18 +96,26 @@ public class Main {
 
         YamlReader reader = null;
         try {
-            long totalTime = 0;
-            for (int i = 0; i < 5; i++) {
-//                final String pathname = "/Users/Victor/Desktop/Experiments/Bases/uw-cse-compare/FOLD_NR_2N_" + i;
-                final String pathname = "/Users/Victor/Desktop/FOLD_NR_2N_" + i;
-                final String filename = "statistics.yaml";
-                reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
-                RunStatistics it = (RunStatistics) reader.read();
-                totalTime += it.getTimeMeasure().timeFirstAndLastStamp();
-                final String[] x = it.toString().split("\n");
-                System.out.println("Fold:\t" + i + x[x.length - 1]);
+            for (int run = 1; run < 6; run++) {
+                long totalTime = 0;
+                System.out.println("Run:\t" + run);
+                for (int i = 0; i < 5; i++) {
+//                    final String pathname = "/Users/Victor/Desktop/folds/Refining/FOLD_2N_PR_" + run + "_" + i;
+//                    final String pathname = "/Users/Victor/Desktop/folds/notRefining/FOLD_2N_PR_NR_" + run + "_" + i;
+//                    final String pathname = "/Users/Victor/Desktop/folds/notRefiningD1/FOLD_2N_PR_NR_D1_" + run +
+// "_" + i;
+                    final String pathname = "/Users/Victor/Desktop/Experiments/Bases/uw-cse-compare/2N/FOLD_2N_" +
+                            run + "_" + i;
+                    final String filename = "statistics.yaml";
+                    reader = new YamlReader(FileIOUtils.readFileToString(new File(pathname, filename)));
+                    RunStatistics it = (RunStatistics) reader.read();
+                    totalTime += it.getTimeMeasure().timeFirstAndLastStamp();
+                    final String[] x = it.toString().split("\n");
+                    System.out.println("Fold:\t" + i + x[x.length - 1]);
+                }
+                System.out.println("Total Time:\t" + TimeUtils.formatNanoDifference(totalTime));
+                System.out.println("");
             }
-            System.out.println("Total Time:\t" + TimeUtils.formatNanoDifference(totalTime));
 //            LanguageUtils.writeObjectToYamlFile(it, new File(pathname, "out_" + filename), false);
         } catch (Exception e) {
             e.printStackTrace();

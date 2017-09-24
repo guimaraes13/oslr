@@ -182,7 +182,8 @@ public class RevisionOperatorEvaluator implements Initializable {
      * @return {@code true} if it does, {@code false} otherwise
      */
     public boolean isTrained() {
-        return revisionOperator.getTheoryMetric().parametersRetrainedBeforeEvaluate;
+        return revisionOperator.getTheoryMetric() != null &&
+                revisionOperator.getTheoryMetric().parametersRetrainedBeforeEvaluate;
     }
 
 }
