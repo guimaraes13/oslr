@@ -134,6 +134,7 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
     @Override
     public void theoryRevisionAccepted(Theory revised) {
         Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
+        treeTheory.removeExampleFromLeaf(revisionLeaf.getElement().getHead().getPredicate().toString(), revisionLeaf);
         if (revisionLeaf.isRoot()) {
             revisionLeaf.getElement().getBody().clear();
             revisionLeaf.getElement().getBody().add(Literal.FALSE_LITERAL);

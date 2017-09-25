@@ -136,6 +136,17 @@ public class TreeTheory implements Initializable {
     }
 
     /**
+     * Removes the set of examples from the leaf map of the predicate.
+     *
+     * @param predicate the predicate
+     * @param leaf      the leaf
+     * @return the removed set of examples
+     */
+    public RevisionExamples removeExampleFromLeaf(String predicate, Node<HornClause> leaf) {
+        return leafExamplesMap.get(predicate).remove(leaf);
+    }
+
+    /**
      * Gets the set of examples from the leaf map of the predicate.
      *
      * @param predicate the predicate

@@ -159,6 +159,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
     @Override
     public void theoryRevisionAccepted(Theory revised) {
         Node<HornClause> revisionLeaf = treeTheory.getRevisionLeaf();
+        treeTheory.removeExampleFromLeaf(revisionLeaf.getElement().getHead().getPredicate().toString(), revisionLeaf);
         if (revisionLeaf.isDefaultChild()) { revisionLeaf = revisionLeaf.getParent(); }
         Conjunction initialBody;
         if (revisionLeaf.isRoot() && TreeTheory.isDefaultTheory(revisionLeaf)) {
