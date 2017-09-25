@@ -29,6 +29,7 @@ import br.ufrj.cos.logic.HornClause;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -47,6 +48,16 @@ public class MultithreadingEvaluation<V, E> {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+    /**
+     * The number formatter for the logs.
+     */
+    public static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance();
+
+    static {
+        NUMBER_FORMAT.setMaximumFractionDigits(3);
+        NUMBER_FORMAT.setMinimumFractionDigits(3);
+    }
+
     /**
      * The default value for numberOfThreads.
      */
@@ -143,7 +154,9 @@ public class MultithreadingEvaluation<V, E> {
             if (logger.isDebugEnabled()) {
                 localMap.entrySet().stream().sorted(Comparator.comparing(e -> -e.getValue(), theoryMetric))
                         .forEach(e -> logger.debug(EVALUATION_FOR_RULE.toString(),
-                                                   e.getValue(), e.getKey().getHornClause()));
+                                                   e.getValue(),
+                                                   NUMBER_FORMAT.format(e.getKey().getEvaluationTime()),
+                                                   e.getKey().getHornClause()));
             }
         } catch (InterruptedException e) {
             logger.error(ERROR_EVALUATING_CLAUSE.toString(), e);

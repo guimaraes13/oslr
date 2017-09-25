@@ -143,6 +143,27 @@ public final class TimeUtils {
     }
 
     /**
+     * Gets the elapsed time, in seconds, of a interval from begin to end.
+     *
+     * @param begin the begin of the interval
+     * @param end   the end of the interval
+     * @return the elapsed time, in seconds
+     */
+    public static double elapsedTimeInSeconds(long begin, long end) {
+        return elapsedTimeInSeconds(end - begin);
+    }
+
+    /**
+     * Gets the elapsed time, in seconds, of size elapsedTime.
+     *
+     * @param elapsedTime the size of the interval
+     * @return the elapsed time, in seconds
+     */
+    public static double elapsedTimeInSeconds(long elapsedTime) {
+        return ((double) elapsedTime) / NANO_TO_SECONDS_DENOMINATOR;
+    }
+
+    /**
      * Gets the formatted current time.
      *
      * @return the formatted current time

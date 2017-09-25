@@ -41,7 +41,7 @@ public enum InferenceLog {
 
     BEGIN_ASYNC_EVALUATION("[ BEGIN ]\tAsynchronous evaluation of {} candidates."),
     SUBMITTING_CANDIDATE("Submitting candidate:\t{}"),
-    EVALUATION_FOR_RULE("Evaluation: {}\t for rule:\t{}"),
+    EVALUATION_FOR_RULE("Evaluation: {}\twith time: {}s\tfor rule:\t{}"),
     END_ASYNC_EVALUATION("[  END  ]\tAsynchronous evaluation."),
 
     GROUNDING_EXAMPLE("Grounding iterator:\t{}"),

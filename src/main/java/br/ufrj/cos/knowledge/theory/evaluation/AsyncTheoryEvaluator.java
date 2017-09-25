@@ -69,6 +69,7 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
     protected double evaluation;
 
     protected boolean evaluationFinished;
+    protected double evaluationTime;
 
     /**
      * Constructor with the needed parameters.
@@ -147,7 +148,11 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
     @Override
     public void run() {
         evaluationFinished = false;
+        evaluationTime = Double.POSITIVE_INFINITY;
+        final long begin = TimeUtils.getNanoTime();
         evaluation = theoryEvaluator.evaluateTheoryAppendingClauses(theoryMetric, examples, hornClause);
+        final long end = TimeUtils.getNanoTime();
+        evaluationTime = TimeUtils.elapsedTimeInSeconds(begin, end);
         evaluationFinished = true;
     }
 
@@ -185,6 +190,16 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
      */
     public boolean isEvaluationFinished() {
         return evaluationFinished;
+    }
+
+    /**
+     * Gets the evaluation time, in seconds. If it is infinity, either the evaluation is still running or it has been
+     * interrupted.
+     *
+     * @return the evaluation time, in seconds.
+     */
+    public double getEvaluationTime() {
+        return evaluationTime;
     }
 
     /**
