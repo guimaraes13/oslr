@@ -15,6 +15,7 @@ theoryBaseAncestralClassName:
 controlConcurrence:           false
 loadedPreTrainedParameters:   false
 passAllExampleAtOnce:         false
+examplesBatchSize:            1
 
 engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    useTernayIndex:         false

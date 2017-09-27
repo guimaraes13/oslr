@@ -70,6 +70,7 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
 
     protected boolean evaluationFinished;
     protected double evaluationTime;
+    private long begin;
 
     /**
      * Constructor with the needed parameters.
@@ -125,16 +126,21 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
     @SuppressWarnings("IntegerMultiplicationImplicitCastToLong")
     @Override
     public AsyncTheoryEvaluator<E> call() {
+        Thread thread = new Thread(this);
         try {
-            Thread thread = new Thread(this);
             thread.start();
             thread.join(timeout * TimeUtils.SECONDS_TO_MILLISECONDS_MULTIPLIER);
+        } catch (InterruptedException e) {
+            logger.error(ERROR_EVALUATING_CANDIDATE_THEORY, e);
+        } finally {
             if (thread.isAlive()) {
                 logger.trace(EVALUATION_THEORY_TIMEOUT.toString(), timeout);
                 thread.interrupt();
+            } else {
+                final long end = TimeUtils.getNanoTime();
+                evaluationTime = TimeUtils.elapsedTimeInSeconds(begin, end);
+                evaluationFinished = true;
             }
-        } catch (InterruptedException e) {
-            logger.error(ERROR_EVALUATING_CANDIDATE_THEORY, e);
         }
         return this;
     }
@@ -149,11 +155,8 @@ public class AsyncTheoryEvaluator<E> implements Runnable, Callable<AsyncTheoryEv
     public void run() {
         evaluationFinished = false;
         evaluationTime = Double.POSITIVE_INFINITY;
-        final long begin = TimeUtils.getNanoTime();
+        begin = TimeUtils.getNanoTime();
         evaluation = theoryEvaluator.evaluateTheoryAppendingClauses(theoryMetric, examples, hornClause);
-        final long end = TimeUtils.getNanoTime();
-        evaluationTime = TimeUtils.elapsedTimeInSeconds(begin, end);
-        evaluationFinished = true;
     }
 
     /**

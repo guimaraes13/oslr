@@ -96,10 +96,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     private static final File[] FILES = new File[0];
     /**
-     * The default size of the batches.
-     */
-    public static final int DEFAULT_MINI_BATCH_SIZE = 1;
-    /**
      * The default value of the relevant depth filter.
      */
     public static final int NO_RELEVANT_DEPTH_FILTER = -1;
@@ -134,13 +130,6 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
      */
     @SuppressWarnings("CanBeFinal")
     public Set<String> selectedRelations = null;
-
-    /**
-     * The size of the batch, the incoming examples will be grouped in batches, of this size, to be passed to
-     * revision.
-     */
-    @SuppressWarnings("CanBeFinal")
-    public int examplesBatchSize = DEFAULT_MINI_BATCH_SIZE;
 
     /**
      * The relevant depth to filter the knowledge base. If it is negative, no filter will be applied.
@@ -338,7 +327,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         }
         // measure the time to train in the iteration
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.REVISION_DONE));
-        logger.trace(END_REVISION_EXAMPLE.toString());
+        logger.debug(END_REVISION_EXAMPLE.toString());
         evaluateIteration(index);
         saveIterationFiles(index);
         endStamp = timeStampFactory.getTimeStamp(index, IterationTimeMessage.END);

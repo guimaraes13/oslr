@@ -70,7 +70,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static br.ufrj.cos.util.log.GeneralLog.*;
-import static br.ufrj.cos.util.log.IterationLog.ERROR_WRITING_STATISTICS_FILE;
+import static br.ufrj.cos.util.log.IterationLog.*;
 import static br.ufrj.cos.util.log.PreRevisionLog.PASSING_EXAMPLE_OF_TOTAL_REVISION;
 import static br.ufrj.cos.util.log.SystemLog.*;
 import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
@@ -109,7 +109,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * The name of the file to save the test inference.
      */
     public static final String TEST_INFERENCE_FILE_NAME = "inference.test.tsv";
-
+    /**
+     * The default size of the batches.
+     */
+    public static final int DEFAULT_MINI_BATCH_SIZE = 1;
     private static final String[] STRINGS = new String[0];
     /**
      * The knowledge base collection class name.
@@ -216,6 +219,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public boolean passAllExampleAtOnce = false;
     /**
+     * The size of the batch, the incoming examples will be grouped in batches, of this size, to be passed to
+     * revision.
+     */
+    @SuppressWarnings("CanBeFinal")
+    public int examplesBatchSize = DEFAULT_MINI_BATCH_SIZE;
+    /**
      * The knowledge base collection class.
      */
     protected Class<? extends Collection> knowledgeBaseCollectionClass;
@@ -298,10 +307,47 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void reviseExamples() {
         //IMPROVE: delegate this function to the ExampleStream
+        logger.info(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(trainExamples.size()));
         if (passAllExampleAtOnce) {
             learningSystem.incomingExampleManager.incomingExamples(trainExamples);
+        } else if (examplesBatchSize > 1) {
+            passBatchExamplesToRevise();
         } else {
             passEachExampleAtTime();
+        }
+        logger.info(END_REVISION_EXAMPLE.toString());
+    }
+
+    /**
+     * Passes the examples to revise.
+     */
+    protected void passBatchExamplesToRevise() {
+        final IterableSize<? extends Example> currentExamples = new IterableSize<>(examplesBatchSize, trainExamples);
+        final int size = trainExamples.size();
+        int count = Math.min(size, examplesBatchSize);
+        for (int i = 0; i < size / examplesBatchSize; i++) {
+            logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count),
+                         integerFormat.format(size));
+            learningSystem.incomingExampleManager.incomingExamples(currentExamples);
+            currentExamples.reset();
+            count += examplesBatchSize;
+        }
+        logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(size),
+                     integerFormat.format(size));
+        learningSystem.incomingExampleManager.incomingExamples(currentExamples);
+    }
+
+    /**
+     * Passes a example at a time to the learning system.
+     */
+    protected void passEachExampleAtTime() {
+        int count = 1;
+        final int size = trainExamples.size();
+        for (Example example : trainExamples) {
+            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
+                    .format(size));
+            learningSystem.incomingExampleManager.incomingExamples(example);
+            count++;
         }
     }
 
@@ -322,36 +368,16 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Builds the default {@link RevisionOperatorEvaluator}s.
+     * Saves the parameters to files.
      *
-     * @return the default {@link RevisionOperatorEvaluator}s
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     * @throws IOException if an error occurs with the file
      */
-    protected static List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
-        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
-        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
-        bottomClause.setTheoryMetric(new F1ScoreMetric());
-        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
-        return operatorEvaluator;
-    }
-
-    /**
-     * Builds the default {@link TheoryMetric}s.
-     *
-     * @return the default {@link TheoryMetric}s
-     */
-    @SuppressWarnings("OverlyCoupledMethod")
-    protected static List<TheoryMetric> defaultTheoryMetrics() {
-        List<TheoryMetric> metrics = new ArrayList<>();
-        metrics.add(new AccuracyMetric());
-        metrics.add(new PrecisionMetric());
-        metrics.add(new RecallMetric());
-        metrics.add(new F1ScoreMetric());
-
-        metrics.add(new LikelihoodMetric());
-        metrics.add(new LogLikelihoodMetric());
-        metrics.add(new RocCurveMetric());
-        return metrics;
+    protected void saveParameters() throws IOException {
+        String theoryContent = LanguageUtils.theoryToString(learningSystem.getTheory());
+        File theoryFile = new File(outputDirectory, THEORY_FILE_NAME);
+        FileIOUtils.writeStringToFile(theoryContent, theoryFile);
+        logger.info(THEORY_FILE.toString(), theoryFile.getAbsolutePath(), theoryContent);
+        learningSystem.saveParameters(outputDirectory);
     }
 
     /**
@@ -369,6 +395,56 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         logger.warn(TOTAL_EVALUATION_TIME.toString(), formatNanoDifference(evaluationTime));
         logger.warn(TOTAL_OUTPUT_TIME.toString(), formatNanoDifference(outputTime));
         logger.warn(TOTAL_PROGRAM_TIME.toString(), formatNanoDifference(totalProgramTime));
+    }
+
+    /**
+     * Saves the statistics of the run to a yaml file.
+     */
+    private void saveStatistics() {
+        try {
+            RunStatistics<String> statistics = new RunStatistics<>();
+
+            statistics.setKnowledgeSize(runStatistics.getKnowledgeSize());
+            statistics.setExamplesSize(runStatistics.getExamplesSize());
+            statistics.setTestSize(runStatistics.getTestSize());
+
+            statistics.setTrainEvaluation(runStatistics.getTrainEvaluation());
+            statistics.setTestEvaluation(runStatistics.getTestEvaluation());
+
+            statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(RunTimeStamp::name));
+
+            FileIOUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
+        } catch (IOException e) {
+            logger.error(ERROR_WRITING_STATISTICS_FILE, e);
+        }
+    }
+
+    /**
+     * Gets the statistics file name.
+     *
+     * @return the statistics file name
+     */
+    public File getStatisticsFile() {
+        return new File(outputDirectory, STATISTICS_FILE_NAME);
+    }
+
+    @Override
+    public void initialize() throws InitializationException {
+        timeMeasure = new TimeMeasure<>();
+        timeMeasure.measure(RunTimeStamp.BEGIN);
+        timeMeasure.measure(RunTimeStamp.BEGIN_INITIALIZE);
+        super.initialize();
+        integerFormat = NumberFormat.getIntegerInstance();
+        instantiateClasses();
+        saveConfigurations();
+        runStatistics = new RunStatistics<>();
+        try {
+            build();
+        } catch (ReflectiveOperationException | IOException e) {
+            throw new InitializationException(ExceptionMessages.ERROR_BUILD_LEARNING_SYSTEM.toString(), e);
+        }
+        runStatistics.setTimeMeasure(timeMeasure);
+        timeMeasure.measure(RunTimeStamp.END_INITIALIZE);
     }
 
     /**
@@ -397,51 +473,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Saves the statistics of the run to a yaml file.
-     */
-    private void saveStatistics() {
-        try {
-            RunStatistics<String> statistics = new RunStatistics<>();
-
-            statistics.setKnowledgeSize(runStatistics.getKnowledgeSize());
-            statistics.setExamplesSize(runStatistics.getExamplesSize());
-            statistics.setTestSize(runStatistics.getTestSize());
-
-            statistics.setTrainEvaluation(runStatistics.getTrainEvaluation());
-            statistics.setTestEvaluation(runStatistics.getTestEvaluation());
-
-            statistics.setTimeMeasure(timeMeasure.convertTimeMeasure(RunTimeStamp::name));
-
-            FileIOUtils.writeObjectToYamlFile(statistics, getStatisticsFile());
-        } catch (IOException e) {
-            logger.error(ERROR_WRITING_STATISTICS_FILE, e);
-        }
-    }
-
-    /**
-     * Passes a example at a time to the learning system.
-     */
-    protected void passEachExampleAtTime() {
-        int count = 1;
-        final int size = trainExamples.size();
-        for (Example example : trainExamples) {
-            logger.trace(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count), integerFormat
-                    .format(size));
-            learningSystem.incomingExampleManager.incomingExamples(example);
-            count++;
-        }
-    }
-
-    /**
-     * Gets the statistics file name.
-     *
-     * @return the statistics file name
-     */
-    public File getStatisticsFile() {
-        return new File(outputDirectory, STATISTICS_FILE_NAME);
-    }
-
-    /**
      * Builds this class and all its properties.
      *
      * @throws IllegalAccessException  if an error occurs when instantiating a new object by reflection
@@ -456,23 +487,85 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         buildLearningSystem();
     }
 
-    @Override
-    public void initialize() throws InitializationException {
-        timeMeasure = new TimeMeasure<>();
-        timeMeasure.measure(RunTimeStamp.BEGIN);
-        timeMeasure.measure(RunTimeStamp.BEGIN_INITIALIZE);
-        super.initialize();
-        integerFormat = NumberFormat.getIntegerInstance();
-        instantiateClasses();
-        saveConfigurations();
-        runStatistics = new RunStatistics<>();
-        try {
-            build();
-        } catch (ReflectiveOperationException | IOException e) {
-            throw new InitializationException(ExceptionMessages.ERROR_BUILD_LEARNING_SYSTEM.toString(), e);
+    /**
+     * Builds the {@link KnowledgeBase} from the input files.
+     *
+     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
+                                                                                           CommandLineOptions
+                                                                                                   .KNOWLEDGE_BASE
+                                                                                                   .getOptionName()));
+
+        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
+        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
+        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
+
+        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
+        runStatistics.setKnowledgeSize(knowledgeBase.size());
+        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
+    }
+
+    /**
+     * Builds the {@link Theory} from the input files.
+     *
+     * @throws NoSuchMethodException     if an error occurs when instantiating a new object by reflection
+     * @throws IllegalAccessException    if an error occurs when instantiating a new object by reflection
+     * @throws InvocationTargetException if an error occurs when instantiating a new object by reflection
+     * @throws InstantiationException    if an error occurs when instantiating a new object by reflection
+     * @throws FileNotFoundException     if a file does not exists
+     */
+    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, InstantiationException, FileNotFoundException {
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
+                                                                                           CommandLineOptions.THEORY
+                                                                                                   .getOptionName()));
+
+        ClausePredicate predicate = null;
+        if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {
+            predicate = theoryPredicateClass.getConstructor(theoryBaseAncestralClass.getClass())
+                    .newInstance(theoryBaseAncestralClass);
+            logger.debug(CREATING_THEORY_WITH_PREDICATE.toString(), predicate);
         }
-        runStatistics.setTimeMeasure(timeMeasure);
-        timeMeasure.measure(RunTimeStamp.END_INITIALIZE);
+
+        if (theoryBaseAncestralClass == null) {
+            theoryBaseAncestralClass = HornClause.class;
+        }
+
+        theory = new Theory(theoryCollectionClass.newInstance(), predicate);
+        theory.addAll(clauses, theoryBaseAncestralClass);
+        logger.info(THEORY_SIZE.toString(), theory.size());
+    }
+
+    /**
+     * Builds the examples
+     *
+     * @throws InstantiationException if an error occurs when instantiating a new set
+     * @throws IllegalAccessException if an error occurs when instantiating a new set
+     * @throws FileNotFoundException  if a file does not exists
+     */
+    protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
+        trainExamples = FileIOUtils.buildExampleSet(exampleFilePaths);
+        testExamples = FileIOUtils.buildExampleSet(testFilePaths);
+        runStatistics.setExamplesSize((int) trainExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
+        runStatistics.setTestSize((int) testExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
+    }
+
+    /**
+     * Builds the {@link EngineSystemTranslator}.
+     */
+    protected void buildEngineSystemTranslator() {
+        if (engineSystemTranslator == null) { engineSystemTranslator = new ProPprEngineSystemTranslator<>(); }
+        logger.info(BUILDING_ENGINE_SYSTEM_TRANSLATOR.toString(),
+                    engineSystemTranslator.getClass().getSimpleName());
+
+        engineSystemTranslator.setKnowledgeBase(knowledgeBase);
+        engineSystemTranslator.setTheory(theory);
+        engineSystemTranslator.initialize();
+        if (loadedPreTrainedParameters) { engineSystemTranslator.loadParameters(outputDirectory); }
     }
 
     /**
@@ -495,17 +588,134 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Builds the {@link EngineSystemTranslator}.
+     * Initializes the {@link TheoryMetric}s.
+     *
+     * @return the {@link TheoryMetric}s
      */
-    protected void buildEngineSystemTranslator() {
-        if (engineSystemTranslator == null) { engineSystemTranslator = new ProPprEngineSystemTranslator<>(); }
-        logger.info(BUILDING_ENGINE_SYSTEM_TRANSLATOR.toString(),
-                    engineSystemTranslator.getClass().getSimpleName());
+    protected List<TheoryMetric> buildMetrics() {
+        return (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
+                Arrays.asList(theoryMetrics));
+    }
 
-        engineSystemTranslator.setKnowledgeBase(knowledgeBase);
-        engineSystemTranslator.setTheory(theory);
-        engineSystemTranslator.initialize();
-        if (loadedPreTrainedParameters) { engineSystemTranslator.loadParameters(outputDirectory); }
+    /**
+     * Builds the default {@link TheoryMetric}s.
+     *
+     * @return the default {@link TheoryMetric}s
+     */
+    @SuppressWarnings("OverlyCoupledMethod")
+    protected static List<TheoryMetric> defaultTheoryMetrics() {
+        List<TheoryMetric> metrics = new ArrayList<>();
+        metrics.add(new AccuracyMetric());
+        metrics.add(new PrecisionMetric());
+        metrics.add(new RecallMetric());
+        metrics.add(new F1ScoreMetric());
+
+        metrics.add(new LikelihoodMetric());
+        metrics.add(new LogLikelihoodMetric());
+        metrics.add(new RocCurveMetric());
+        return metrics;
+    }
+
+    /**
+     * Initializes the {@link RevisionOperatorSelector}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildOperatorSelector() throws InitializationException {
+        if (revisionOperatorSelector == null) {
+            revisionOperatorSelector = new SelectFirstRevisionOperator();
+        }
+        if (!revisionOperatorSelector.isOperatorEvaluatorsSetted()) {
+            revisionOperatorSelector.setOperatorEvaluators(buildOperators());
+        }
+    }
+
+    /**
+     * Initializes the {@link RevisionOperatorEvaluator}s.
+     *
+     * @return the {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected List<RevisionOperatorEvaluator> buildOperators() throws InitializationException {
+        List<RevisionOperatorEvaluator> operatorEvaluator;
+        if (revisionOperatorEvaluators == null || revisionOperatorEvaluators.length == 0) {
+            operatorEvaluator = defaultRevisionOperator();
+        } else {
+            operatorEvaluator = Arrays.asList(revisionOperatorEvaluators);
+        }
+        for (RevisionOperatorEvaluator operator : operatorEvaluator) {
+            operator.setLearningSystem(learningSystem);
+        }
+        return operatorEvaluator;
+    }
+
+    /**
+     * Builds the default {@link RevisionOperatorEvaluator}s.
+     *
+     * @return the default {@link RevisionOperatorEvaluator}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected static List<RevisionOperatorEvaluator> defaultRevisionOperator() throws InitializationException {
+        List<RevisionOperatorEvaluator> operatorEvaluator = new ArrayList<>();
+        BottomClauseBoundedRule bottomClause = new BottomClauseBoundedRule();
+        bottomClause.setTheoryMetric(new F1ScoreMetric());
+        operatorEvaluator.add(new RevisionOperatorEvaluator(bottomClause));
+        return operatorEvaluator;
+    }
+
+    /**
+     * Initializes the {@link IncomingExampleManager}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildIncomingExampleManager() throws InitializationException {
+        if (incomingExampleManager == null) {
+            incomingExampleManager = new ReviseAllIncomingExample(learningSystem, new IndependentSampleSelector());
+        } else {
+            incomingExampleManager.setLearningSystem(learningSystem);
+        }
+        learningSystem.incomingExampleManager = incomingExampleManager;
+    }
+
+    /**
+     * Initializes the {@link TheoryEvaluator}.
+     *
+     * @param theoryMetrics the {@link TheoryMetric}s
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildTheoryEvaluator(List<TheoryMetric> theoryMetrics) throws InitializationException {
+        if (theoryEvaluator == null) {
+            theoryEvaluator = new TheoryEvaluator();
+        }
+        theoryEvaluator.setTheoryMetrics(theoryMetrics);
+        learningSystem.theoryEvaluator = theoryEvaluator;
+    }
+
+    /**
+     * Initializes the {@link TheoryRevisionManager}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildTheoryRevisionManager() throws InitializationException {
+        if (theoryRevisionManager == null) {
+            theoryRevisionManager = new TheoryRevisionManager();
+        }
+        buildRevisionManager();
+
+        theoryRevisionManager.setRevisionManager(revisionManager);
+        learningSystem.theoryRevisionManager = theoryRevisionManager;
+    }
+
+    /**
+     * Initializes the {@link RevisionManager}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildRevisionManager() throws InitializationException {
+        if (revisionManager == null) {
+            revisionManager = new RevisionManager();
+        }
+        revisionManager.setOperatorSelector(revisionOperatorSelector);
     }
 
     @Override
@@ -544,162 +754,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     }
 
     /**
-     * Saves the parameters to files.
-     *
-     * @throws IOException if an error occurs with the file
-     */
-    protected void saveParameters() throws IOException {
-        String theoryContent = LanguageUtils.theoryToString(learningSystem.getTheory());
-        File theoryFile = new File(outputDirectory, THEORY_FILE_NAME);
-        FileIOUtils.writeStringToFile(theoryContent, theoryFile);
-        logger.info(THEORY_FILE.toString(), theoryFile.getAbsolutePath(), theoryContent);
-        learningSystem.saveParameters(outputDirectory);
-    }
-
-    /**
-     * Initializes the {@link TheoryRevisionManager}.
-     *
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected void buildTheoryRevisionManager() throws InitializationException {
-        if (theoryRevisionManager == null) {
-            theoryRevisionManager = new TheoryRevisionManager();
-        }
-        buildRevisionManager();
-
-        theoryRevisionManager.setRevisionManager(revisionManager);
-        learningSystem.theoryRevisionManager = theoryRevisionManager;
-    }
-
-    /**
-     * Initializes the {@link TheoryEvaluator}.
-     *
-     * @param theoryMetrics the {@link TheoryMetric}s
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected void buildTheoryEvaluator(List<TheoryMetric> theoryMetrics) throws InitializationException {
-        if (theoryEvaluator == null) {
-            theoryEvaluator = new TheoryEvaluator();
-        }
-        theoryEvaluator.setTheoryMetrics(theoryMetrics);
-        learningSystem.theoryEvaluator = theoryEvaluator;
-    }
-
-    /**
-     * Initializes the {@link IncomingExampleManager}.
-     *
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected void buildIncomingExampleManager() throws InitializationException {
-        if (incomingExampleManager == null) {
-            incomingExampleManager = new ReviseAllIncomingExample(learningSystem, new IndependentSampleSelector());
-        } else {
-            incomingExampleManager.setLearningSystem(learningSystem);
-        }
-        learningSystem.incomingExampleManager = incomingExampleManager;
-    }
-
-    /**
-     * Initializes the {@link RevisionManager}.
-     *
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected void buildRevisionManager() throws InitializationException {
-        if (revisionManager == null) {
-            revisionManager = new RevisionManager();
-        }
-        revisionManager.setOperatorSelector(revisionOperatorSelector);
-    }
-
-    /**
-     * Initializes the {@link RevisionOperatorSelector}.
-     *
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected void buildOperatorSelector() throws InitializationException {
-        if (revisionOperatorSelector == null) {
-            revisionOperatorSelector = new SelectFirstRevisionOperator();
-        }
-        if (!revisionOperatorSelector.isOperatorEvaluatorsSetted()) {
-            revisionOperatorSelector.setOperatorEvaluators(buildOperators());
-        }
-    }
-
-    /**
-     * Initializes the {@link RevisionOperatorEvaluator}s.
-     *
-     * @return the {@link RevisionOperatorEvaluator}s
-     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
-     */
-    protected List<RevisionOperatorEvaluator> buildOperators() throws InitializationException {
-        List<RevisionOperatorEvaluator> operatorEvaluator;
-        if (revisionOperatorEvaluators == null || revisionOperatorEvaluators.length == 0) {
-            operatorEvaluator = defaultRevisionOperator();
-        } else {
-            operatorEvaluator = Arrays.asList(revisionOperatorEvaluators);
-        }
-        for (RevisionOperatorEvaluator operator : operatorEvaluator) {
-            operator.setLearningSystem(learningSystem);
-        }
-        return operatorEvaluator;
-    }
-
-    /**
-     * Initializes the {@link TheoryMetric}s.
-     *
-     * @return the {@link TheoryMetric}s
-     */
-    protected List<TheoryMetric> buildMetrics() {
-        return (theoryMetrics == null || theoryMetrics.length == 0 ? defaultTheoryMetrics() :
-                Arrays.asList(theoryMetrics));
-    }
-
-    /**
-     * Builds the examples
-     *
-     * @throws InstantiationException if an error occurs when instantiating a new set
-     * @throws IllegalAccessException if an error occurs when instantiating a new set
-     * @throws FileNotFoundException  if a file does not exists
-     */
-    protected void buildExamples() throws InstantiationException, IllegalAccessException, FileNotFoundException {
-        trainExamples = FileIOUtils.buildExampleSet(exampleFilePaths);
-        testExamples = FileIOUtils.buildExampleSet(testFilePaths);
-        runStatistics.setExamplesSize((int) trainExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
-        runStatistics.setTestSize((int) testExamples.stream().mapToLong(e -> e.getGroundedQuery().size()).sum());
-    }
-
-    /**
-     * Builds the {@link Theory} from the input files.
-     *
-     * @throws NoSuchMethodException     if an error occurs when instantiating a new object by reflection
-     * @throws IllegalAccessException    if an error occurs when instantiating a new object by reflection
-     * @throws InvocationTargetException if an error occurs when instantiating a new object by reflection
-     * @throws InstantiationException    if an error occurs when instantiating a new object by reflection
-     * @throws FileNotFoundException     if a file does not exists
-     */
-    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
-                                                                                           CommandLineOptions.THEORY
-                                                                                                   .getOptionName()));
-
-        ClausePredicate predicate = null;
-        if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {
-            predicate = theoryPredicateClass.getConstructor(theoryBaseAncestralClass.getClass())
-                    .newInstance(theoryBaseAncestralClass);
-            logger.debug(CREATING_THEORY_WITH_PREDICATE.toString(), predicate);
-        }
-
-        if (theoryBaseAncestralClass == null) {
-            theoryBaseAncestralClass = HornClause.class;
-        }
-
-        theory = new Theory(theoryCollectionClass.newInstance(), predicate);
-        theory.addAll(clauses, theoryBaseAncestralClass);
-        logger.info(THEORY_SIZE.toString(), theory.size());
-    }
-
-    /**
      * Sets the {@link EngineSystemTranslator} if it is not yet set. If it is already set, throws an error.
      *
      * @param engineSystemTranslator the {@link EngineSystemTranslator}
@@ -721,28 +775,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     public boolean isEngineSystemTranslatorSet() {
         return this.engineSystemTranslator != null;
-    }
-
-    /**
-     * Builds the {@link KnowledgeBase} from the input files.
-     *
-     * @throws IllegalAccessException if an error occurs when instantiating a new object by reflection
-     * @throws InstantiationException if an error occurs when instantiating a new object by reflection
-     * @throws FileNotFoundException  if a file does not exists
-     */
-    protected void buildKnowledgeBase() throws IllegalAccessException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(knowledgeBaseFilePaths,
-                                                                                           CommandLineOptions
-                                                                                                   .KNOWLEDGE_BASE
-                                                                                                   .getOptionName()));
-
-        ClausePredicate predicate = knowledgeBasePredicateClass.newInstance();
-        logger.debug(CREATING_KNOWLEDGE_BASE_WITH_PREDICATE.toString(), predicate);
-        knowledgeBase = new KnowledgeBase(knowledgeBaseCollectionClass.newInstance(), predicate);
-
-        knowledgeBase.addAll(clauses, knowledgeBaseAncestralClass);
-        runStatistics.setKnowledgeSize(knowledgeBase.size());
-        logger.info(KNOWLEDGE_BASE_SIZE.toString(), knowledgeBase.size());
     }
 
     @Override
