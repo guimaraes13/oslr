@@ -151,7 +151,18 @@ public enum CommandLineOptions {
                                                               "sets " +
                                                               "the " + FILTER_ONLY_NEGATIVES.getOptionName() + " " +
                                                               "option.")
-                                     .create("npf"));
+                                     .create("npf")),
+    NO_RANDOM_SEED(OptionBuilder.withArgName("noRandomSeed")
+                           .withLongOpt("noRandomSeed")
+                           .withDescription("If set, no random seed will be used and the random generator will use " +
+                                                    "its own initialization. " +
+                                                    "In general it is preferred to get better random result but " +
+                                                    "without reproducibility.")
+                           .create("nrs")),
+    SHUFFLE(OptionBuilder.withArgName("shuffle")
+                    .withLongOpt("shuffle")
+                    .withDescription("If set, the output data.")
+                    .create("shf"));
     protected final Option option;
 
     CommandLineOptions(Option option) {

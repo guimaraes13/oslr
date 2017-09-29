@@ -40,6 +40,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,10 +113,23 @@ public class LogicToProPprConverter extends CommandLineInterface {
     public boolean filterOnlyNegativeExamples = false;
 
     /**
+     * The random seed.
+     */
+    public long randomSeed = DEFAULT_RANDOM_SEED;
+
+    /**
+     * If {@code true}, no random seed will be used and the random generator will use its own initialization. In
+     * general it is preferred to get better random result but without reproducibility.
+     */
+    public boolean noRandomSeed = true;
+    /**
+     * If {@code true}, shuffles the output data.
+     */
+    public boolean shuffle = false;
+    /**
      * The portion of negative examples. If {@link #DEFAULT_NEGATIVE_PORTION_FILTER}, no portion filter will be applied.
      */
     protected double negativePortionFilter = DEFAULT_NEGATIVE_PORTION_FILTER;
-
     protected AtomFactory atomFactory;
     protected String[] logicFiles;
     protected NumberFormat numberFormat;
@@ -155,6 +169,8 @@ public class LogicToProPprConverter extends CommandLineInterface {
         options.addOption(FILTER_ONLY_NEGATIVES.getOption());
         options.addOption(NEGATIVES_PORTION_FILTER.getOption());
         options.addOption(FORCE_INDEX.getOption());
+        options.addOption(NO_RANDOM_SEED.getOption());
+        options.addOption(SHUFFLE.getOption());
     }
 
     @Override
@@ -175,6 +191,8 @@ public class LogicToProPprConverter extends CommandLineInterface {
         negativePortionFilter = Double.parseDouble(commandLine.getOptionValue(NEGATIVES_PORTION_FILTER.getOptionName(),
                                                                               String.valueOf(negativePortionFilter)));
         if (negativePortionFilter >= 0.0) { filterOnlyNegativeExamples = true; }
+        noRandomSeed = commandLine.hasOption(NO_RANDOM_SEED.getOptionName());
+        shuffle = commandLine.hasOption(SHUFFLE.getOptionName());
         return this;
     }
 
@@ -225,13 +243,44 @@ public class LogicToProPprConverter extends CommandLineInterface {
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(negatives.size()));
         Collection<? extends ProPprExample> examples = convertAtomToExamples(positives, negatives);
-        if (negativePortionFilter >= 0.0) {
-            examples = filterNegativePortion(examples);
-        }
+        if (negativePortionFilter >= 0.0) { examples = filterNegativePortion(examples); }
+        if (shuffle) { examples = shuffleOutput(examples); }
         logger.debug(TOTAL_NUMBER_EXAMPLES_PROPPR.toString(), numberFormat.format(examples.size()));
         final File outputFile = new File(outputDirectory, filePrefix + examplesFileExtension);
         FileIOUtils.saveExamplesToFile(examples, outputFile);
         logger.debug(EXAMPLES_SAVING.toString(), outputFile.getName());
+    }
+
+    /**
+     * Filters the negative examples so the portion of negatives become approximately {@link #negativePortionFilter}
+     * times the portion of positive.
+     *
+     * @param examples the examples to filter
+     * @return the filtered examples
+     */
+    protected Collection<? extends ProPprExample> filterNegativePortion(Collection<? extends ProPprExample> examples) {
+        final Random random = getRandom();
+        Map<Boolean, ? extends List<? extends AtomExample>> split;
+        Set<ProPprExample> answer = new LinkedHashSet<>(examples.size());
+        ProPprExample newExample;
+        for (ProPprExample example : examples) {
+            newExample = example;
+            split = example.getGroundedQuery().stream().collect(Collectors.groupingBy(AtomExample::isPositive));
+            final List<? extends AtomExample> positivePart = split.get(true);
+            final List<? extends AtomExample> negativePart = split.get(false);
+            if (positivePart == null || positivePart.isEmpty()) { continue; }
+            if (negativePart != null && !negativePart.isEmpty()) {
+                final int negativeSize = (int) Math.round(positivePart.size() * negativePortionFilter);
+                if (negativePart.size() > negativeSize) {
+                    final List<AtomExample> goals = new ArrayList<>(positivePart.size() + negativeSize);
+                    goals.addAll(positivePart);
+                    goals.addAll(pickNRandomElements(negativePart, negativeSize, random));
+                    newExample = new ProPprExample(example.getGoal(), goals);
+                }
+            }
+            answer.add(newExample);
+        }
+        return answer;
     }
 
     /**
@@ -269,35 +318,45 @@ public class LogicToProPprConverter extends CommandLineInterface {
     }
 
     /**
-     * Filters the negative examples so the portion of negatives become approximately {@link #negativePortionFilter}
-     * times the portion of positive.
+     * Shuffles the output examples.
      *
-     * @param examples the examples to filter
-     * @return the filtered examples
+     * @param examples the examples
+     * @return the shuffled examples
      */
-    protected Collection<? extends ProPprExample> filterNegativePortion(Collection<? extends ProPprExample> examples) {
-        Random random = new Random(DEFAULT_RANDOM_SEED);
-        Map<Boolean, ? extends List<? extends AtomExample>> split;
-        Set<ProPprExample> answer = new LinkedHashSet<>(examples.size());
-        ProPprExample newExample;
-        for (ProPprExample example : examples) {
-            newExample = example;
-            split = example.getGroundedQuery().stream().collect(Collectors.groupingBy(AtomExample::isPositive));
-            final List<? extends AtomExample> positivePart = split.get(true);
-            final List<? extends AtomExample> negativePart = split.get(false);
-            if (positivePart == null || positivePart.isEmpty()) { continue; }
-            if (negativePart != null && !negativePart.isEmpty()) {
-                final int negativeSize = (int) Math.round(positivePart.size() * negativePortionFilter);
-                if (negativePart.size() > negativeSize) {
-                    final List<AtomExample> goals = new ArrayList<>(positivePart.size() + negativeSize);
-                    goals.addAll(positivePart);
-                    goals.addAll(pickNRandomElements(negativePart, negativeSize, random));
-                    newExample = new ProPprExample(example.getGoal(), goals);
-                }
-            }
-            answer.add(newExample);
+    protected Collection<? extends ProPprExample> shuffleOutput(Collection<? extends ProPprExample> examples) {
+        List<? extends ProPprExample> shuffledExamples = new ArrayList<>(examples);
+        final Random random = getRandom();
+        Collections.shuffle(shuffledExamples, random);
+        return shuffledExamples;
+    }
+
+    /**
+     * Gets a random generator.
+     *
+     * @return random generator
+     */
+    protected Random getRandom() {
+        return noRandomSeed ? new SecureRandom() : new Random(randomSeed);
+    }
+
+    /**
+     * Gets n random elements from the list.
+     *
+     * @param list   the list
+     * @param n      the number of elements
+     * @param random the random
+     * @param <E>    the type of the elements
+     * @return a list of n random elements from the list
+     */
+    public static <E> List<E> pickNRandomElements(List<E> list, int n, Random random) {
+        int length = list.size();
+
+        if (length < n) { return list; }
+
+        for (int i = length - 1; i >= length - n; --i) {
+            Collections.swap(list, i, random.nextInt(i + 1));
         }
-        return answer;
+        return list.subList(length - n, length);
     }
 
     /**
@@ -323,47 +382,6 @@ public class LogicToProPprConverter extends CommandLineInterface {
             }
         }
         return examplesByPredicate;
-    }
-
-    /**
-     * Finds the index of the minimum size value in an array of collections.
-     *
-     * @param values the array of collections
-     * @return the index of the minimum size value in an array of collections
-     */
-    public static int getMinimumArgumentIndex(Collection<?>[] values) {
-        int minIndex = 0;
-        int minValue;
-        int auxiliary;
-        minValue = values[minIndex].size();
-        for (int i = 1; i < values.length; i++) {
-            auxiliary = values[i].size();
-            if (auxiliary < minValue) {
-                minIndex = i;
-                minValue = auxiliary;
-            }
-        }
-        return minIndex;
-    }
-
-    /**
-     * Gets n random elements from the list.
-     *
-     * @param list   the list
-     * @param n      the number of elements
-     * @param random the random
-     * @param <E>    the type of the elements
-     * @return a list of n random elements from the list
-     */
-    public static <E> List<E> pickNRandomElements(List<E> list, int n, Random random) {
-        int length = list.size();
-
-        if (length < n) { return list; }
-
-        for (int i = length - 1; i >= length - n; --i) {
-            Collections.swap(list, i, random.nextInt(i + 1));
-        }
-        return list.subList(length - n, length);
     }
 
     /**
@@ -397,6 +415,27 @@ public class LogicToProPprConverter extends CommandLineInterface {
         }
 
         return termsByIndex;
+    }
+
+    /**
+     * Finds the index of the minimum size value in an array of collections.
+     *
+     * @param values the array of collections
+     * @return the index of the minimum size value in an array of collections
+     */
+    public static int getMinimumArgumentIndex(Collection<?>[] values) {
+        int minIndex = 0;
+        int minValue;
+        int auxiliary;
+        minValue = values[minIndex].size();
+        for (int i = 1; i < values.length; i++) {
+            auxiliary = values[i].size();
+            if (auxiliary < minValue) {
+                minIndex = i;
+                minValue = auxiliary;
+            }
+        }
+        return minIndex;
     }
 
     @Override
