@@ -137,6 +137,13 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     @SuppressWarnings("CanBeFinal")
     public int relevantDepthFilter = NO_RELEVANT_DEPTH_FILTER;
 
+    /**
+     * If set, the output will be saved strict to the output directory, without creating any folder.
+     * <p>
+     * Careful, this option might override files in a consecutive run."
+     */
+    public boolean strictOutput = false;
+
     protected File[] iterationDirectories;
     protected List<Collection<? extends Atom>> iterationKnowledge;
     protected List<Examples> iterationExamples;
@@ -524,6 +531,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
         options.addOption(YAML.getOption());
         options.addOption(OUTPUT_DIRECTORY.getOption());
+        options.addOption(STRICT_OUTPUT_DIRECTORY.getOption());
     }
 
     @Override
@@ -544,6 +552,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
             cli.targetRelation = commandLine.getOptionValue(TARGET_RELATION.getOptionName(), cli.targetRelation);
 
             cli.outputDirectoryPath = commandLine.getOptionValue(OUTPUT_DIRECTORY.getOptionName());
+            cli.strictOutput = commandLine.hasOption(STRICT_OUTPUT_DIRECTORY.getOptionName());
             return cli;
         } catch (FileNotFoundException | YamlException e) {
             throw new CommandLineInterrogationException(e);
@@ -719,8 +728,12 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
 
     @Override
     protected void buildOutputDirectory(String configFileContent) {
-        outputDirectory = new File(outputDirectoryPath, targetRelation.toUpperCase() + "_" +
-                String.format(OUTPUT_RUN_DIRECTORY, TimeUtils.getCurrentTime()));
+        if (strictOutput) {
+            outputDirectory = new File(outputDirectoryPath);
+        } else {
+            outputDirectory = new File(outputDirectoryPath, targetRelation.toUpperCase() + "_" +
+                    String.format(OUTPUT_RUN_DIRECTORY, TimeUtils.getCurrentTime()));
+        }
     }
 
 }

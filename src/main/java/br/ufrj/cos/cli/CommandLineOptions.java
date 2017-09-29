@@ -68,8 +68,18 @@ public enum CommandLineOptions {
                              .withLongOpt("outputDirectory")
                              .hasArg()
                              .withDescription("the directory to save the files in. If not specified, a new directory," +
-                                                      " in the current directory will be created.")
+                                                      " in the current directory will be created." +
+                                                      " This option creates a folder inside the output directory with" +
+                                                      " the name of the relation and the starting time of the run.")
                              .create("o")),
+    STRICT_OUTPUT_DIRECTORY(OptionBuilder.withArgName("strictOutput")
+                                    .withLongOpt("strictOutput")
+                                    .withDescription("if set, the output will be saved strict to the output " +
+                                                             "directory, " +
+                                                             "without creating any folder. Careful, this option might" +
+                                                             " " +
+                                                             "override files in a consecutive run.")
+                                    .create("so")),
     INPUT_DIRECTORY(OptionBuilder.withArgName("input")
                             .withLongOpt("inputDirectory")
                             .hasArgs(Option.UNLIMITED_VALUES)
