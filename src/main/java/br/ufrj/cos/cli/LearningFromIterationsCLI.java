@@ -327,7 +327,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure.measure(beginStamp);
         addIterationKnowledge(index);
         // measure the time to add knowledge to the learning system
-        if (examplesBatchSize < 2) {
+        if (examplesBatchSize == 1) {
             passExamplesToRevise(index);
         } else {
             passExamplesToRevise(index, examplesBatchSize);
@@ -384,13 +384,14 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         final int size = iterationExamples.get(index).size();
         logger.debug(BEGIN_REVISION_EXAMPLE.toString(), integerFormat.format(size));
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.LOAD_KNOWLEDGE_DONE));
-        int count = Math.min(size, examplesBatchSize);
-        for (int i = 0; i < size / examplesBatchSize; i++) {
+        int count = examplesBatchSize > 0 ? Math.min(size, examplesBatchSize) : size;
+        final int loop = Math.max(size / examplesBatchSize, 0);
+        for (int i = 0; i < loop; i++) {
             logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(count),
                          integerFormat.format(size));
             learningSystem.incomingExampleManager.incomingExamples(currentExamples);
             currentExamples.reset();
-            count += examplesBatchSize;
+            count = count + examplesBatchSize;
         }
         logger.debug(PASSING_EXAMPLE_OF_TOTAL_REVISION.toString(), integerFormat.format(size),
                      integerFormat.format(size));

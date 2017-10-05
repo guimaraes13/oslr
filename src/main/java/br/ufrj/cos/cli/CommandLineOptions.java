@@ -86,6 +86,16 @@ public enum CommandLineOptions {
                             .withDescription("the directory to read the files from. If not specified, the program " +
                                                      "will try to read it from a yaml configuration file.")
                             .create("i")),
+    INPUT_FILES(OptionBuilder.withArgName("input")
+                        .withLongOpt("inputFiles")
+                        .hasArgs(Option.UNLIMITED_VALUES)
+                        .withDescription("the input files.")
+                        .create("i")),
+    OUTPUT_FILES(OptionBuilder.withArgName("output")
+                         .withLongOpt("outputFiles")
+                         .hasArg()
+                         .withDescription("the output file.")
+                         .create("o")),
     INPUT_DIRECTORIES(OptionBuilder.withArgName("input")
                               .withLongOpt("inputDirectories")
                               .hasArgs(2)

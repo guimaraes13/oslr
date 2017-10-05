@@ -19,10 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package br.ufrj.cos.cli.nell;
+package br.ufrj.cos.cli.util;
 
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
+import br.ufrj.cos.cli.nell.NellBaseConverterCLI;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
@@ -115,6 +116,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
     /**
      * The random seed.
      */
+    @SuppressWarnings("CanBeFinal")
     public long randomSeed = DEFAULT_RANDOM_SEED;
 
     /**

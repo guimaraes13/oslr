@@ -71,12 +71,12 @@ public class IterableSize<E> implements Iterable<E>, Iterator<E> {
 
     @Override
     public boolean hasNext() {
-        return index < numberOfElements && iterator.hasNext();
+        return (numberOfElements < 1 || index < numberOfElements) && iterator.hasNext();
     }
 
     @Override
     public E next() {
-        if (index < numberOfElements && iterator.hasNext()) {
+        if (hasNext()) {
             index++;
             return iterator.next();
         }

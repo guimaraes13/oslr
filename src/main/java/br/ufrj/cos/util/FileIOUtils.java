@@ -458,4 +458,23 @@ public final class FileIOUtils {
             logger.error(ERROR_READING_FILE.toString(), e);
         }
     }
+
+    /**
+     * Writes each item of the iterable to a line in the file
+     *
+     * @param file     the file
+     * @param iterable the iterable
+     * @throws IOException if an error occurs during the writing
+     */
+    public static void writeIterableToFile(File file, Iterable iterable) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
+                                                                               DEFAULT_INPUT_ENCODE))) {
+            for (Object o : iterable) {
+                writer.write(o.toString());
+                writer.write("\n");
+            }
+            writer.close();
+        }
+    }
+
 }

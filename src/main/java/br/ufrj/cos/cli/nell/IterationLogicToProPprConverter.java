@@ -23,6 +23,7 @@ package br.ufrj.cos.cli.nell;
 
 import br.ufrj.cos.cli.CommandLineInterface;
 import br.ufrj.cos.cli.CommandLineInterrogationException;
+import br.ufrj.cos.cli.util.LogicToProPprConverter;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.InitializationException;

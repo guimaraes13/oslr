@@ -290,6 +290,25 @@ public final class LanguageUtils {
     }
 
     /**
+     * Formats the {@link Atom} to a fact {@link String}.
+     *
+     * @param atom the {@link Atom}
+     * @return the formatted {@link String}
+     */
+    public static String formatFactToString(Atom atom) {
+        List<Term> terms = atom.getTerms();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(atom.getName());
+        if (terms != null && !terms.isEmpty()) {
+            stringBuilder.append(PREDICATE_OPEN_ARGUMENT_CHARACTER);
+            stringBuilder.append(iterableToString(terms));
+            stringBuilder.append(PREDICATE_CLOSE_ARGUMENT_CHARACTER);
+        }
+        stringBuilder.append(CLAUSE_END_OF_LINE);
+        return stringBuilder.toString().trim();
+    }
+
+    /**
      * Builds an array of {@link String} by calling the {@link #toString()} method of each object in objects.
      *
      * @param objects the objects
