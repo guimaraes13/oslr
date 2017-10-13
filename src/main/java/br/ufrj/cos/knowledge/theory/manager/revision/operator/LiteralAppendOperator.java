@@ -55,6 +55,7 @@ public abstract class LiteralAppendOperator extends RevisionOperator {
             if (initialClause == null) { return theory; }
 
             HornClause hornClause = buildExtendedHornClause(targets, initialClause, new HashSet<>()).getHornClause();
+            hornClause = featureGenerator.createFeatureForRule(hornClause, targets);
             theory.add(hornClause);
             return theory;
         } catch (KnowledgeException e) {

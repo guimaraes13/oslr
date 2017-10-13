@@ -87,6 +87,7 @@ public class CombinedBottomClauseBoundedRule extends BottomClauseBoundedRule {
                 HornClause bottomClause = buildCombinedBottomClause(predicate, examples);
                 logger.info(BOTTOM_CLAUSE_SIZE.toString(), bottomClause.getBody().size());
                 newRule = buildRuleFromBottomClause(targets, bottomClause);
+                newRule = featureGenerator.createFeatureForRule(newRule, targets);
                 if (theory.add(newRule)) {
                     logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
                 }

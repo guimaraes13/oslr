@@ -216,6 +216,7 @@ public class BottomClauseBoundedRule extends GeneralizationRevisionOperator {
             final HornClause bottomClause = buildBottomClause(example);
             logger.info(BOTTOM_CLAUSE_SIZE.toString(), bottomClause.getBody().size());
             newRule = buildRuleFromBottomClause(evaluationExamples, bottomClause);
+            newRule = featureGenerator.createFeatureForRule(newRule, evaluationExamples);
             if (theory.add(newRule)) {
                 logger.info(RULE_APPENDED_TO_THEORY.toString(), newRule);
             }

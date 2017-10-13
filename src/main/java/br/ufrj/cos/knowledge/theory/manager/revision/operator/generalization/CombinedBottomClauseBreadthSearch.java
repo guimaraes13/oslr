@@ -133,8 +133,9 @@ public class CombinedBottomClauseBreadthSearch extends CombinedBottomClauseBound
         final List<HornClause> hornClauses = refineRules(candidateLiterals, evaluationExamples, bottomClause);
 
         for (HornClause clause : hornClauses) {
-            if (theory.add(clause)) {
-                logger.info(RULE_APPENDED_TO_THEORY.toString(), clause);
+            HornClause featureClause = featureGenerator.createFeatureForRule(clause, evaluationExamples);
+            if (theory.add(featureClause)) {
+                logger.info(RULE_APPENDED_TO_THEORY.toString(), featureClause);
             }
         }
     }
