@@ -302,6 +302,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the {@link Goal}
      */
     public static Goal atomToGoal(String name, List<Term> terms, Map<Term, Integer> variableMap) {
+        if (terms == null || terms.isEmpty()) { return new Goal(name); }
         Argument[] arguments = new Argument[terms.size()];
         for (int i = 0; i < arguments.length; i++) {
             if (terms.get(i).isConstant()) {

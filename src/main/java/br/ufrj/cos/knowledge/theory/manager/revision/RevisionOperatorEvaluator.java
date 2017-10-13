@@ -25,6 +25,7 @@ import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.manager.feature.FeatureGenerator;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.RevisionOperator;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
@@ -128,6 +129,16 @@ public class RevisionOperatorEvaluator implements Initializable {
      */
     public void setLearningSystem(LearningSystem learningSystem) throws InitializationException {
         revisionOperator.setLearningSystem(learningSystem);
+    }
+
+    /**
+     * Sets the {@link FeatureGenerator} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param featureGenerator the {@link FeatureGenerator}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setFeatureGenerator(FeatureGenerator featureGenerator) throws InitializationException {
+        revisionOperator.setFeatureGenerator(featureGenerator);
     }
 
     /**

@@ -73,7 +73,7 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
                 return removeRuleFromTheory(revisionLeaf);
             } else {
                 // this node represents straight rule, it is a literal deletion operation
-                return removeLiteralFromTheory(revisionLeaf);
+                return removeLiteralFromTheory(revisionLeaf, targets);
             }
         } catch (KnowledgeException e) {
             throw new TheoryRevisionException(ExceptionMessages.ERROR_DURING_THEORY_COPY.toString(), e);
@@ -107,9 +107,10 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
      * Removes the literal from the rule, represented by the node, reducing it to its parent.
      *
      * @param node the node
+     * @param examples the examples
      * @return the modified theory
      */
-    protected Theory removeLiteralFromTheory(Node<HornClause> node) {
+    protected Theory removeLiteralFromTheory(Node<HornClause> node, Collection<? extends Example> examples) {
         Iterator<HornClause> iterator = learningSystem.getTheory().iterator();
         Collection<HornClause> clauses = new LinkedHashSet<>();
         HornClause clause;
@@ -117,7 +118,9 @@ public class RemoveNodeTreeRevisionOperator extends TreeRevisionOperator {
             clause = iterator.next();
             if (node.getElement().equals(clause)) {
                 // this is the revision point, add the revised clause
-                clauses.add(node.getParent().getElement());
+                HornClause revisedClause = featureGenerator.createFeatureForRule(node.getParent().getElement(),
+                                                                                 examples);
+                clauses.add(revisedClause);
             } else {
                 // this is not the revision point, simple add to the collection
                 clauses.add(clause);

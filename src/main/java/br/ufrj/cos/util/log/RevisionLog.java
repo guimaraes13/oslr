@@ -37,6 +37,7 @@ public enum RevisionLog {
     INITIALIZING_REVISION_OPERATOR_SELECTOR("Initializing RevisionOperatorSelector:\t{}"),
     INITIALIZING_REVISION_OPERATOR_EVALUATOR("Initializing RevisionOperatorEvaluator:\t{}"),
     INITIALIZING_REVISION_OPERATOR("Initializing RevisionOperator:\t{}"),
+    INITIALIZING_FEATURE_GENERATOR("Initializing FeatureGenerator:\t{}"),
 
     PERFORMING_OPERATION_ON_EXAMPLES("Performing operation on\t{} examples."),
 

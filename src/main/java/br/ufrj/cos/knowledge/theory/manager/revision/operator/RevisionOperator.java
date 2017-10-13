@@ -26,6 +26,7 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.TheoryMetric;
+import br.ufrj.cos.knowledge.theory.manager.feature.FeatureGenerator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
@@ -34,7 +35,9 @@ import br.ufrj.cos.util.InitializationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static br.ufrj.cos.util.log.RevisionLog.INITIALIZING_REVISION_OPERATOR;
 
@@ -65,12 +68,21 @@ public abstract class RevisionOperator implements Initializable {
      */
     protected TheoryMetric theoryMetric;
 
+    protected FeatureGenerator featureGenerator;
+
     @Override
     public void initialize() throws InitializationException {
         logger.debug(INITIALIZING_REVISION_OPERATOR.toString(), this.getClass().getName());
+        List<String> fields = new ArrayList<>();
         if (learningSystem == null) {
-            throw new InitializationException(
-                    ExceptionMessages.errorFieldsSet(this, LearningSystem.class.getSimpleName()));
+            fields.add(LearningSystem.class.getSimpleName());
+        }
+        if (featureGenerator == null) {
+            fields.add(FeatureGenerator.class.getSimpleName());
+        }
+
+        if (!fields.isEmpty()) {
+            throw new InitializationException(ExceptionMessages.errorFieldsSet(this, fields));
         }
     }
 
@@ -129,6 +141,21 @@ public abstract class RevisionOperator implements Initializable {
                                                  LearningSystem.class.getSimpleName()));
         }
         this.learningSystem = learningSystem;
+    }
+
+    /**
+     * Sets the {@link FeatureGenerator} if it is not yet set. If it is already set, throws an error.
+     *
+     * @param featureGenerator the {@link FeatureGenerator}
+     * @throws InitializationException if the {@link LearningSystem} is already set
+     */
+    public void setFeatureGenerator(FeatureGenerator featureGenerator) throws InitializationException {
+        if (this.featureGenerator != null) {
+            throw new InitializationException(
+                    FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_FIELD_NOT_ALLOWED.toString(),
+                                                 FeatureGenerator.class.getSimpleName()));
+        }
+        this.featureGenerator = featureGenerator;
     }
 
     /**

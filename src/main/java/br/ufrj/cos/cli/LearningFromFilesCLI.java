@@ -43,6 +43,8 @@ import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LikelihoodMe
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.LogLikelihoodMetric;
 import br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric;
 import br.ufrj.cos.knowledge.theory.manager.TheoryRevisionManager;
+import br.ufrj.cos.knowledge.theory.manager.feature.DumbFeatureGenerator;
+import br.ufrj.cos.knowledge.theory.manager.feature.FeatureGenerator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionManager;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorSelector;
@@ -172,6 +174,10 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     @SuppressWarnings("unused")
     public RevisionOperatorEvaluator[] revisionOperatorEvaluators;
+    /**
+     * The {@link FeatureGenerator}.
+     */
+    public FeatureGenerator featureGenerator;
     /**
      * The {@link RevisionOperatorSelector}.
      */
@@ -579,12 +585,27 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         learningSystem.concurrent = controlConcurrence;
 
         List<TheoryMetric> theoryMetrics = buildMetrics();
+        buildFeatureGenerator();
         buildOperatorSelector();
 
         buildIncomingExampleManager();
         buildTheoryEvaluator(theoryMetrics);
         buildTheoryRevisionManager();
         learningSystem.initialize();
+    }
+
+    /**
+     * Initializes the {@link FeatureGenerator}.
+     *
+     * @throws InitializationException if an error occurs during the initialization of an {@link Initializable}.
+     */
+    protected void buildFeatureGenerator() throws InitializationException {
+        if (featureGenerator == null) {
+            //noinspection deprecation
+            featureGenerator = new DumbFeatureGenerator();
+        }
+        featureGenerator.setLearningSystem(learningSystem);
+        featureGenerator.initialize();
     }
 
     /**
@@ -645,6 +666,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         }
         for (RevisionOperatorEvaluator operator : operatorEvaluator) {
             operator.setLearningSystem(learningSystem);
+            operator.setFeatureGenerator(featureGenerator);
         }
         return operatorEvaluator;
     }

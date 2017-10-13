@@ -133,6 +133,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
                                                  LiteralAppendOperator.class.getSimpleName()));
         }
         this.appendOperator.setLearningSystem(learningSystem);
+        this.appendOperator.setFeatureGenerator(featureGenerator);
         appendOperator.initialize();
     }
 
@@ -186,6 +187,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         Node<HornClause> node = revisionLeaf;
         for (Literal literal : revisedClause.getBody()) {
             if (currentBody.contains(literal)) { continue; }
+//            if (currentBody.size() == 1 && currentBody.contains(Literal.TRUE_LITERAL)) { currentBody.clear(); }
             nextBody = new Conjunction(currentBody.size() + 1);
             nextBody.addAll(currentBody);
             nextBody.add(literal);
@@ -245,15 +247,8 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
             hornClause = refineClause(hornClause, examples);
         }
         revisedClause = hornClause.getHornClause();
-        if (logger.isDebugEnabled()) {
-            if (removeOld) {
-                Set<Literal> body = new LinkedHashSet<>(revisedClause.getBody());
-                body.removeAll(node.getElement().getBody());
-                logger.debug(PROPOSED_ADD_LITERAL.toString(), body.toArray());
-            } else {
-                logger.debug(PROPOSED_ADD_RULE.toString(), revisedClause);
-            }
-        }
+        revisedClause = featureGenerator.createFeatureForRule(revisedClause, examples);
+        logChange(node, removeOld);
 
         Theory theory = learningSystem.getTheory().copy();
         theory.add(revisedClause);
@@ -263,6 +258,24 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         clauses.sort(Comparator.comparing(LanguageUtils::formatHornClause));
 
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
+    }
+
+    /**
+     * Logs the changes to the theory
+     *
+     * @param node      the node of the change
+     * @param removeOld if is to remove old clause (i.e. it is a addition of literal) or not.
+     */
+    protected void logChange(Node<HornClause> node, boolean removeOld) {
+        if (logger.isDebugEnabled()) {
+            if (removeOld) {
+                Set<Literal> body = new LinkedHashSet<>(revisedClause.getBody());
+                body.removeAll(node.getElement().getBody());
+                logger.debug(PROPOSED_ADD_LITERAL.toString(), body.toArray());
+            } else {
+                logger.debug(PROPOSED_ADD_RULE.toString(), revisedClause);
+            }
+        }
     }
 
     /**
