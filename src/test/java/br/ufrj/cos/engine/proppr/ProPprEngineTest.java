@@ -57,7 +57,7 @@ public class ProPprEngineTest {
             List<Clause> clauses = parser.parseKnowledge();
             Theory theory = new Theory(new ArrayList<>());
             theory.addAll(clauses, HornClause.class);
-            WamProgram wamProgram = ProPprEngineSystemTranslator.compileTheory(theory);
+            WamProgram wamProgram = ProPprUtils.compileTheory(theory);
             WamProgram wamProgramExpected = WamProgram.load(new File(WAN_FILE));
             for (int i = 0; i < 29; i++) {
                 Assert.assertEquals("Instructions does not match!",

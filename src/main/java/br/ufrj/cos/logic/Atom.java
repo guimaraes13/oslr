@@ -100,8 +100,17 @@ public class Atom extends Clause {
      * @param predicate the proposition
      */
     public Atom(String predicate) {
-        this.predicate = new Predicate(predicate);
-        this.terms = null;
+        this(new Predicate(predicate));
+    }
+
+    /**
+     * Constructs a proposition form of an {@link Atom}
+     *
+     * @param predicate the proposition
+     * @param terms     the {@link Atom}'s {@link Term}s
+     */
+    public Atom(String predicate, List<Term> terms) {
+        this(new Predicate(predicate, terms.size()), terms);
     }
 
     /**

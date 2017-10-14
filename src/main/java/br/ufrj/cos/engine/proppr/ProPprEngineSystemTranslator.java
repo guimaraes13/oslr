@@ -32,8 +32,10 @@ import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
+import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.IterableConverter;
 import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.log.FileIOLog;
 import edu.cmu.ml.proppr.Trainer;
 import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
@@ -59,10 +61,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.engine.proppr.ProPprUtils.getLabelForRule;
 import static br.ufrj.cos.util.log.EngineSystemLog.*;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_CAPACITY;
 import static edu.cmu.ml.proppr.Trainer.DEFAULT_LOAD;
@@ -94,9 +98,9 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     public static final String SAVED_PARAMETERS_FILE_NAME = "savedParameters.wts";
     /**
-     * The default empty goal array.
+     * Name of the saved feature theory file.
      */
-    public static final Goal[] EMPTY_GOAL = new Goal[0];
+    public static final String SAVED_FEATURE_THEORY = "savedFeatureTheory.pl";
     /**
      * The default empty query array.
      */
@@ -154,117 +158,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     // Parameters
     protected ParamVector<String, ?> currentParamVector;
     protected ParamVector<String, ?> savedParamVector;
-
-    /**
-     * Compiles a {@link Theory} into a {@link WamProgram}, the internal representation of ProPRR.
-     *
-     * @param theory the {@link Theory}
-     * @return the {@link WamProgram}
-     */
-    public static WamProgram compileTheory(Iterable<? extends HornClause> theory) {
-        WamProgram wamProgram = new WamBaseProgram();
-        appendRuleToProgram(theory, wamProgram);
-        wamProgram.save();
-        return wamProgram;
-    }
-
-    /**
-     * Appends the {@link HornClause}s to the {@link WamProgram}.
-     *
-     * @param hornClauses the {@link HornClause}s
-     * @param wamProgram  the {@link WamProgram}
-     */
-    public static void appendRuleToProgram(Iterable<? extends HornClause> hornClauses, WamProgram wamProgram) {
-        Rule rule;
-        for (HornClause hornClause : hornClauses) {
-            rule = clauseToRule(hornClause);
-            rule.variabilize();
-            wamProgram.append(new Instruction(Instruction.OP.comment, rule.toString()));
-            wamProgram.insertLabel(getLabelForRule(rule));
-            wamProgram.append(rule);
-        }
-    }
-
-    /**
-     * Converts a {@link Clause}, from the system representation, to a {@link Rule} in ProPPR's representation.
-     *
-     * @param clause the {@link Clause}
-     * @return the {@link Rule}
-     */
-    public static Rule clauseToRule(Clause clause) {
-        Goal lhs = null;                //head
-        Goal[] rhs = EMPTY_GOAL;       //body
-        Goal[] features = EMPTY_GOAL;  //features
-
-        if (clause instanceof Atom) {
-            lhs = atomToGoal((Atom) clause, new HashMap<>());
-        } else if (clause instanceof HornClause) {
-            HornClause hornClause = (HornClause) clause;
-            Map<Term, Integer> variableMap = new HashMap<>();
-            lhs = atomToGoal(hornClause.getHead(), variableMap);
-            rhs = positiveLiteralsToGoals(hornClause.getBody(), variableMap);
-            if (hornClause instanceof FeaturedClause) {
-                FeaturedClause featuredClause = (FeaturedClause) hornClause;
-                features = atomsToGoals(featuredClause.getFeatures(), variableMap);
-            } else {
-                features = new Goal[]{new Goal(hornClause.getHead().getName() + hornClause.getBody().size())};
-            }
-        }
-
-        return new Rule(lhs, rhs, features, EMPTY_GOAL);
-    }
-
-    /**
-     * Gets the label for the {@link Rule}, so it can be proper added to the {@link WamProgram}.
-     *
-     * @param rule the {@link Rule}
-     * @return the label
-     */
-    public static String getLabelForRule(Rule rule) {
-        return rule.getLhs().getFunctor() + LanguageUtils.PREDICATE_ARITY_SEPARATOR + rule.getLhs().getArity();
-    }
-
-    /**
-     * Converts an {@link Iterable} of {@link Literal}s, from the system representation, to {@link Goal}s, from ProPPR's
-     * representation; Using a variableMap to map variable names into int number. In addition, filters the negated
-     * {@link Literal}s, converting only the non-negated ones. If two variable in a {@link Clause} represents the
-     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
-     * {@link Clause}.
-     *
-     * @param literals    {@link Iterable} of {@link Literal}s
-     * @param variableMap the variable {@link Map}
-     * @return the {@link Goal}s
-     */
-    public static Goal[] positiveLiteralsToGoals(Iterable<? extends Literal> literals,
-                                                 Map<Term, Integer> variableMap) {
-        List<Goal> goals = new ArrayList<>();
-        for (Literal literal : literals) {
-            if (!literal.isNegated()) {
-                goals.add(atomToGoal(literal, variableMap));
-            }
-        }
-
-        return goals.toArray(EMPTY_GOAL);
-    }
-
-    /**
-     * Converts an {@link Iterable} of {@link Atom}s, from the system representation, to {@link Goal}s, from ProPPR's
-     * representation; Using a variableMap to map variable names into int number. If two variable in a {@link Clause}
-     * represents the same logic variable, they must be mapped to the same number, so, use the same variableMap to
-     * the whole {@link Clause}.
-     *
-     * @param atoms       {@link Iterable} of {@link Atom}s
-     * @param variableMap the variable {@link Map}
-     * @return the {@link Goal}s
-     */
-    public static Goal[] atomsToGoals(Iterable<? extends Atom> atoms, Map<Term, Integer> variableMap) {
-        List<Goal> goals = new ArrayList<>();
-        for (Atom atom : atoms) {
-            goals.add(atomToGoal(atom, variableMap));
-        }
-
-        return goals.toArray(EMPTY_GOAL);
-    }
+    protected Collection<Rule> featureRules;
 
     /**
      * Converts an {@link Atom} to a {@link Query}.
@@ -273,51 +167,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @return the {@link Query}
      */
     public static Query atomToQuery(Atom atom) {
-        return new Query(atomToGoal(atom, new HashMap<>()));
-    }
-
-    /**
-     * Converts an {@link Atom}, from the system representation, to a {@link Goal}, from ProPPR's representation;
-     * Using a variableMap to map variable names into int number. If two variable in a {@link Clause} represents the
-     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
-     * {@link Clause}.
-     *
-     * @param atom        the {@link Atom}
-     * @param variableMap the variable {@link Map}
-     * @return the {@link Goal}
-     */
-    public static Goal atomToGoal(Atom atom, Map<Term, Integer> variableMap) {
-        return atomToGoal(atom.getName(), atom.getTerms(), variableMap);
-    }
-
-    /**
-     * Converts an {@link Atom}, from the system representation, to a {@link Goal}, from ProPPR's representation;
-     * Using a variableMap to map variable names into int number. If two variable in a {@link Clause} represents the
-     * same logic variable, they must be mapped to the same number, so, use the same variableMap to the whole
-     * {@link Clause}.
-     *
-     * @param name        the {@link Atom}'s name
-     * @param terms       the {@link Atom}'s {@link Term}s
-     * @param variableMap the variable {@link Map}
-     * @return the {@link Goal}
-     */
-    public static Goal atomToGoal(String name, List<Term> terms, Map<Term, Integer> variableMap) {
-        if (terms == null || terms.isEmpty()) { return new Goal(name); }
-        Argument[] arguments = new Argument[terms.size()];
-        for (int i = 0; i < arguments.length; i++) {
-            if (terms.get(i).isConstant()) {
-                arguments[i] = new ConstantArgument(terms.get(i).getName());
-            } else {
-                if (variableMap == null) {
-                    arguments[i] = new VariableArgument(i + 1);
-                } else {
-                    arguments[i] = new VariableArgument(variableMap.computeIfAbsent(terms.get(i), k ->
-                            variableMap.size() + 1));
-                }
-            }
-        }
-
-        return new Goal(name, arguments);
+        return new Query(ProPprUtils.atomToGoal(atom, new HashMap<>()));
     }
 
     @Override
@@ -423,7 +273,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected static InferenceExample buildRelevantExample(Atom goalAtom, Term relevantTerm, int termIndex) {
         List<Term> terms = new ArrayList<>(goalAtom.getTerms());
         terms.set(termIndex, relevantTerm);
-        Query query = new Query(atomToGoal(goalAtom.getName(), terms, new HashMap<>()));
+        Query query = new Query(ProPprUtils.atomToGoal(goalAtom.getName(), terms, new HashMap<>()));
 
         return new InferenceExample(query, EMPTY_QUERY, EMPTY_QUERY);
     }
@@ -475,7 +325,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param goal the {@link Goal}
      * @return the {@link Atom}
      */
-    public static Atom goalToAtom(Goal goal) {
+    protected static Atom goalToAtom(Goal goal) {
         List<Term> terms = new ArrayList<>(goal.getArity());
         for (Argument argument : goal.getArgs()) {
             if (argument.isConstant()) {
@@ -580,15 +430,15 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     @Override
     public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
             (Theory theory, Iterable<? extends Example> examples) {
-        WamProgram wamProgram = compileTheory(theory);
+        WamProgram wamProgram = ProPprUtils.compileTheory(theory);
         return inferExamplesTrainingParameters(examples, wamProgram);
     }
 
     @Override
     public Map<Example, Map<Atom, Double>> inferExampleTrainingParameters
             (Iterable<? extends HornClause> appendClauses, Iterable<? extends Example> examples) {
-        WamProgram wamProgram = compileTheory(theory);
-        appendRuleToProgram(appendClauses, wamProgram);
+        WamProgram wamProgram = ProPprUtils.compileTheory(theory);
+        ProPprUtils.appendRuleToProgram(appendClauses, wamProgram);
         return inferExamplesTrainingParameters(examples, wamProgram);
     }
 
@@ -615,7 +465,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     @Override
     public synchronized void setTheory(Theory theory) {
         this.theory = theory;
-        this.program = compileTheory(theory);
+        this.featureRules = new HashSet<>();
+        this.program = ProPprUtils.compileTheory(theory, featureRules);
         if (this.grounder != null) { this.grounder.setProgram(program); }
         if (this.answerer != null) { this.answerer.setProgram(program); }
     }
@@ -625,6 +476,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         final File file = new File(workingDirectory, SAVED_PARAMETERS_FILE_NAME);
         logger.debug(SAVING_PARAMETERS_TO_FILE.toString(), file);
         ParamsFile.save(savedParamVector, file, null);
+        try {
+            FileIOUtils.writeIterableToFile(new File(workingDirectory, SAVED_FEATURE_THEORY), featureRules);
+        } catch (IOException e) {
+            logger.error(FileIOLog.ERROR_WRITING_FILE.toString(), e);
+        }
     }
 
     @Override
@@ -634,6 +490,28 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         ParamsFile paramsFile = new ParamsFile(file);
         currentParamVector = new SimpleParamVector<>(Dictionary.load(paramsFile, new ConcurrentHashMap<>()));
         saveTrainedParameters();
+        loadFeatureClauses(workingDirectory);
+    }
+
+    /**
+     * Loads the feature clauses from the saved file.
+     *
+     * @param workingDirectory the working directory
+     */
+    protected void loadFeatureClauses(File workingDirectory) {
+        List<Clause> clauses = new ArrayList<>();
+        FileIOUtils.readClausesToList(new File(workingDirectory, SAVED_FEATURE_THEORY), clauses);
+
+        featureRules = new HashSet<>(clauses.size());
+        for (Clause clause : clauses) {
+            final Rule rule = ProPprUtils.clauseToRule(clause);
+            featureRules.add(rule);
+            rule.variabilize();
+            program.append(new Instruction(Instruction.OP.comment, rule.toString()));
+            program.insertLabel(getLabelForRule(rule));
+            program.append(rule);
+        }
+        program.save();
     }
 
     /**
@@ -730,7 +608,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected Map<Example, Map<Atom, Double>> inferWithTheoryExamples(Iterable<? extends HornClause> theory,
                                                                       IterableConverter<Example, Query> converter) {
         if (theory == null) { return null; }
-        WamProgram wamProgram = compileTheory(theory);
+        WamProgram wamProgram = ProPprUtils.compileTheory(theory);
         InMemoryQueryAnswerer<P> answerer = buildAnswerer(wamProgram);
         return inferExamples(converter, answerer);
     }
@@ -770,8 +648,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected Map<Example, Map<Atom, Double>> inferExamplesAppendingClauses
     (Iterable<? extends HornClause> appendClauses, IterableConverter<Example, Query> converter) {
         if (appendClauses == null) { return null; }
-        WamProgram wamProgram = compileTheory(theory);
-        appendRuleToProgram(appendClauses, wamProgram);
+        WamProgram wamProgram = ProPprUtils.compileTheory(theory);
+        ProPprUtils.appendRuleToProgram(appendClauses, wamProgram);
         InMemoryQueryAnswerer<P> answerer = buildAnswerer(wamProgram);
         return inferExamples(converter, answerer);
     }

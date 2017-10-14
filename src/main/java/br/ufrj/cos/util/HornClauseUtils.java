@@ -21,12 +21,15 @@
 
 package br.ufrj.cos.util;
 
+import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.logic.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +40,15 @@ import java.util.stream.Collectors;
  * @author Victor Guimarães
  */
 public final class HornClauseUtils {
+
+    /**
+     * The substitution predicate name
+     */
+    public static final String SUBSTITUTION_NAME = "sub_";
+    /**
+     * The predicate of the query to find the substitution of the variables.
+     */
+    public static final Predicate SUBSTITUTION_PREDICATE = new Predicate(SUBSTITUTION_NAME, Predicate.VAR_ARGS_ARITY);
 
     private HornClauseUtils() {
     }
@@ -550,6 +562,110 @@ public final class HornClauseUtils {
                 answerLiterals.add(candidate);
             }
         }
+    }
+
+    /**
+     * Creates the clause to find the substitution of variable instantiated by the initial clause.
+     *
+     * @param initialClause the initial clause
+     * @return the clause to find the substitutions
+     */
+    public static HornClause buildSubstitutionClause(HornClause initialClause) {
+        List<Term> terms = new ArrayList<>();
+        appendVariablesFromAtom(initialClause.getHead(), terms);
+
+        Conjunction body;
+        if (initialClause.getBody().isEmpty()) {
+            body = new Conjunction(Literal.TRUE_LITERAL);
+        } else {
+            for (Literal literal : initialClause.getBody()) {
+                appendVariablesFromAtom(literal, terms);
+            }
+            body = initialClause.getBody();
+        }
+
+        return new HornClause(new Atom(SUBSTITUTION_PREDICATE, terms), body);
+    }
+
+    /**
+     * Appends the variables from the atom to the append set.
+     *
+     * @param atom   the atom
+     * @param append the append set
+     */
+    protected static void appendVariablesFromAtom(Atom atom, List<Term> append) {
+        for (Term term : atom.getTerms()) {
+            if (!term.isConstant() && !append.contains(term)) {
+                append.add(term);
+            }
+        }
+    }
+
+    /**
+     * Builds the queries from the positive examples to make possible find the substitution of each proved example.
+     *
+     * @param examples          the examples
+     * @param initialClauseHead the initial clause head
+     * @param substitutionHead  the substitution clause head
+     * @param positiveOnly      if {@code true} only positive examples will be considered
+     * @return the queries of examples
+     */
+    public static Set<Example> buildQueriesFromExamples(Iterable<? extends Example> examples,
+                                                        Atom initialClauseHead, Atom substitutionHead,
+                                                        boolean positiveOnly) {
+        Set<Example> querySet = new HashSet<>();
+        for (Example example : examples) {
+            if (!LanguageUtils.isAtomUnifiableToGoal(example.getGoalQuery(), initialClauseHead)) { continue; }
+            for (AtomExample atomExample : example.getGroundedQuery()) {
+                if (positiveOnly && !atomExample.isPositive()) { continue; }
+                querySet.add(buildQueryFromExample(substitutionHead, atomExample));
+            }
+        }
+        return querySet;
+    }
+
+    /**
+     * Builds a query from the example, in order to find the substitution map for all variables in the initial clause
+     * to the constants that satisfies the example.
+     *
+     * @param head    the head of the initial clause
+     * @param example the example
+     * @return the query to find the substitutions
+     */
+    protected static Example buildQueryFromExample(Atom head, AtomExample example) {
+        List<Term> terms = new ArrayList<>(head.getArity());
+        int i;
+        for (i = 0; i < example.getArity(); i++) {
+            terms.add(example.getTerms().get(i));
+        }
+        for (; i < head.getArity(); i++) {
+            terms.add(head.getTerms().get(i));
+        }
+        return new AtomExample(SUBSTITUTION_PREDICATE, terms, example.isPositive());
+    }
+
+    /**
+     * Finds the index in the list where is the biggest gap between the evaluation of the function in the elements.
+     *
+     * @param elements the list of elements, must be sorted
+     * @param function the evaluation function
+     * @return the index of the biggest gap, i.e. the number of elements that the first list must have to break in
+     * the biggest gap
+     */
+    public static <E> int findBiggestGap(List<E> elements, Function<? super E, Double> function) {
+        final int size = elements.size() - 1;
+        int maxIndex = size;
+        double maxValue = 0;
+        double auxiliary;
+        for (int i = 0; i < size; i++) {
+            auxiliary = Math.abs(function.apply(elements.get(i)) - function.apply(elements.get(i + 1)));
+            if (auxiliary > maxValue) {
+                maxValue = auxiliary;
+                maxIndex = i;
+            }
+        }
+
+        return maxIndex + 1;
     }
 
 }

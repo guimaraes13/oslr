@@ -34,7 +34,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static br.ufrj.cos.util.log.InferenceLog.BIGGEST_GAP_THRESHOLD;
@@ -222,7 +221,8 @@ public class CombinedBottomClauseBreadthSearch extends CombinedBottomClauseBound
         equivalentHornClauses = evaluationMap.entrySet().stream()
                 .sorted(Comparator.comparing(e -> -e.getValue(), theoryMetric))
                 .map(Map.Entry::getKey).collect(Collectors.toList());
-        final int biggestGap = findBiggestGap(equivalentHornClauses, AsyncTheoryEvaluator::getEvaluation);
+        final int biggestGap = HornClauseUtils.findBiggestGap(equivalentHornClauses,
+                                                              AsyncTheoryEvaluator::getEvaluation);
         logger.debug(BIGGEST_GAP_THRESHOLD.toString(), equivalentHornClauses.get(biggestGap - 1).getEvaluation());
         equivalentHornClauses = equivalentHornClauses.subList(0, biggestGap);
 
@@ -242,30 +242,6 @@ public class CombinedBottomClauseBreadthSearch extends CombinedBottomClauseBound
         //IMPROVE: run this function in another thread with timeout
         return learningSystem.getTheoryEvaluator().evaluateTheoryAppendingClauses(theoryMetric,
                                                                                   evaluationExamples, clauses);
-    }
-
-    /**
-     * Finds the index in the list where is the biggest gap between the evaluation of the function in the elements.
-     *
-     * @param elements the list of elements, must be sorted
-     * @param function the evaluation function
-     * @return the index of the biggest gap, i.e. the number of elements that the first list must have to break in
-     * the biggest gap
-     */
-    public static <E> int findBiggestGap(List<E> elements, Function<? super E, Double> function) {
-        final int size = elements.size() - 1;
-        int maxIndex = size;
-        double maxValue = 0;
-        double auxiliary;
-        for (int i = 0; i < size; i++) {
-            auxiliary = Math.abs(function.apply(elements.get(i)) - function.apply(elements.get(i + 1)));
-            if (auxiliary > maxValue) {
-                maxValue = auxiliary;
-                maxIndex = i;
-            }
-        }
-
-        return maxIndex + 1;
     }
 
 }

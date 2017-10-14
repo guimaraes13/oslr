@@ -62,6 +62,8 @@ revisionManager:  !br.ufrj.cos.knowledge.theory.manager.revision.BestLeafRevisio
    treeTheory:             *tree
    revisionHeuristic:      !br.ufrj.cos.knowledge.theory.manager.revision.heuristic.EntropyHeuristic {}
 
+featureGenerator: !br.ufrj.cos.knowledge.theory.manager.feature.proppr.UniqueRuleFeatureGenerator {}
+
 revisionOperatorEvaluators:
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
          revisionOperator:   !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.RemoveNodeTreeRevisionOperator

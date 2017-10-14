@@ -26,8 +26,8 @@ import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -124,11 +124,7 @@ public class AtomExample extends Atom implements Example {
 
     @Override
     public Collection<? extends AtomExample> getGroundedQuery() {
-        List<AtomExample> atoms = new ArrayList<>(1);
-        if (isGrounded()) {
-            atoms.add(this);
-        }
-        return atoms;
+        return isGrounded() ? Collections.singleton(this) : Collections.emptySet();
     }
 
     @Override

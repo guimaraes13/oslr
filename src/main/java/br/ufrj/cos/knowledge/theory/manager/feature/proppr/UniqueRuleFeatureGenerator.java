@@ -48,7 +48,7 @@ public class UniqueRuleFeatureGenerator extends FeatureGenerator {
     /**
      * The default feature name size.
      */
-    public static final int DEFAULT_FEATURE_NAME_SIZE = 0;
+    public static final int DEFAULT_FEATURE_NAME_SIZE = 4;
 
     /**
      * The feature name size.

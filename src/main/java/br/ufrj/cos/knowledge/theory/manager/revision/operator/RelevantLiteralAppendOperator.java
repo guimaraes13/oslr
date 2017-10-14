@@ -21,7 +21,6 @@
 
 package br.ufrj.cos.knowledge.theory.manager.revision.operator;
 
-import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
@@ -54,14 +53,6 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
      */
     public static final Logger logger = LogManager.getLogger();
 
-    /**
-     * The substitution predicate name
-     */
-    public static final String SUBSTITUTION_NAME = "sub_";
-    /**
-     * The predicate of the query to find the substitution of the variables.
-     */
-    public static final Predicate SUBSTITUTION_PREDICATE = new Predicate(SUBSTITUTION_NAME, Predicate.VAR_ARGS_ARITY);
     /**
      * The maximum number of threads this class is allowed to create.
      */
@@ -117,9 +108,9 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
                                                         Collection<? extends Literal> equivalentLiterals)
             throws TheoryRevisionException {
         try {
-            HornClause substitutionClause = buildSubstitutionClause(initialClause);
-            Set<Example> querySet = buildQueriesFromExamples(examples, initialClause.getHead(),
-                                                             substitutionClause.getHead());
+            HornClause substitutionClause = HornClauseUtils.buildSubstitutionClause(initialClause);
+            Set<Example> querySet = HornClauseUtils.buildQueriesFromExamples(examples, initialClause.getHead(),
+                                                                             substitutionClause.getHead(), true);
             if (querySet.isEmpty()) { return null; }
             Map<Example, Map<Atom, Double>> inferredExamples =
                     learningSystem.inferExamples(Collections.singleton(substitutionClause), querySet);
@@ -133,50 +124,6 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             logger.trace(ExceptionMessages.ERROR_APPENDING_LITERAL.toString(), e);
         }
         return null;
-    }
-
-    /**
-     * Creates the clause to find the substitution of variable instantiated by the initial clause.
-     *
-     * @param initialClause the initial clause
-     * @return the clause to find the substitutions
-     */
-    protected static HornClause buildSubstitutionClause(HornClause initialClause) {
-        List<Term> terms = new ArrayList<>();
-        appendVariablesFromAtom(initialClause.getHead(), terms);
-
-        Conjunction body;
-        if (initialClause.getBody().isEmpty()) {
-            body = new Conjunction(Literal.TRUE_LITERAL);
-        } else {
-            for (Literal literal : initialClause.getBody()) {
-                appendVariablesFromAtom(literal, terms);
-            }
-            body = initialClause.getBody();
-        }
-
-        return new HornClause(new Atom(SUBSTITUTION_PREDICATE, terms), body);
-    }
-
-    /**
-     * Builds the queries from the positive examples to make possible find the substitution of each proved example.
-     *
-     * @param examples          the examples
-     * @param initialClauseHead the initial clause head
-     * @param substitutionHead  the substitution clause head
-     * @return the queries of examples
-     */
-    protected static Set<Example> buildQueriesFromExamples(Iterable<? extends Example> examples,
-                                                           Atom initialClauseHead, Atom substitutionHead) {
-        Set<Example> querySet = new HashSet<>();
-        for (Example example : examples) {
-            if (!LanguageUtils.isAtomUnifiableToGoal(example.getGoalQuery(), initialClauseHead)) { continue; }
-            for (AtomExample atomExample : example.getGroundedQuery()) {
-                if (!atomExample.isPositive()) { continue; }
-                querySet.add(buildQueryFromExample(substitutionHead, atomExample));
-            }
-        }
-        return querySet;
     }
 
     /**
@@ -241,40 +188,6 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             }
         }
         return candidateLiterals;
-    }
-
-    /**
-     * Appends the variables from the atom to the append set.
-     *
-     * @param atom   the atom
-     * @param append the append set
-     */
-    protected static void appendVariablesFromAtom(Atom atom, List<Term> append) {
-        for (Term term : atom.getTerms()) {
-            if (!term.isConstant() && !append.contains(term)) {
-                append.add(term);
-            }
-        }
-    }
-
-    /**
-     * Builds a query from the example, in order to find the substitution map for all variables in the initial clause
-     * to the constants that satisfies the example.
-     *
-     * @param head    the head of the initial clause
-     * @param example the example
-     * @return the query to find the substitutions
-     */
-    protected static Example buildQueryFromExample(Atom head, AtomExample example) {
-        List<Term> terms = new ArrayList<>(head.getArity());
-        int i;
-        for (i = 0; i < example.getArity(); i++) {
-            terms.add(example.getTerms().get(i));
-        }
-        for (; i < head.getArity(); i++) {
-            terms.add(head.getTerms().get(i));
-        }
-        return new AtomExample(SUBSTITUTION_PREDICATE, terms);
     }
 
     /**
