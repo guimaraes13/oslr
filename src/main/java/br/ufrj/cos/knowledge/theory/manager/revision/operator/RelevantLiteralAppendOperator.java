@@ -33,6 +33,7 @@ import br.ufrj.cos.util.multithreading.MultithreadingEvaluation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,10 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
      * The logger
      */
     public static final Logger logger = LogManager.getLogger();
+    /**
+     * The default maximum based examples to use in the revision.
+     */
+    public static final int DEFAULT_MAXIMUM_BASED_EXAMPLES = -1;
 
     /**
      * The maximum number of threads this class is allowed to create.
@@ -63,6 +68,14 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
      * By default, is 300 seconds (i.e. 5 minutes).
      */
     public int evaluationTimeout = MultithreadingEvaluation.DEFAULT_EVALUATION_TIMEOUT;
+    /**
+     * The maximum based examples to use in the revision.
+     */
+    public int maximumBasedExamples = DEFAULT_MAXIMUM_BASED_EXAMPLES;
+    /**
+     * The random generator to select subsets of the examples.
+     */
+    public Random randomGenerator;
 
     /**
      * Represents the maximum depth on the transitivity of the relevant concept. A {@link Atom} is relevant to the
@@ -96,6 +109,9 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
         multithreading = new MultithreadingEvaluation<>(learningSystem, theoryMetric, evaluationTimeout,
                                                         literalTransformer);
         multithreading.numberOfThreads = numberOfThreads;
+        if (randomGenerator == null) {
+            randomGenerator = new SecureRandom();
+        }
     }
 
     @Override
@@ -109,8 +125,10 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             throws TheoryRevisionException {
         try {
             HornClause substitutionClause = HornClauseUtils.buildSubstitutionClause(initialClause);
-            Set<Example> querySet = HornClauseUtils.buildQueriesFromExamples(examples, initialClause.getHead(),
-                                                                             substitutionClause.getHead(), true);
+            Set<Example> querySet = HornClauseUtils.buildQueriesFromExamples(getBasedExamples(examples),
+                                                                             initialClause.getHead(),
+                                                                             substitutionClause.getHead(),
+                                                                             true);
             if (querySet.isEmpty()) { return null; }
             Map<Example, Map<Atom, Double>> inferredExamples =
                     learningSystem.inferExamples(Collections.singleton(substitutionClause), querySet);
@@ -124,6 +142,23 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             logger.trace(ExceptionMessages.ERROR_APPENDING_LITERAL.toString(), e);
         }
         return null;
+    }
+
+    /**
+     * Gets the examples to base the revision on.
+     * <p>
+     * It can be all the examples or a subset randomly pick from then.
+     *
+     * @param examples the possible examples
+     * @return the examples to base of the revision on
+     */
+    protected Collection<? extends Example> getBasedExamples(Collection<? extends Example> examples) {
+        if (maximumBasedExamples > 0 && maximumBasedExamples < examples.size()) {
+            final List<? extends Example> list = new ArrayList<>(examples);
+            return FileIOUtils.pickNRandomElements(list, maximumBasedExamples, randomGenerator);
+        } else {
+            return examples;
+        }
     }
 
     /**

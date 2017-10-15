@@ -477,4 +477,24 @@ public final class FileIOUtils {
         }
     }
 
+    /**
+     * Gets n random elements from the list.
+     *
+     * @param list   the list
+     * @param n      the number of elements
+     * @param random the random
+     * @param <E>    the type of the elements
+     * @return a list of n random elements from the list
+     */
+    public static <E> List<E> pickNRandomElements(List<E> list, int n, Random random) {
+        int length = list.size();
+
+        if (length < n) { return list; }
+
+        for (int i = length - 1; i >= length - n; --i) {
+            Collections.swap(list, i, random.nextInt(i + 1));
+        }
+        return list.subList(length - n, length);
+    }
+
 }
