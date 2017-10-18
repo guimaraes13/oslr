@@ -187,7 +187,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         Node<HornClause> node = revisionLeaf;
         for (Literal literal : revisedClause.getBody()) {
             if (currentBody.contains(literal)) { continue; }
-//            if (currentBody.size() == 1 && currentBody.contains(Literal.TRUE_LITERAL)) { currentBody.clear(); }
+            if (currentBody.size() == 1 && currentBody.contains(Literal.TRUE_LITERAL)) { currentBody.clear(); }
             nextBody = new Conjunction(currentBody.size() + 1);
             nextBody.addAll(currentBody);
             nextBody.add(literal);
