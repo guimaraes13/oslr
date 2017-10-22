@@ -39,7 +39,8 @@ public enum PreRevisionLog {
 
     RULE_APPENDED_TO_THEORY("Rule appended to the theory:\t{}"),
 
-    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}.");
+    ERROR_INITIALIZING_REVISION_EXAMPLES("Error initializing revision examples, using {}."),
+    ERROR_COMPILING_DELTA_UPDATE_FUNCTION("Error compiling the delta update function, reason:\t{}");
 
     protected final String message;
 

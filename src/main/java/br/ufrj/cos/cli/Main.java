@@ -28,6 +28,7 @@ import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.theory.Theory;
+import br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager;
 import br.ufrj.cos.logic.*;
 import br.ufrj.cos.logic.parser.knowledge.KnowledgeParser;
 import br.ufrj.cos.logic.parser.knowledge.ParseException;
@@ -69,9 +70,10 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
+        delta();
+        System.exit(0);
 //        run();
         test();
-        System.exit(0);
         long begin = TimeUtils.getNanoTime();
         logger.info("Begin Program!");
         // ---------- Program Begin! ----------
@@ -89,6 +91,14 @@ public class Main {
         long end = TimeUtils.getNanoTime();
         logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
         logger.fatal("End Program!");
+    }
+
+    private static void delta() {
+        HoeffdingBoundTheoryManager manager = new HoeffdingBoundTheoryManager();
+        manager.setDelta(0.5);
+        for (int i = 0; i < 5; i++) {
+            manager.updateDelta();
+        }
     }
 
     public static void test() {

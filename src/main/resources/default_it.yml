@@ -50,6 +50,7 @@ theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvalua
 theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager
    theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
    delta:                  1e-6
+   deltaUpdateExpression:  d
    trainUsingAllExamples:  true
 
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager

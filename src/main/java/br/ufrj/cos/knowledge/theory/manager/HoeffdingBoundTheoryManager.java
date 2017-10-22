@@ -33,8 +33,14 @@ import br.ufrj.cos.util.InitializationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.util.Collection;
+import java.util.function.Function;
 
+import static br.ufrj.cos.util.log.PosRevisionLog.DELTA_VALUE_NOT_UPDATED;
+import static br.ufrj.cos.util.log.PosRevisionLog.DELTA_VALUE_UPDATED;
 import static br.ufrj.cos.util.log.PreRevisionLog.*;
 
 /**
@@ -57,8 +63,28 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     /**
      * The default value of delta.
      */
-    public static final double DEFAULT_DELTA = 0.01;
+    public static final double DEFAULT_DELTA = 1.0e-6;
+    /**
+     * The default delta update expression.
+     */
+    public static final String DEFAULT_DELTA_UPDATE_FUNCTION_EXPRESSION = "d";
+    /**
+     * The java function format.
+     */
+    public static final String JAVA_FUNCTION_FORMAT = "new java.util.function.Function(function(d) %s)";
+    /**
+     * The script engine name.
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    public static final String ENGINE_NAME = "nashorn";
 
+    /**
+     * The delta update expression. This is a mathematical expression that has a variable d as the current
+     * delta value and its result will be set as the new delta value.
+     */
+    public String deltaUpdateExpression = DEFAULT_DELTA_UPDATE_FUNCTION_EXPRESSION;
+
+    protected Function<Double, Double> deltaUpdateFunction;
     protected double delta = DEFAULT_DELTA;
 
     @Override
@@ -69,6 +95,23 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
                     FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_UNBOUNDED_RANGE_METRIC.toString(),
                                                  theoryMetric.getClass().getSimpleName(),
                                                  this.getClass().getSimpleName()));
+        }
+        compileDeltaUpdateFunction();
+    }
+
+    /**
+     * Compiles the delta update function.
+     *
+     * @throws InitializationException if an error occurs during the compilation of the update function.
+     */
+    protected void compileDeltaUpdateFunction() throws InitializationException {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName(ENGINE_NAME);
+        try {
+            final String functionExpression = String.format(JAVA_FUNCTION_FORMAT, deltaUpdateExpression);
+            //noinspection unchecked
+            deltaUpdateFunction = (Function<Double, Double>) engine.eval(functionExpression);
+        } catch (ScriptException | ClassCastException e) {
+            throw new InitializationException(String.format(ERROR_COMPILING_DELTA_UPDATE_FUNCTION.toString(), e), e);
         }
     }
 
@@ -87,7 +130,9 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             RevisionOperatorEvaluator operatorEvaluator = operatorSelector.selectOperator(targets, theoryMetric);
             logger.debug(SELECTED_OPERATOR.toString(), operatorEvaluator);
             if (operatorEvaluator == null) { return false; }
-            return applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
+            final boolean revised = applyRevision(operatorEvaluator, examples, theoryEvaluation, epsilon);
+            if (revised) { updateDelta(); }
+            return revised;
         } else {
             logger.trace(SKIPPING_REVISION_ON_EXAMPLES);
         }
@@ -111,6 +156,19 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     }
 
     /**
+     * Updates the {@link #delta} each time a revision is accepted, given a specified function f: R -> R.
+     */
+    public void updateDelta() {
+        final double oldDelta = getDelta();
+        final Double newDelta = deltaUpdateFunction.apply(oldDelta);
+        if (setDelta(newDelta)) {
+            logger.debug(DELTA_VALUE_UPDATED.toString(), oldDelta, getDelta());
+        } else {
+            logger.debug(DELTA_VALUE_NOT_UPDATED.toString(), getDelta());
+        }
+    }
+
+    /**
      * Gets the delta.
      *
      * @return the delta
@@ -123,8 +181,15 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      * Sets the delta.
      *
      * @param delta the delta
+     * @return return {@code true} if the delta has changed, {@code false} otherwise, because of range constraints.
      */
-    public void setDelta(double delta) {
-        if (delta > 0.0 && delta < 1.0) { this.delta = delta; }
+    @SuppressWarnings("BooleanMethodNameMustStartWithQuestion")
+    public boolean setDelta(double delta) {
+        if (delta > 0.0 && delta < 1.0) {
+            this.delta = delta;
+            return true;
+        }
+        return false;
     }
+
 }

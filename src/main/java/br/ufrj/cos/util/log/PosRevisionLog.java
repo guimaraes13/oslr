@@ -34,7 +34,9 @@ public enum PosRevisionLog {
     REVISED_THEORY_EVALUATION("Revised theory evaluation:\t{}"),
     THEORY_MODIFICATION_ACCEPTED("Theory modification accepted. Improvement of {}, over {}, threshold of {}."),
     THEORY_MODIFICATION_SKIPPED("Theory modification skipped due no significant improvement. Improvement of {}, " +
-                                        "over {}, threshold of {}.");
+                                        "over {}, threshold of {}."),
+    DELTA_VALUE_UPDATED("Delta updated from\t{} to\t{}"),
+    DELTA_VALUE_NOT_UPDATED("Delta value not updated because of range constraints, value:\t{}"),;
 
     protected final String message;
 
