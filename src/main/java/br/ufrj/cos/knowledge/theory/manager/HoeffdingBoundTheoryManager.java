@@ -84,7 +84,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      */
     public String deltaUpdateExpression = DEFAULT_DELTA_UPDATE_FUNCTION_EXPRESSION;
 
-    protected Function<Double, Double> deltaUpdateFunction;
+    protected Function<? super Double, Double> deltaUpdateFunction;
     protected double delta = DEFAULT_DELTA;
 
     @Override
@@ -109,7 +109,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
         try {
             final String functionExpression = String.format(JAVA_FUNCTION_FORMAT, deltaUpdateExpression);
             //noinspection unchecked
-            deltaUpdateFunction = (Function<Double, Double>) engine.eval(functionExpression);
+            deltaUpdateFunction = (Function<? super Double, Double>) engine.eval(functionExpression);
         } catch (ScriptException | ClassCastException e) {
             throw new InitializationException(String.format(ERROR_COMPILING_DELTA_UPDATE_FUNCTION.toString(), e), e);
         }

@@ -236,6 +236,9 @@ public class LogicToProPprConverter extends CommandLineInterface {
             throws IOException, ParseException {
         File positiveFile = new File(dataDirectory, filePrefix + positiveExtension);
         File negativeFile = new File(dataDirectory, filePrefix + negativeExtension);
+        if (!negativeFile.exists()) {
+            return;
+        }
 
         List<Atom> positives = new ArrayList<>();
         FileIOUtils.readAtomKnowledgeFromFile(positiveFile, positives, atomFactory);
