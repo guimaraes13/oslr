@@ -308,6 +308,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
     protected void reviseExamples() {
         final int numberOfIterations = iterationKnowledge.size();
         logger.info(BEGIN_REVISION_ITERATIONS.toString(), numberOfIterations);
+        addIterationKnowledge(0);
         for (int i = 0; i < numberOfIterations; i++) {
             reviseIteration(i);
         }
@@ -325,7 +326,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         logger.debug(REVISING_ITERATION.toString(), index);
         beginStamp = timeStampFactory.getTimeStamp(index, IterationTimeMessage.BEGIN);
         timeMeasure.measure(beginStamp);
-        addIterationKnowledge(index);
+//        addIterationKnowledge(index);
         // measure the time to add knowledge to the learning system
         if (examplesBatchSize == 1) {
             passExamplesToRevise(index);
@@ -412,6 +413,7 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         timeMeasure.measure(timeStampFactory.getTimeStamp(index, IterationTimeMessage.TRAIN_EVALUATION_DONE));
         logger.trace(END_TRAIN_EVALUATION.toString(), index);
         if (index < iterationKnowledge.size() - 1) {
+            addIterationKnowledge(index + 1);
             examples = iterationExamples.get(index + 1);
             testInferredExamples = learningSystem.inferExamples(examples);
             iterationStatistics.addIterationTestEvaluation(learningSystem.evaluate(examples, testInferredExamples));
