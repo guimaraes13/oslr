@@ -54,6 +54,10 @@ public class VariableFeatureGenerator extends FeatureGenerator {
      */
     public static final ZeroHeuristic DEFAULT_SUBSTITUTION_HEURISTIC = new ZeroHeuristic();
     /**
+     * The default value of the flag to delete target constant.
+     */
+    public static final boolean DEFAULT_DELETE_TARGET_CONSTANT = false;
+    /**
      * The heuristic to be applied to the substitution of the variables in order to decide which variables are the
      * best ones.
      */
@@ -61,10 +65,15 @@ public class VariableFeatureGenerator extends FeatureGenerator {
     /**
      * If the target variables of the examples must be always added as a feature variable.
      * <p>
-     * The target variable is the ones that are not instantiated in a example in ProPPR's format.
+     * The target variables are the ones that are not instantiated in an example in ProPPR's format.
      */
     public boolean addTargetVariables = DEFAULT_ADD_TARGET_VARIABLES;
-
+    /**
+     * If the target constants of the examples must be always added as a feature variable.
+     * <p>
+     * The target constants are the ones that are instantiated in an example in ProPPR's format.
+     */
+    public boolean deleteTargetConstant = DEFAULT_DELETE_TARGET_CONSTANT;
     protected UniqueRuleFeatureGenerator uniqueRuleFeatureGenerator = new UniqueRuleFeatureGenerator();
 
     @Override
@@ -88,6 +97,7 @@ public class VariableFeatureGenerator extends FeatureGenerator {
 
         List<Term> featureVariables = getFeatureVariables(head, substitutions);
         if (addTargetVariables) { appendTargetVariables(head, examples, featureVariables); }
+        if (deleteTargetConstant) { removeTargetConstant(head, examples, featureVariables); }
 
         final Features features = new Features(1);
         features.add(new Atom(uniqueRuleFeatureGenerator.createFeatureName(rule), featureVariables));
@@ -131,6 +141,27 @@ public class VariableFeatureGenerator extends FeatureGenerator {
             if (!variableFeatures.contains(head.getTerms().get(index))) {
                 variableFeatures.add(head.getTerms().get(index));
             }
+        }
+    }
+
+    /**
+     * Removes the target constants from the feature variables.
+     *
+     * @param head             the head of the substitution rule
+     * @param examples         the examples
+     * @param variableFeatures the feature variables
+     */
+    protected static void removeTargetConstant(Atom head, Collection<? extends Example> examples,
+                                               List<Term> variableFeatures) {
+        List<Integer> targetIndexes = new ArrayList<>();
+        Iterator<? extends Example> iterator = examples.iterator();
+        Example example = iterator.next();
+        final List<Term> goalTerms = example.getGoalQuery().getTerms();
+        for (int i = 0; i < goalTerms.size(); i++) {
+            if (goalTerms.get(i).isConstant()) { targetIndexes.add(i); }
+        }
+        for (Integer index : targetIndexes) {
+            variableFeatures.remove(head.getTerms().get(index));
         }
     }
 

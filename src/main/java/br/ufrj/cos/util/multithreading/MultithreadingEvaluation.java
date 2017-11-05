@@ -182,7 +182,7 @@ public class MultithreadingEvaluation<V, E> {
             evaluator = new AsyncTheoryEvaluator<>(examples,
                                                    learningSystem.getTheoryEvaluator(),
                                                    theoryMetric, evaluationTimeout);
-            evaluator = transformer.transform(evaluator, candidate);
+            evaluator = transformer.transform(evaluator, candidate, examples);
             futures.add(MultithreadingEvaluation.submitCandidate(evaluator, evaluationPool));
         }
         futures.remove(null);

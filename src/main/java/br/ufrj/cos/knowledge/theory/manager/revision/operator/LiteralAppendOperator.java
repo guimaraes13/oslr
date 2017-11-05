@@ -47,6 +47,16 @@ import java.util.Iterator;
  */
 public abstract class LiteralAppendOperator extends RevisionOperator {
 
+    /**
+     * The default value of the {@link #generateFeatureBeforeEvaluate}.
+     */
+    public static final boolean DEFAULT_FEATURE_BEFORE_EVALUATE = false;
+    /**
+     * If {@code true}, generates the feature before evaluating the rule to decide which one is the best.
+     */
+    @SuppressWarnings("CanBeFinal")
+    public boolean generateFeatureBeforeEvaluate = DEFAULT_FEATURE_BEFORE_EVALUATE;
+
     @Override
     public Theory performOperation(Collection<? extends Example> targets) throws TheoryRevisionException {
         try {

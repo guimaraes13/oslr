@@ -82,6 +82,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
      * The delta update expression. This is a mathematical expression that has a variable d as the current
      * delta value and its result will be set as the new delta value.
      */
+    @SuppressWarnings("CanBeFinal")
     public String deltaUpdateExpression = DEFAULT_DELTA_UPDATE_FUNCTION_EXPRESSION;
 
     protected Function<? super Double, Double> deltaUpdateFunction;

@@ -681,7 +681,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         InMemoryGrounder<P> grounder = buildGrounder(wamProgram);
         ParamVector<String, ?> parameters = trainParameters(new InferenceExampleIterable(examples), savedParamVector,
                                                             grounder);
-        InMemoryQueryAnswerer<P> answerer = buildAnswerer(parameters, program);
+        InMemoryQueryAnswerer<P> answerer = buildAnswerer(parameters, wamProgram);
         return inferExamples(new QueryIterable(examples), answerer);
     }
 

@@ -21,8 +21,11 @@
 
 package br.ufrj.cos.util.multithreading;
 
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.logic.EquivalentHornClause;
+
+import java.util.Collection;
 
 /**
  * Transforms a {@link EquivalentHornClause} into a {@link AsyncEvaluatorTransformer}.
@@ -36,7 +39,8 @@ public class EquivalentHornClauseAsyncTransformer implements
 
     @Override
     public AsyncTheoryEvaluator<EquivalentHornClause> transform(AsyncTheoryEvaluator<EquivalentHornClause> evaluator,
-                                                                EquivalentHornClause equivalentHornClause) {
+                                                                EquivalentHornClause equivalentHornClause,
+                                                                Collection<? extends Example> examples) {
         evaluator.setHornClause(equivalentHornClause.getHornClause());
         evaluator.setElement(equivalentHornClause);
 

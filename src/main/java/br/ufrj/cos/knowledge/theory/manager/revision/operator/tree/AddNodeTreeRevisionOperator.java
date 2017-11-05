@@ -247,7 +247,9 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
             hornClause = refineClause(hornClause, examples);
         }
         revisedClause = hornClause.getHornClause();
-        revisedClause = featureGenerator.createFeatureForRule(revisedClause, examples);
+        if (!appendOperator.generateFeatureBeforeEvaluate) {
+            revisedClause = featureGenerator.createFeatureForRule(revisedClause, examples);
+        }
         logChange(node, removeOld);
 
         Theory theory = learningSystem.getTheory().copy();

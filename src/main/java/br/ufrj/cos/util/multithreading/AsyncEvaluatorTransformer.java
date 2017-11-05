@@ -21,7 +21,10 @@
 
 package br.ufrj.cos.util.multithreading;
 
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
+
+import java.util.Collection;
 
 /**
  * Interface to encapsulate instances of type {@link V} into AsyncTheoryEvaluators.
@@ -37,8 +40,10 @@ public interface AsyncEvaluatorTransformer<V, E> {
      *
      * @param evaluator the pre created evaluator
      * @param v         the element
+     * @param examples  the examples to evaluate at
      * @return the {@link AsyncTheoryEvaluator}
      */
-    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator<E> evaluator, V v);
+    public AsyncTheoryEvaluator<E> transform(AsyncTheoryEvaluator<E> evaluator, V v,
+                                             Collection<? extends Example> examples);
 
 }

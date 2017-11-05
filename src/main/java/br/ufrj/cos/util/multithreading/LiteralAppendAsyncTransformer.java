@@ -21,10 +21,14 @@
 
 package br.ufrj.cos.util.multithreading;
 
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
+import br.ufrj.cos.knowledge.theory.manager.feature.FeatureGenerator;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
+
+import java.util.Collection;
 
 /**
  * Encapsulates extended HornClauses, from a initial HornClause and a new literal, into AsyncTheoryEvaluators.
@@ -33,14 +37,34 @@ import br.ufrj.cos.logic.Literal;
  *
  * @author Victor Guimarães
  */
-public class LiteralAppendAsyncTransformer implements AsyncEvaluatorTransformer<Literal, Object> {
+public class LiteralAppendAsyncTransformer<K> implements AsyncEvaluatorTransformer<Literal, K> {
 
     protected HornClause initialClause;
+    protected FeatureGenerator featureGenerator;
+
+    /**
+     * Default constructor without parameters.
+     */
+    public LiteralAppendAsyncTransformer() {
+    }
+
+    /**
+     * Constructor with the feature generator.
+     *
+     * @param featureGenerator the feature generator.
+     */
+    public LiteralAppendAsyncTransformer(FeatureGenerator featureGenerator) {
+        this.featureGenerator = featureGenerator;
+    }
 
     @Override
-    public AsyncTheoryEvaluator<Object> transform(AsyncTheoryEvaluator<Object> evaluator, Literal literal) {
+    public AsyncTheoryEvaluator<K> transform(AsyncTheoryEvaluator<K> evaluator, Literal literal,
+                                             Collection<? extends Example> examples) {
         HornClause clause = new HornClause(initialClause.getHead(), new Conjunction(initialClause.getBody()));
         clause.getBody().add(literal);
+        if (featureGenerator != null && examples != null) {
+            clause = featureGenerator.createFeatureForRule(clause, examples);
+        }
         evaluator.setHornClause(clause);
         return evaluator;
     }
@@ -61,5 +85,23 @@ public class LiteralAppendAsyncTransformer implements AsyncEvaluatorTransformer<
      */
     public void setInitialClause(HornClause initialClause) {
         this.initialClause = initialClause;
+    }
+
+    /**
+     * Gets the {@link FeatureGenerator}.
+     *
+     * @return the {@link FeatureGenerator}
+     */
+    public FeatureGenerator getFeatureGenerator() {
+        return featureGenerator;
+    }
+
+    /**
+     * Sets the {@link FeatureGenerator}.
+     *
+     * @param featureGenerator the {@link FeatureGenerator}
+     */
+    public void setFeatureGenerator(FeatureGenerator featureGenerator) {
+        this.featureGenerator = featureGenerator;
     }
 }

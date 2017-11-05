@@ -96,7 +96,7 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
     public int relevantsDepth = 0;
 
     protected MultithreadingEvaluation<Literal, Object> multithreading;
-    protected LiteralAppendAsyncTransformer literalTransformer;
+    protected LiteralAppendAsyncTransformer<Object> literalTransformer;
 
     @Override
     public void initialize() throws InitializationException {
@@ -105,7 +105,12 @@ public class RelevantLiteralAppendOperator extends LiteralAppendOperator {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, TheoryMetric.class.getSimpleName()));
         }
-        literalTransformer = new LiteralAppendAsyncTransformer();
+        if (generateFeatureBeforeEvaluate) {
+            literalTransformer = new LiteralAppendAsyncTransformer(featureGenerator);
+        } else {
+            literalTransformer = new LiteralAppendAsyncTransformer();
+        }
+
         multithreading = new MultithreadingEvaluation<>(learningSystem, theoryMetric, evaluationTimeout,
                                                         literalTransformer);
         multithreading.numberOfThreads = numberOfThreads;
