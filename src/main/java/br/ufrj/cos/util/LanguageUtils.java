@@ -672,4 +672,18 @@ public final class LanguageUtils {
         }
     }
 
+    /**
+     * Splits the objects by some attribute
+     *
+     * @param collection the objects
+     * @param appendMap  the map to append the objects
+     * @param function   function to get the key from the object
+     */
+    public static <K, V> void splitAtomsByPredicateKeepingOrder(Collection<? extends V> collection,
+                                                                Map<K, Set<V>> appendMap, Function<V, K> function) {
+        for (V v : collection) {
+            appendMap.computeIfAbsent(function.apply(v), a -> new LinkedHashSet<>()).add(v);
+        }
+    }
+
 }

@@ -310,16 +310,24 @@ public class LogicToProPprConverter extends CommandLineInterface {
         negatives.stream().map(e -> new AtomExample(e, false)).forEach(atomExamples::add);
         Examples.appendAtomExamplesIntoProPpr(atomExamples, examplesByPredicate);
 
-        final List<ProPprExample> examples;
+        return new LinkedHashSet<>(filterOnlyNegatives(examplesByPredicate));
+    }
 
+    /**
+     * If set, filter the examples that has only the negative part.
+     *
+     * @param examplesByPredicate the examples by predicate
+     * @return the filtered examples
+     */
+    protected List<ProPprExample> filterOnlyNegatives(Map<Predicate, Set<ProPprExample>> examplesByPredicate) {
+        final List<ProPprExample> examples;
         if (filterOnlyNegativeExamples) {
             examples = examplesByPredicate.values().stream().flatMap(Collection::stream)
                     .filter(ProPprExample::isPositive).collect(Collectors.toList());
         } else {
             examples = examplesByPredicate.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
         }
-
-        return new LinkedHashSet<>(examples);
+        return examples;
     }
 
     /**

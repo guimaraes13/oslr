@@ -254,12 +254,29 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
 
         Theory theory = learningSystem.getTheory().copy();
         theory.add(revisedClause);
-        if (removeOld) { theory.remove(node.getElement()); }
+        if (removeOld) { removeOldRuleFromTheory(node, theory); }
 
         List<HornClause> clauses = new ArrayList<>(theory);
         clauses.sort(Comparator.comparing(LanguageUtils::formatHornClause));
 
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
+    }
+
+    /**
+     * Removes the rule from the theory
+     *
+     * @param node   the node rule
+     * @param theory the theory
+     */
+    protected static void removeOldRuleFromTheory(Node<HornClause> node, Theory theory) {
+        Iterator<HornClause> iterator = theory.iterator();
+        while (iterator.hasNext()) {
+            final HornClause rule = iterator.next();
+            if (node.getElement().equals(rule)) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 
     /**
