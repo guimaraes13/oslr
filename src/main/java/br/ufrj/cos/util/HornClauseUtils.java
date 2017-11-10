@@ -161,66 +161,6 @@ public final class HornClauseUtils {
     }
 
     /**
-     * Gets, from a possibly safe {@link HornClause}, another {@link HornClause} with the minimal set of
-     * {@link Literal} in the body that makes the clause safe. As this set may not be unique, returns all the sets
-     * tied to be the minimal.
-     *
-     * @param bottomClause the bottom clause
-     * @return a {@link Set} of {@link HornClause} where the clause has the minimal necessary {@link Literal} to be
-     * safe.
-     * @throws TheoryRevisionException in an error occurs during the revision
-     */
-    public static Set<EquivalentHornClause> buildMinimalSafeEquivalentClauses(HornClause bottomClause)
-            throws TheoryRevisionException {
-        if (!HornClauseUtils.mayRuleBeSafe(bottomClause)) {
-            throw new TheoryRevisionException(ExceptionMessages.GENERATED_RULE_NOT_SAVE.toString());
-        }
-
-        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
-        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
-        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
-        queue.add(new EquivalentHornClause(bottomClause.getHead()));
-        Set<EquivalentHornClause> safeClauses = null;
-        for (int i = 0; i < candidateLiterals.size(); i++) {
-            appendAllCandidatesToQueue(queue, candidateLiterals);
-            safeClauses = queue.stream().filter(e -> isRuleSafe(e.getHead(), e.getClauseBody()))
-                    .collect(Collectors.toSet());
-            if (!safeClauses.isEmpty()) {
-                return safeClauses;
-            }
-        }
-
-        return safeClauses;
-    }
-
-    /**
-     * Creates a list of {@link EquivalentHornClause} containing a {@link EquivalentHornClause} for each substitution
-     * of each candidate, skipping equivalent clauses.
-     * <p>
-     * It skips equivalents clauses, by checking if the free variables at the candidate atom can be renamed
-     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
-     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
-     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
-     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
-     * the selected rule.
-     *
-     * @param queue      the {@link Queue} with the initial clauses
-     * @param candidates the {@link List} of candidates
-     */
-    public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates) {
-        Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom = new HashMap<>();
-        Map<EquivalentClauseAtom, EquivalentHornClause> skipClause = new HashMap<>();
-
-        int size = queue.size();    // the initial size of the queue
-
-        EquivalentHornClause equivalentHornClause;
-        for (int i = 0; i < size; i++) {
-            equivalentHornClause = queue.remove();
-            queue.addAll(equivalentHornClause.buildInitialClauseCandidates(candidates, skipAtom, skipClause));
-        }
-    }
-
-    /**
      * Checks if a {@link HornClause} can become safe by removing {@link Literal} from its body. A {@link HornClause}
      * is safe when all the variables of the clause appear, at least once, in a non-negated literal of the body.
      * Including the variables in the head.
@@ -254,22 +194,6 @@ public final class HornClauseUtils {
         return hornClause.getBody().stream().filter(
                 literal -> !literal.isNegated() && !Collections.disjoint(headVariables, literal.getTerms()))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Gets all the candidate clauses with one literal at the body.
-     *
-     * @param bottomClause  the bottom clause
-     * @param maxClauseSize the max clause size
-     * @return a {@link Set} of {@link HornClause}s.
-     */
-    public static Set<EquivalentHornClause> buildMinimalEquivalentClauses(HornClause bottomClause, int maxClauseSize) {
-        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
-        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
-        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
-        queue.add(new EquivalentHornClause(bottomClause.getHead()));
-        for (int i = 0; i < maxClauseSize; i++) { appendAllCandidatesToQueue(queue, candidateLiterals); }
-        return new HashSet<>(queue);
     }
 
     /**
@@ -439,6 +363,82 @@ public final class HornClauseUtils {
     }
 
     /**
+     * Gets, from a possibly safe {@link HornClause}, another {@link HornClause} with the minimal set of
+     * {@link Literal} in the body that makes the clause safe. As this set may not be unique, returns all the sets
+     * tied to be the minimal.
+     *
+     * @param bottomClause the bottom clause
+     * @return a {@link Set} of {@link HornClause} where the clause has the minimal necessary {@link Literal} to be
+     * safe.
+     * @throws TheoryRevisionException in an error occurs during the revision
+     */
+    public static Set<EquivalentHornClause> buildMinimalSafeEquivalentClauses(HornClause bottomClause)
+            throws TheoryRevisionException {
+        if (!HornClauseUtils.mayRuleBeSafe(bottomClause)) {
+            throw new TheoryRevisionException(ExceptionMessages.GENERATED_RULE_NOT_SAVE.toString());
+        }
+
+        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
+        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
+        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
+        queue.add(new EquivalentHornClause(bottomClause.getHead()));
+        Set<EquivalentHornClause> safeClauses = null;
+        for (int i = 0; i < candidateLiterals.size(); i++) {
+            appendAllCandidatesToQueue(queue, candidateLiterals);
+            safeClauses = queue.stream().filter(e -> isRuleSafe(e.getHead(), e.getClauseBody()))
+                    .collect(Collectors.toSet());
+            if (!safeClauses.isEmpty()) {
+                return safeClauses;
+            }
+        }
+
+        return safeClauses;
+    }
+
+    /**
+     * Creates a list of {@link EquivalentHornClause} containing a {@link EquivalentHornClause} for each substitution
+     * of each candidate, skipping equivalent clauses.
+     * <p>
+     * It skips equivalents clauses, by checking if the free variables at the candidate atom can be renamed
+     * to match the free variables of a previously selected one. If a equivalent atom {@code A} is detected, the
+     * substitution map that makes it equals to another a previous atom {@code B} is stored along with {@code B}. In
+     * this case, when a rule from a set of candidates is selected for further refinements, it stores a substitution map
+     * that, if applied to the candidates, makes the relevants atoms of discarded equivalent atoms, also relevant to
+     * the selected rule.
+     *
+     * @param queue      the {@link Queue} with the initial clauses
+     * @param candidates the {@link List} of candidates
+     */
+    public static void appendAllCandidatesToQueue(Queue<EquivalentHornClause> queue, List<Literal> candidates) {
+        Map<EquivalentClauseAtom, EquivalentClauseAtom> skipAtom = new HashMap<>();
+        Map<EquivalentClauseAtom, EquivalentHornClause> skipClause = new HashMap<>();
+
+        int size = queue.size();    // the initial size of the queue
+
+        EquivalentHornClause equivalentHornClause;
+        for (int i = 0; i < size; i++) {
+            equivalentHornClause = queue.remove();
+            queue.addAll(equivalentHornClause.buildInitialClauseCandidates(candidates, skipAtom, skipClause));
+        }
+    }
+
+    /**
+     * Gets all the candidate clauses with one literal at the body.
+     *
+     * @param bottomClause  the bottom clause
+     * @param maxClauseSize the max clause size
+     * @return a {@link Set} of {@link HornClause}s.
+     */
+    public static Set<EquivalentHornClause> buildMinimalEquivalentClauses(HornClause bottomClause, int maxClauseSize) {
+        List<Literal> candidateLiterals = new ArrayList<>(getNonNegativeLiteralsWithHeadVariable(bottomClause));
+        candidateLiterals.sort(Comparator.comparing(l -> l.getPredicate().toString()));
+        Queue<EquivalentHornClause> queue = new ArrayDeque<>();
+        queue.add(new EquivalentHornClause(bottomClause.getHead()));
+        for (int i = 0; i < maxClauseSize; i++) { appendAllCandidatesToQueue(queue, candidateLiterals); }
+        return new HashSet<>(queue);
+    }
+
+    /**
      * Creates the new candidate rules, by adding on possible literal to the current rule's body. The current rule
      * is represented by the head and body parameters.
      * <p>
@@ -545,9 +545,12 @@ public final class HornClauseUtils {
      * @param candidates     the {@link Iterable} of candidates
      * @param answerLiterals the set of candidate literals as the answer of the method
      * @param skipCandidates the atoms to skip
+     * @param connected      if {@code true} only literals connected to the rules will be returned.
      */
+    @SuppressWarnings("MethodWithTooManyParameters")
     public static void buildAllLiteralFromClause(HornClause initialClause, Iterable<Literal> candidates,
-                                                 Set<Literal> answerLiterals, Set<EquivalentAtom> skipCandidates) {
+                                                 Set<Literal> answerLiterals, Set<EquivalentAtom> skipCandidates,
+                                                 boolean connected) {
         Set<Term> fixedTerms;           // the terms already in the rule, to be ignored in the equivalent evaluation
         EquivalentAtom currentAtom;     // the current atom
         Atom head = initialClause.getHead();
@@ -555,7 +558,7 @@ public final class HornClauseUtils {
         fixedTerms.addAll(head.getTerms());
 
         for (Literal candidate : candidates) {
-            if (Collections.disjoint(fixedTerms, candidate.getTerms())) { continue; }
+            if (connected && Collections.disjoint(fixedTerms, candidate.getTerms())) { continue; }
             currentAtom = new EquivalentAtom(candidate, fixedTerms);
             if (!skipCandidates.contains(currentAtom)) {
                 skipCandidates.add(currentAtom);

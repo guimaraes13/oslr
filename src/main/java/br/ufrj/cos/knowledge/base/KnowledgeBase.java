@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static br.ufrj.cos.util.log.SystemLog.ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH;
 
@@ -85,6 +86,34 @@ public class KnowledgeBase extends Knowledge<Atom> {
         } catch (InstantiationException | IllegalAccessException e) {
             logger.error(ERROR_UPDATING_KNOWLEDGE_BASE_GRAPH.toString(), e);
         }
+    }
+
+    /**
+     * Finds the shortest path, of at most maximumDistance long, between two terms in the knowledge base, if such path
+     * exists.
+     *
+     * @param source          the source term
+     * @param destination     the destination term
+     * @param maximumDistance the maximum distance, set to negative for no maximum distance.
+     * @return the shortest path between the terms
+     */
+    public Collection<Term[]> shortestPath(Term source, Term destination, int maximumDistance) {
+        if (!getTerms().contains(source) || !getTerms().contains(destination)) { return null; }
+
+        if (source.equals(destination) || termNeighbours.get(source).contains(destination)) {
+            return Collections.singleton(new Term[]{source, destination});
+        }
+
+        return findShortestPath(source, destination, maximumDistance);
+    }
+
+    /**
+     * Gets the {@link Set} of {@link Term}s in the base
+     *
+     * @return the {@link Set} of {@link Term}s in the base
+     */
+    public Set<Term> getTerms() {
+        return termAtomMap.keySet();
     }
 
     /**
@@ -147,6 +176,113 @@ public class KnowledgeBase extends Knowledge<Atom> {
     }
 
     /**
+     * Gets the {@link Set} of {@link Atom}s which have the given {@link Term}
+     *
+     * @param term the {@link Term}
+     * @return the {@link Set} of {@link Atom}s
+     */
+    public Set<Atom> getAtomsWithTerm(Term term) {
+        return termAtomMap.getOrDefault(term, Collections.emptySet());
+    }
+
+    /**
+     * Gets the neighbours of a {@link Term}. A {@link Term} is neighbour of another if both appears together in an
+     * {@link Atom}
+     *
+     * @param term the {@link Term}
+     * @return the {@link Set} of neighbours
+     */
+    public Set<Term> getTermNeighbours(Term term) {
+        return termNeighbours.getOrDefault(term, Collections.emptySet());
+    }
+
+    /**
+     * Finds the shortest path, of at most maximumDistance long, between two terms in the knowledge base, if such path
+     * exists.
+     *
+     * @param source          the source term
+     * @param destination     the destination term
+     * @param maximumDistance the maximum distance, set to negative for no maximum distance.
+     * @return the shortest path between the terms
+     */
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+    protected Collection<Term[]> findShortestPath(Term source, Term destination, int maximumDistance) {
+        Map<Term, Integer> distanceForVertex = new HashMap<>();
+        Map<Term, Set<Term>> predecessorForVertex = new HashMap<>();
+
+        distanceForVertex.put(source, 0);
+
+        Queue<Term> queue = new ArrayDeque<>();
+        queue.add(source);
+        Term current;
+        Integer distance;
+        boolean found = false;
+        int previousDistance = 0;
+        while (!queue.isEmpty()) {
+            current = queue.poll();
+            distance = distanceForVertex.get(current);
+            if (found && distance > previousDistance) {
+                break;
+            }
+            previousDistance = distance;
+            if (maximumDistance > 0 && distance > maximumDistance - 1) {
+                break;
+            }
+
+            for (Term neighbor : termNeighbours.get(current)) {
+                predecessorForVertex.computeIfAbsent(neighbor, k -> new HashSet<>()).add(current);
+                if (!distanceForVertex.containsKey(neighbor)) {
+                    distanceForVertex.put(neighbor, distance + 1);
+                    queue.add(neighbor);
+                }
+
+                if (neighbor.equals(destination)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found) { return null; }
+        return buildPaths(source, destination, predecessorForVertex, distanceForVertex.get(destination));
+    }
+
+    /**
+     * Builds the paths based on the predecessors then filters it by the ones that starts on source and ends on
+     * destination.
+     *
+     * @param source               the source of the path
+     * @param destination          the destination of the path
+     * @param predecessorForVertex the predecessors of the terms
+     * @param pathLength           the length of the path
+     * @return the paths that starts on source and ends on destination
+     */
+    protected static Collection<Term[]> buildPaths(Term source, Term destination,
+                                                   Map<Term, Set<Term>> predecessorForVertex, int pathLength) {
+        Queue<Term[]> queue = new ArrayDeque<>();
+        queue.add(new Term[]{destination});
+        Term[] currentArray;
+        Term[] auxiliary;
+        int size;
+
+        for (int i = pathLength - 1; i > -1; i--) {
+            size = queue.size();
+            for (int j = 0; j < size; j++) {
+                currentArray = queue.poll();
+                for (Term predecessor : predecessorForVertex.get(currentArray[0])) {
+                    auxiliary = new Term[currentArray.length + 1];
+                    System.arraycopy(currentArray, 0, auxiliary, 1, currentArray.length);
+                    auxiliary[0] = predecessor;
+                    queue.add(auxiliary);
+                }
+            }
+        }
+
+        return queue.stream().filter(a -> a[0].equals(source) && a[a.length - 1].equals(destination))
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * Clears and rebuilds all the cache from scratch.
      */
     public void rebuildCache() {
@@ -187,36 +323,6 @@ public class KnowledgeBase extends Knowledge<Atom> {
         for (Term neighbour : atom.getTerms()) {
             MapUtils.assertExistsSet(termNeighbours, MAP_SET_CLASS, term).add(neighbour);
         }
-    }
-
-    /**
-     * Gets the {@link Set} of {@link Term}s in the base
-     *
-     * @return the {@link Set} of {@link Term}s in the base
-     */
-    public Set<Term> getTerms() {
-        return termAtomMap.keySet();
-    }
-
-    /**
-     * Gets the {@link Set} of {@link Atom}s which have the given {@link Term}
-     *
-     * @param term the {@link Term}
-     * @return the {@link Set} of {@link Atom}s
-     */
-    public Set<Atom> getAtomsWithTerm(Term term) {
-        return termAtomMap.getOrDefault(term, Collections.emptySet());
-    }
-
-    /**
-     * Gets the neighbours of a {@link Term}. A {@link Term} is neighbour of another if both appears together in an
-     * {@link Atom}
-     *
-     * @param term the {@link Term}
-     * @return the {@link Set} of neighbours
-     */
-    public Set<Term> getTermNeighbours(Term term) {
-        return termNeighbours.getOrDefault(term, Collections.emptySet());
     }
 
     @Override
