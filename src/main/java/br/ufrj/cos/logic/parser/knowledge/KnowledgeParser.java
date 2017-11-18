@@ -50,10 +50,22 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
     public static final Logger logger = LogManager.getLogger();
 
     public AtomFactory factory = new AtomFactory();
+    protected boolean hasNext = true;
     private static int[] jj_la1_0;
 
     static {
         jj_la1_init_0();
+    }
+
+    @Override
+    public Clause next() {
+        Clause clause = null;
+        try {
+            clause = readLine();
+        } catch (ParseException e) {
+            logger.error(ERROR_PARSING_LINE, e);
+        }
+        return clause;
     }
 
     private final int[] jj_la1 = new int[17];
@@ -71,7 +83,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
      * Next token.
      */
     public Token jj_nt;
-    protected boolean hasNext = true;
+    protected Map variableMap = new HashMap();
     SimpleCharStream jj_input_stream;
     private int jj_ntk;
     private int jj_gen;
@@ -134,20 +146,8 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
     }
 
     @Override
-    public Clause next() {
-        Clause clause = null;
-        try {
-            clause = readLine();
-        } catch (ParseException e) {
-            logger.error(ERROR_PARSING_LINE, e);
-        }
-        return clause;
-    }
-
-    @Override
     public Iterator<Clause> iterator() {
-        return this;
-    }
+        return this; }
 
     public final List parseKnowledge() throws ParseException {
         Clause clause;
@@ -228,8 +228,8 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
 
         // boolean featured = false;
         List features = null;
-        Map variableMap;
-        variableMap = new HashMap();
+//	Map variableMap;
+
         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
             case DECIMAL: {
                 weight = readDecimal();

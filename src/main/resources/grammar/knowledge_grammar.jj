@@ -53,6 +53,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause> {
 
     public AtomFactory factory = new AtomFactory();
     protected boolean hasNext = true;
+    protected Map variableMap = new HashMap();
 
     @Override
     public boolean hasNext() { return hasNext; }
@@ -159,10 +160,10 @@ protected Clause readKnowledgeLine() :
 
 	// boolean featured = false;
 	List features = null;
-	Map variableMap;
+//	Map variableMap;
 }
 {
-	{variableMap = new HashMap();}
+//	{variableMap = new HashMap();}
 	// gets the first atom, weighted or not
 	// Do not use readFeature() because, if the line is a clause, the weight belongs to the clause, not to the atom
 	[weight = readDecimal() <WEIGHT_SEPARATOR> {weighted = true;}]

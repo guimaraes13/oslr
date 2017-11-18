@@ -28,7 +28,6 @@ import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
-import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.parser.example.ExampleParser;
@@ -43,7 +42,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -542,6 +540,8 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         try {
             super.parseOptions(commandLine);
             LearningFromIterationsCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
+            cli.theoryFilePaths = getFilesFromOption(commandLine, CommandLineOptions.THEORY.getOptionName(),
+                                                     cli.theoryFilePaths);
             cli.dataDirectoryPath = commandLine.getOptionValue(DATA_DIRECTORY.getOptionName(), cli.dataDirectoryPath);
             cli.iterationPrefix = commandLine.getOptionValue(ITERATION_PREFIX.getOptionName(), cli.iterationPrefix);
 
@@ -592,11 +592,11 @@ public class LearningFromIterationsCLI extends LearningFromFilesCLI {
         logger.warn(ITERATIONS_SAVING_FILES_TIME.toString(), formatNanoDifference(iterationInferenceTime));
     }
 
-    @Override
-    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException, FileNotFoundException {
-        theory = new Theory(new HashSet<>());
-    }
+//    @Override
+//    protected void buildTheory() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+//            InstantiationException, FileNotFoundException {
+//        theory = new Theory(new HashSet<>());
+//    }
 
     /**
      * Loads the knowledge from each iteration, skipping the target relation.

@@ -29,7 +29,6 @@ import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator;
 import br.ufrj.cos.knowledge.theory.manager.revision.TheoryRevisionException;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.LiteralAppendOperator;
-import br.ufrj.cos.logic.Atom;
 import br.ufrj.cos.logic.Conjunction;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Literal;
@@ -124,6 +123,23 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         return redundantLiterals;
     }
 
+    /**
+     * Removes the rule from the theory
+     *
+     * @param node   the node rule
+     * @param theory the theory
+     */
+    protected static void removeOldRuleFromTheory(Node<HornClause> node, Theory theory) {
+        Iterator<HornClause> iterator = theory.iterator();
+        while (iterator.hasNext()) {
+            final HornClause rule = iterator.next();
+            if (node.getElement().equals(rule)) {
+                iterator.remove();
+                break;
+            }
+        }
+    }
+
     @Override
     public void initialize() throws InitializationException {
         super.initialize();
@@ -171,29 +187,7 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         } else {
             initialBody = revisionLeaf.getElement().getBody();
         }
-        addNodesToTree(revisionLeaf, initialBody);
-    }
-
-    /**
-     * Adds the nodes from the modified clause to the tree.
-     *
-     * @param revisionLeaf the revised leaf
-     * @param initialBody  the initial body
-     */
-    protected void addNodesToTree(Node<HornClause> revisionLeaf, Conjunction initialBody) {
-        Atom head = revisionLeaf.getElement().getHead();
-        Conjunction currentBody = initialBody;
-        Conjunction nextBody;
-        Node<HornClause> node = revisionLeaf;
-        for (Literal literal : revisedClause.getBody()) {
-            if (currentBody.contains(literal)) { continue; }
-            if (currentBody.size() == 1 && currentBody.contains(Literal.TRUE_LITERAL)) { currentBody.clear(); }
-            nextBody = new Conjunction(currentBody.size() + 1);
-            nextBody.addAll(currentBody);
-            nextBody.add(literal);
-            node = TreeTheory.addNodeToTree(node, new HornClause(head, nextBody));
-            currentBody = nextBody;
-        }
+        TreeTheory.addNodesToTree(revisedClause, revisionLeaf, initialBody);
     }
 
     /**
@@ -260,23 +254,6 @@ public class AddNodeTreeRevisionOperator extends TreeRevisionOperator {
         clauses.sort(Comparator.comparing(LanguageUtils::formatHornClause));
 
         return new Theory(clauses, learningSystem.getTheory().getAcceptPredicate());
-    }
-
-    /**
-     * Removes the rule from the theory
-     *
-     * @param node   the node rule
-     * @param theory the theory
-     */
-    protected static void removeOldRuleFromTheory(Node<HornClause> node, Theory theory) {
-        Iterator<HornClause> iterator = theory.iterator();
-        while (iterator.hasNext()) {
-            final HornClause rule = iterator.next();
-            if (node.getElement().equals(rule)) {
-                iterator.remove();
-                break;
-            }
-        }
     }
 
     /**

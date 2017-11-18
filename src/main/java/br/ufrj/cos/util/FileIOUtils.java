@@ -146,7 +146,7 @@ public final class FileIOUtils {
      * @throws FileNotFoundException if a file does not exists
      */
     public static File[] readPathsToFiles(String[] paths, String inputName) throws FileNotFoundException {
-        if (paths == null) { return FILES; }
+        if (paths == null || paths.length == 0) { return FILES; }
         File[] files = new File[paths.length];
         File file;
         for (int i = 0; i < paths.length; i++) {

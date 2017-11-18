@@ -526,9 +526,8 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      */
     protected void buildTheory() throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, InstantiationException, FileNotFoundException {
-        List<Clause> clauses = FileIOUtils.readInputKnowledge(FileIOUtils.readPathsToFiles(theoryFilePaths,
-                                                                                           CommandLineOptions.THEORY
-                                                                                                   .getOptionName()));
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(
+                FileIOUtils.readPathsToFiles(theoryFilePaths, CommandLineOptions.THEORY.getOptionName()));
 
         ClausePredicate predicate = null;
         if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {

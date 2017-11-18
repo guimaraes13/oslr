@@ -415,6 +415,24 @@ public final class LanguageUtils {
     }
 
     /**
+     * Checks if two atoms have the same terms, considering that two terms are the same if they have the same
+     * name. It is weaker that the equals method from the {@link Variable}.
+     *
+     * @param a1 the first atom
+     * @param a2 the second atom
+     * @return {@code true} if the atoms have the same variables, {@code false} otherwise.
+     */
+    public static boolean doesAtomsHaveTheSameVariables(Atom a1, Atom a2) {
+        if (!a1.getPredicate().equals(a2.getPredicate())) { return false; }
+        for (int i = 0; i < a1.getArity(); i++) {
+            if (!a1.getTerms().get(i).getName().equals(a2.getTerms().get(i).getName())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
      * unification is not possibly, returns null.
      *
@@ -683,6 +701,20 @@ public final class LanguageUtils {
                                                                 Map<K, Set<V>> appendMap, Function<V, K> function) {
         for (V v : collection) {
             appendMap.computeIfAbsent(function.apply(v), a -> new LinkedHashSet<>()).add(v);
+        }
+    }
+
+    /**
+     * Splits the objects by some attribute
+     *
+     * @param collection the objects
+     * @param appendMap  the map to append the objects
+     * @param function   function to get the key from the object
+     */
+    public static <K, V> void splitClausesByPredicateToList(Collection<? extends V> collection,
+                                                            Map<K, List<V>> appendMap, Function<V, K> function) {
+        for (V v : collection) {
+            appendMap.computeIfAbsent(function.apply(v), a -> new ArrayList<>()).add(v);
         }
     }
 

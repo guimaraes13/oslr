@@ -143,7 +143,7 @@ public class TreeExampleManager extends IncomingExampleManager {
             throw new InitializationException(
                     ExceptionMessages.errorFieldsSet(this, TreeTheory.class.getSimpleName()));
         }
-        treeTheory.initialize();
+        treeTheory.initialize(learningSystem.getTheory());
     }
 
     @Override
