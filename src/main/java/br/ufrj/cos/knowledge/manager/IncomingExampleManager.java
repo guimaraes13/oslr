@@ -33,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -107,6 +108,13 @@ public abstract class IncomingExampleManager implements Initializable {
      * @param examples the arrived {@link Example}s
      */
     public abstract void incomingExamples(Iterable<? extends Example> examples);
+
+    /**
+     * Gets the remaining examples that were not used on the revision.
+     *
+     * @return the remaining examples not used on the revision.
+     */
+    public abstract Collection<? extends Example> getRemainingExamples();
 
     /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.

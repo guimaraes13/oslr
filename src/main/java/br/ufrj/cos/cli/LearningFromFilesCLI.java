@@ -117,6 +117,11 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     public static final int DEFAULT_MINI_BATCH_SIZE = 1;
     private static final String[] STRINGS = new String[0];
     /**
+     * The default value of {@link #trainParametersOnRemainingExamples}.
+     */
+    @SuppressWarnings("ConstantNamingConvention")
+    public static final boolean DEFAULT_TRAIN_PARAMETERS_ON_REMAINING_EXAMPLES = false;
+    /**
      * The knowledge base collection class name.
      */
     public String knowledgeBaseCollectionClassName = ArrayList.class.getName();
@@ -278,6 +283,12 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     private RunStatistics<RunTimeStamp> runStatistics;
 
     /**
+     * If true, train the parameters of the {@link EngineSystemTranslator} on the remaining examples.
+     */
+    @SuppressWarnings({"BooleanVariableAlwaysNegated", "RedundantSuppression"})
+    public boolean trainParametersOnRemainingExamples = DEFAULT_TRAIN_PARAMETERS_ON_REMAINING_EXAMPLES;
+
+    /**
      * The main method
      *
      * @param args the command line arguments
@@ -292,6 +303,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         try {
             timeMeasure.measure(RunTimeStamp.BEGIN_TRAIN);
             reviseExamples();
+            trainRemainingExamples();
             timeMeasure.measure(RunTimeStamp.END_TRAIN);
             timeMeasure.measure(RunTimeStamp.BEGIN_EVALUATION);
             evaluateModel();
@@ -306,6 +318,18 @@ public class LearningFromFilesCLI extends CommandLineInterface {
         } catch (IOException e) {
             logger.error(ERROR_READING_CONFIGURATION_FILE, e);
         }
+    }
+
+    /**
+     * Trains the parameters of the {@link EngineSystemTranslator} on the remaining examples.
+     */
+    protected void trainRemainingExamples() {
+        if (!trainParametersOnRemainingExamples) { return; }
+        Collection<? extends Example> remainingExamples = incomingExampleManager.getRemainingExamples();
+        logger.info(BEGIN_TRAINING_REMAINING_EXAMPLES.toString(), integerFormat.format(remainingExamples.size()));
+        learningSystem.trainParameters(trainExamples);
+        learningSystem.saveTrainedParameters();
+        logger.info(END_TRAINING_REMAINING_EXAMPLES.toString());
     }
 
     /**

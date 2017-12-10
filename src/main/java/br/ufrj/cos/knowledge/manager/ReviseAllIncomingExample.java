@@ -101,4 +101,9 @@ public class ReviseAllIncomingExample extends IncomingExampleManager {
         return proPprExamples;
     }
 
+    @Override
+    public Collection<? extends Example> getRemainingExamples() {
+        return Collections.emptySet();
+    }
+
 }

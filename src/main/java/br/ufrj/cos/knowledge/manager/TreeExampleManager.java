@@ -24,6 +24,7 @@ package br.ufrj.cos.knowledge.manager;
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.Example;
+import br.ufrj.cos.knowledge.example.Examples;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.AllSampleSelector;
 import br.ufrj.cos.knowledge.theory.manager.revision.point.RelevantSampleSelector;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static br.ufrj.cos.util.log.IncomingExampleLog.CALLING_REVISION_OF_LEAVES;
 import static br.ufrj.cos.util.log.IncomingExampleLog.EXAMPLES_PLACED_AT_LEAVES;
+import static br.ufrj.cos.util.log.PreRevisionLog.ERROR_GETTING_REMAINING_EXAMPLES;
 import static br.ufrj.cos.util.log.PreRevisionLog.ERROR_INITIALIZING_REVISION_EXAMPLES;
 
 /**
@@ -282,6 +284,29 @@ public class TreeExampleManager extends IncomingExampleManager {
                                                  TreeTheory.class.getSimpleName()));
         }
         this.treeTheory = treeTheory;
+    }
+
+    @Override
+    public Collection<? extends Example> getRemainingExamples() {
+        final Set<? extends Example> examples = treeTheory.leafExamplesMap.entrySet().stream().flatMap(e -> e.getValue
+                ().entrySet().stream())
+                .flatMap(e -> e.getValue().getTrainingExamples(true)
+                        .stream()).collect(Collectors.toSet());
+
+        final Collection<ProPprExample> proPprExampleQueries = new HashSet<>();
+        final Collection<AtomExample> atomExamples = new HashSet<>();
+
+        for (Example example : examples) {
+            proPprExampleQueries.add(new ProPprExample(example.getGoalQuery(), new ArrayList<>()));
+            atomExamples.addAll(example.getGroundedQuery());
+        }
+
+        try {
+            return new Examples(proPprExampleQueries, atomExamples);
+        } catch (IllegalAccessException | InstantiationException e) {
+            logger.warn(ERROR_GETTING_REMAINING_EXAMPLES, e);
+        }
+        return null;
     }
 
 }

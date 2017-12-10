@@ -39,6 +39,8 @@ public enum IterationLog {
     ADDED_ITERATION_KNOWLEDGE("Added iteration's knowledge:\t{}"),
     BEGIN_REVISION_EXAMPLE("Begin the revision of\t{} example(s)"),
     END_REVISION_EXAMPLE("Ended the revision of the example(s)"),
+    BEGIN_TRAINING_REMAINING_EXAMPLES("Begin the training of the \t{} remaining example(s)"),
+    END_TRAINING_REMAINING_EXAMPLES("Ended the training of the remaining example(s)"),
     BEGIN_EVALUATION("Begin the evaluation on iteration:\t{}"),
     END_TRAIN_EVALUATION("Ended the train evaluation on iteration:\t{}"),
     END_TEST_EVALUATION("Ended the test evaluation on iteration:\t{}"),
