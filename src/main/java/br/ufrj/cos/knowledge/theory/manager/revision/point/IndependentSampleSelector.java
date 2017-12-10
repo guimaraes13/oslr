@@ -57,7 +57,7 @@ public class IndependentSampleSelector extends RelevantSampleSelector {
     /**
      * The depth of the relevant breadth first search.
      */
-    public int relevantDepth = DEFAULT_RELEVANT_DEPTH;
+    protected int relevantDepth = DEFAULT_RELEVANT_DEPTH;
 
     /**
      * Default constructor.
@@ -67,7 +67,13 @@ public class IndependentSampleSelector extends RelevantSampleSelector {
     }
 
     @Override
+    public boolean isAllRelevants() {
+        return relevantDepth < DEFAULT_RELEVANT_DEPTH;
+    }
+
+    @Override
     public boolean isRelevant(Example example) {
+        if (relevantDepth < DEFAULT_RELEVANT_DEPTH) { return true; }
         boolean relevant = false;
         Set<Term> terms;
         terms = example.getGoalQuery().getTerms().stream().filter(Term::isConstant).collect(Collectors.toSet());
@@ -109,7 +115,7 @@ public class IndependentSampleSelector extends RelevantSampleSelector {
                     FileIOUtils.formatLogMessage(ExceptionMessages.ERROR_RESET_AFTER_USE.toString(),
                                                  RELEVANT_DEPTH_FIELD_NAME));
         }
-        if (relevantDepth > DEFAULT_RELEVANT_DEPTH) { this.relevantDepth = relevantDepth; }
+        this.relevantDepth = relevantDepth;
     }
 
 }

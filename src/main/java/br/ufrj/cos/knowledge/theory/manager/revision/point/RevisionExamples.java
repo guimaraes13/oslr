@@ -95,6 +95,19 @@ public class RevisionExamples {
     }
 
     /**
+     * Gets the relevant sample size.
+     *
+     * @return the relevant sample size.
+     */
+    public int getRelevantSampleSize() {
+        if (sampleSelector.isAllRelevants()) {
+            return (int) relevantSample.stream().mapToLong(e -> e.getGroundedQuery().size()).sum();
+        } else {
+            return relevantSample.size();
+        }
+    }
+
+    /**
      * Sets the {@link LearningSystem} if it is not yet set. If it is already set, throws an error.
      *
      * @param learningSystem the {@link LearningSystem}

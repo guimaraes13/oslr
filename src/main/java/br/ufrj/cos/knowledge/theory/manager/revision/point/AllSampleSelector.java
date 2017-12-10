@@ -34,6 +34,11 @@ import br.ufrj.cos.util.InitializationException;
 public class AllSampleSelector extends RelevantSampleSelector {
 
     @Override
+    public boolean isAllRelevants() {
+        return false;
+    }
+
+    @Override
     public boolean isRelevant(Example example) {
         return true;
     }

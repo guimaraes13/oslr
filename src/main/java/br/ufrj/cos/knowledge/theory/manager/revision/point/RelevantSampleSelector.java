@@ -49,6 +49,13 @@ public abstract class RelevantSampleSelector implements Initializable {
     }
 
     /**
+     * Checks if all examples are relevants.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public abstract boolean isAllRelevants();
+
+    /**
      * Checks if a example is relevant in a revision point.
      *
      * @param example the example
