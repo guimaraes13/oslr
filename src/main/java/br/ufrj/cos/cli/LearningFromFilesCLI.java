@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -285,7 +285,6 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     /**
      * If true, train the parameters of the {@link EngineSystemTranslator} on the remaining examples.
      */
-    @SuppressWarnings({"BooleanVariableAlwaysNegated", "RedundantSuppression"})
     public boolean trainParametersOnRemainingExamples = DEFAULT_TRAIN_PARAMETERS_ON_REMAINING_EXAMPLES;
 
     /**

@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,6 +126,15 @@ public class Node<E> {
     }
 
     /**
+     * Checks if this node is a not default leaf, i.e. a proof leaf.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isProofLeaf() {
+        return children != null && children.isEmpty();
+    }
+
+    /**
      * Gets the parent.
      *
      * @return the parent
@@ -146,7 +155,7 @@ public class Node<E> {
     /**
      * Gets the children.
      *
-     * @return the default children
+     * @return the children
      */
     public Collection<Node<E>> getChildren() {
         return children;
