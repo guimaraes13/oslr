@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ package br.ufrj.cos.util;
 
 import br.ufrj.cos.engine.EngineSystemTranslator;
 import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.logic.*;
@@ -716,6 +717,22 @@ public final class LanguageUtils {
         for (V v : collection) {
             appendMap.computeIfAbsent(function.apply(v), a -> new ArrayList<>()).add(v);
         }
+    }
+
+    /**
+     * Groups the examples by its goal query.
+     *
+     * @param examples the examples to group
+     * @param grouped  the grouped map
+     * @return the grouped map
+     */
+    public static Map<Atom, Set<AtomExample>> groupAtomExamplesByGoal(Iterable<? extends Example> examples,
+                                                                      Map<Atom, Set<AtomExample>> grouped) {
+        for (Example example : examples) {
+            Set<AtomExample> set = grouped.computeIfAbsent(example.getGoalQuery(), e -> new HashSet<>());
+            set.addAll(example.getGroundedQuery());
+        }
+        return grouped;
     }
 
 }

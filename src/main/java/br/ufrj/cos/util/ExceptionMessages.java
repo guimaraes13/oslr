@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ public enum ExceptionMessages {
     GENERATED_RULE_NOT_SAVE("Error when generating a new rule, the generate rule can not be made safe."),
     ERROR_DURING_THEORY_COPY("Error when copying the theory."),
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),
+    ERROR_REVISING_THE_THEORY_REASON("Error when revising the theory, reason:\t{}"),
     ERROR_GETTING_CLASS_BY_NAME("Error when getting the class by its name."),
     ERROR_FILE_NOT_IN_CLASS_PATH("Default configuration file not in the class path."),
 
