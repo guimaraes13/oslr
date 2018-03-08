@@ -1,0 +1,179 @@
+/*
+ * Probabilist Logic Learner is a system to learn probabilistic logic
+ * programs from data and use its learned programs to make inference
+ * and answer queries.
+ *
+ * Copyright (C) 2018 Victor Guimarães
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package br.ufrj.cos.cli.util;
+
+import br.ufrj.cos.cli.CommandLineInterface;
+import br.ufrj.cos.knowledge.example.AtomExample;
+import br.ufrj.cos.knowledge.example.ProPprExample;
+import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.Predicate;
+import br.ufrj.cos.logic.Term;
+import br.ufrj.cos.logic.parser.knowledge.ParseException;
+import br.ufrj.cos.util.FileIOUtils;
+import br.ufrj.cos.util.LanguageUtils;
+import br.ufrj.cos.util.time.TimeUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
+import static br.ufrj.cos.util.log.NellConverterLog.*;
+
+/**
+ * Class to convert examples from the logic representation to the ProPPR's representation generating the negative
+ * examples using the Local Close World Assumption.
+ * <p>
+ * Created on 04/08/17.
+ *
+ * @author Victor Guimarães
+ */
+public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
+
+    public static final int MAXIMUN_ATTEMPTS = 100;
+
+    /**
+     * The main method
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        CommandLineInterface instance = new LogicToProPprConverterLCWA();
+        mainProgram(instance, logger, args);
+    }
+
+    @Override
+    public void run() {
+        long begin = TimeUtils.getNanoTime();
+        processFiles();
+        long end = TimeUtils.getNanoTime();
+        logger.warn(TOTAL_PROGRAM_TIME.toString(), TimeUtils.formatNanoDifference(begin, end));
+    }
+
+    @Override
+    protected void convertExamplesFromLogic(File dataDirectory, String filePrefix)
+            throws IOException, ParseException {
+        File positiveFile = new File(dataDirectory, filePrefix + positiveExtension);
+
+        List<Atom> positives = new ArrayList<>();
+        FileIOUtils.readAtomKnowledgeFromFile(positiveFile, positives, atomFactory);
+
+        logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
+        Collection<? extends ProPprExample> examples = convertAtomToExamples(positives, Collections.emptySet());
+        logger.debug(TOTAL_NUMBER_EXAMPLES_PROPPR.toString(), numberFormat.format(examples.size()));
+        if (negativePortionFilter >= 0.0) { examples = generateNegatives(positives, examples); }
+        if (shuffle) { examples = shuffleOutput(examples); }
+        final File outputFile = new File(outputDirectory, filePrefix + examplesFileExtension);
+        FileIOUtils.saveExamplesToFile(examples, outputFile);
+        logger.debug(EXAMPLES_SAVING.toString(), outputFile.getName());
+    }
+
+    /**
+     * Generates the negative examples so the portion of negatives become approximately {@link #negativePortionFilter}
+     * times the portion of positive.
+     *
+     * @param positives the set of positive atoms
+     * @param examples  the examples to filter
+     * @return the generated examples
+     */
+    protected Collection<? extends ProPprExample> generateNegatives(Collection<? extends Atom> positives,
+                                                                    Collection<? extends ProPprExample> examples) {
+        Map<Predicate, Set<Atom>> atomsByPredicate = new HashMap<>();
+        LanguageUtils.splitAtomsByPredicate(positives, atomsByPredicate, Atom::getPredicate);
+        Map<Predicate, Integer> predicateVariableMap = calculateIndexToVariable(atomsByPredicate);
+        final Map<Predicate, List<Term>> possibleTermsByPredicate = buildTermsByPredicate(positives,
+                                                                                          predicateVariableMap);
+
+        return generateNegativeExamples(positives, examples, possibleTermsByPredicate, predicateVariableMap);
+    }
+
+    /**
+     * Builds the sets of possible term to substitute the variable from the goal of the examples by each predicate.
+     * These terms are the terms that appears in the same position of the variable in a positive example of the
+     * predicate.
+     *
+     * @param positives            the set of possible examples
+     * @param predicateVariableMap the position of the variable term for each predicate
+     * @return the set of possible term for each predicate
+     */
+    protected static Map<Predicate, List<Term>> buildTermsByPredicate(Collection<? extends Atom> positives,
+                                                                      Map<Predicate, Integer> predicateVariableMap) {
+        Map<Predicate, Set<Term>> termByPredicate = new HashMap<>();
+
+        for (Atom atom : positives) {
+            final Predicate predicate = atom.getPredicate();
+            termByPredicate.computeIfAbsent(predicate, k -> new HashSet<>())
+                    .add(atom.getTerms().get(predicateVariableMap.get(predicate)));
+        }
+
+        Map<Predicate, List<Term>> answer = new HashMap<>();
+        for (Map.Entry<Predicate, Set<Term>> entry : termByPredicate.entrySet()) {
+            answer.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return answer;
+    }
+
+    @SuppressWarnings("OverlyLongMethod")
+    private Collection<? extends ProPprExample> generateNegativeExamples(Collection<? extends Atom> positives,
+                                                                         Collection<? extends ProPprExample> examples,
+                                                                         Map<Predicate, List<Term>> termsByPredicate,
+                                                                         Map<Predicate, Integer> predicateVariableMap) {
+        final Random exampleRandom = getRandom();
+        final Random termRandom = getRandom();
+        final Set<ProPprExample> examplesWithNegatives = new LinkedHashSet<>();
+        int totalOfNegatives = 0;
+        for (ProPprExample example : examples) {
+            final int positiveCount = (int) example.getGroundedQuery().stream().filter(AtomExample::isPositive).count();
+            final int negativeExamples = (int) (negativePortionFilter * positiveCount);
+            final double probabilityExample = (negativePortionFilter * positiveCount) - negativeExamples;
+            final Set<Atom> negatives = new HashSet<>();
+            final int examplesToAdd = negativeExamples + (exampleRandom.nextDouble() < probabilityExample ? 1 : 0);
+            int addedExamples = 0;
+            int attempt = 0;
+            final Predicate predicate = example.getGoal().getPredicate();
+            while (addedExamples < examplesToAdd && attempt < MAXIMUN_ATTEMPTS) {
+                final List<Term> terms = new ArrayList<>(example.getGoal().getTerms());
+                final List<Term> possibleTerms = termsByPredicate.get(predicate);
+                terms.set(predicateVariableMap.get(predicate),
+                          possibleTerms.get(termRandom.nextInt(possibleTerms.size())));
+                final Atom negative = new Atom(predicate, terms);
+                if (!positives.contains(negative) && !negatives.contains(negative)) {
+                    negatives.add(negative);
+                    attempt = 0;
+                    addedExamples++;
+                } else {
+                    attempt++;
+                }
+            }
+            totalOfNegatives += addedExamples;
+            List<AtomExample> atomExamples = new ArrayList<>(example.getGroundedQuery().size() + addedExamples);
+            atomExamples.addAll(example.getGroundedQuery());
+            for (Atom negative : negatives) {
+                atomExamples.add(new AtomExample(predicate, negative.getTerms(), false));
+            }
+            examplesWithNegatives.add(new ProPprExample(example.getGoal(), atomExamples));
+        }
+        logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(totalOfNegatives));
+        return examplesWithNegatives;
+    }
+
+}

@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ public class LogicToProPprConverter extends CommandLineInterface {
 
     /**
      * If it is to force the index. If the value is positive, force this index of the predicate's term to be become a
-     * variable. If it is negative, find the term if the smallest number of substitutions.
+     * variable. If it is negative, find the term with the smallest number of substitutions.
      */
     public int forceIndex = -1;
 
