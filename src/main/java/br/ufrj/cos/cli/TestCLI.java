@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ import java.util.Map;
 import static br.ufrj.cos.util.log.InferenceLog.EVALUATION_UNDER_METRIC;
 
 /**
- * Class to evaluate the model trained from a {@link LearningFromFilesCLI} into a test set.
+ * Class to evaluate the model trained from a {@link LearningFromBatchCLI} into a test set.
  * <p>
  * Created on 21/05/17.
  *
@@ -92,7 +92,7 @@ public class TestCLI extends CommandLineInterface {
     @SuppressWarnings("CanBeFinal")
     public boolean drawRocCurve = false;
 
-    protected LearningFromFilesCLI learningFromFilesCLI;
+    protected LearningFromBatchCLI learningFromBatchCLI;
     protected Examples examples;
 
     /**
@@ -109,14 +109,14 @@ public class TestCLI extends CommandLineInterface {
     public void initialize() throws InitializationException {
         try {
             addAppender(new File(inputDirectoryPath, STDOUT_LOG_FILE_NAME).getAbsolutePath());
-            learningFromFilesCLI = initializeLearningCLI();
-            learningFromFilesCLI.outputDirectory = new File(inputDirectoryPath);
-            learningFromFilesCLI.initialize();
-            learningFromFilesCLI.theoryFilePaths = new String[]{
-                    new File(inputDirectoryPath, LearningFromFilesCLI.THEORY_FILE_NAME).getAbsolutePath()
+            learningFromBatchCLI = initializeLearningCLI();
+            learningFromBatchCLI.outputDirectory = new File(inputDirectoryPath);
+            learningFromBatchCLI.initialize();
+            learningFromBatchCLI.theoryFilePaths = new String[]{
+                    new File(inputDirectoryPath, LearningFromBatchCLI.THEORY_FILE_NAME).getAbsolutePath()
             };
-            learningFromFilesCLI.loadedPreTrainedParameters = LOAD_PARAMETERS;
-            learningFromFilesCLI.build();
+            learningFromBatchCLI.loadedPreTrainedParameters = LOAD_PARAMETERS;
+            learningFromBatchCLI.build();
             examples = FileIOUtils.buildExampleSet(exampleFilePaths);
         } catch (Exception e) {
             throw new InitializationException(e);
@@ -124,20 +124,20 @@ public class TestCLI extends CommandLineInterface {
     }
 
     /**
-     * Initializes a {@link LearningFromFilesCLI} from its arguments.
+     * Initializes a {@link LearningFromBatchCLI} from its arguments.
      *
-     * @return the {@link LearningFromFilesCLI}
+     * @return the {@link LearningFromBatchCLI}
      * @throws IOException if the an error occurs when reading the file
      */
-    protected LearningFromFilesCLI initializeLearningCLI() throws IOException {
-        learningFromFilesCLI = new LearningFromFilesCLI();
+    protected LearningFromBatchCLI initializeLearningCLI() throws IOException {
+        learningFromBatchCLI = new LearningFromBatchCLI();
         String arguments = FileIOUtils.readFileToString(new File(inputDirectoryPath,
-                                                                 learningFromFilesCLI.getArgumentFileName()));
+                                                                 learningFromBatchCLI.getArgumentFileName()));
         String[] fields = arguments.split(LanguageUtils.ARGUMENTS_SEPARATOR);
-        if (fields[0].endsWith(LearningFromFilesCLI.class.getSimpleName())) {
+        if (fields[0].endsWith(LearningFromBatchCLI.class.getSimpleName())) {
             fields = Arrays.copyOfRange(fields, 1, fields.length);
         }
-        return (LearningFromFilesCLI) learningFromFilesCLI.parseOptions(fields);
+        return (LearningFromBatchCLI) learningFromBatchCLI.parseOptions(fields);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class TestCLI extends CommandLineInterface {
     @SuppressWarnings("unused")
     @Override
     public void run() {
-        Map<Example, Map<Atom, Double>> inferredExamples = learningFromFilesCLI.learningSystem.inferExamples(examples);
+        Map<Example, Map<Atom, Double>> inferredExamples = learningFromBatchCLI.learningSystem.inferExamples(examples);
         Map<TheoryMetric, Double> evaluations = new HashMap<>();
         RocCurveMetric rocCurveMetric = null;
         double evaluation;

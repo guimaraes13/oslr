@@ -85,7 +85,7 @@ import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
  * @author Victor Guimarães
  */
 @SuppressWarnings({"CanBeFinal"})
-public class LearningFromFilesCLI extends CommandLineInterface {
+public class LearningFromBatchCLI extends CommandLineInterface {
 
     /**
      * The logger
@@ -293,7 +293,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        CommandLineInterface instance = new LearningFromFilesCLI();
+        CommandLineInterface instance = new LearningFromBatchCLI();
         mainProgram(instance, logger, args);
     }
 
@@ -779,7 +779,7 @@ public class LearningFromFilesCLI extends CommandLineInterface {
     public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
         try {
             super.parseOptions(commandLine);
-            LearningFromFilesCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
+            LearningFromBatchCLI cli = readYamlFile(commandLine, this.getClass(), DEFAULT_YAML_CONFIGURATION_FILE);
             cli.knowledgeBaseFilePaths = getFilesFromOption(commandLine,
                                                             CommandLineOptions.KNOWLEDGE_BASE.getOptionName(),
                                                             cli.knowledgeBaseFilePaths);

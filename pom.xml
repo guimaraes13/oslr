@@ -4,7 +4,7 @@
   ~ programs from data and use its learned programs to make inference
   ~ and answer queries.
   ~
-  ~ Copyright (C) 2017 Victor Guimarães
+  ~ Copyright (C) 2018 Victor Guimarães
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>br.ufrj.cos.cli.LearningFromFilesCLI</mainClass>
+                            <mainClass>br.ufrj.cos.cli.LearningFromBatchCLI</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

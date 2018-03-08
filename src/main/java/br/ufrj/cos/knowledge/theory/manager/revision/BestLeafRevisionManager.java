@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,12 +44,13 @@ import java.util.List;
 public class BestLeafRevisionManager extends RevisionManager {
 
     /**
-     * The default maximum number of leaves to call the revision, at once.
+     * The default maximum number of leaves to call the revision, at each iteration. Set it to a negative number to
+     * call the revision for each possible leaf.
      */
-    public static final int DEFAULT_LEAVES_TO_REFINE = 1;
+    public static final int DEFAULT_LEAVES_TO_REFINE = -1;
     /**
-     * The maximum number of leaves to call the revision, at once. Set to negative to revise all possible leaves at
-     * the time.
+     * The maximum number of leaves to call the revision, at each iteration. Set to a negative number to revise all
+     * possible leaves at the time.
      */
     @SuppressWarnings("CanBeFinal")
     public int numberOfLeavesToRevise = DEFAULT_LEAVES_TO_REFINE;
@@ -77,7 +78,7 @@ public class BestLeafRevisionManager extends RevisionManager {
      * @return the maximum revision points that will be used
      */
     protected int getMaximumRevisionPoints(List<?> revisionPoints) {
-        return numberOfLeavesToRevise < DEFAULT_LEAVES_TO_REFINE ?
+        return numberOfLeavesToRevise > 0 ?
                 Math.min(revisionPoints.size(), numberOfLeavesToRevise) : revisionPoints.size();
     }
 

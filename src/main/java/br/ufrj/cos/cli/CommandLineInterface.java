@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -252,7 +252,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * @param commandLine              the {@link CommandLine}
      * @param clazz                    the {@link CommandLineInterface} class
      * @param defaultConfigurationFile the default configuration file path
-     * @return the read {@link LearningFromFilesCLI}
+     * @return the read {@link LearningFromBatchCLI}
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */
@@ -280,7 +280,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      *
      * @param clazz    the class
      * @param yamlFile the yaml configuration file
-     * @return the read {@link LearningFromFilesCLI}
+     * @return the read {@link LearningFromBatchCLI}
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */

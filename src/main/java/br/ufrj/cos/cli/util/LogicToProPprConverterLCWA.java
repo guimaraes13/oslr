@@ -49,7 +49,10 @@ import static br.ufrj.cos.util.log.NellConverterLog.*;
  */
 public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
 
-    public static final int MAXIMUN_ATTEMPTS = 100;
+    /**
+     * The maximum number of attempts to create a corrupt version of the current example.
+     */
+    public static final int MAXIMUM_ATTEMPTS = 100;
 
     /**
      * The main method
@@ -150,7 +153,7 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
             int addedExamples = 0;
             int attempt = 0;
             final Predicate predicate = example.getGoal().getPredicate();
-            while (addedExamples < examplesToAdd && attempt < MAXIMUN_ATTEMPTS) {
+            while (addedExamples < examplesToAdd && attempt < MAXIMUM_ATTEMPTS) {
                 final List<Term> terms = new ArrayList<>(example.getGoal().getTerms());
                 final List<Term> possibleTerms = termsByPredicate.get(predicate);
                 terms.set(predicateVariableMap.get(predicate),

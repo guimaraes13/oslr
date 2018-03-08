@@ -59,7 +59,7 @@ incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager
    treeTheory:       &tree !br.ufrj.cos.knowledge.manager.TreeTheory {}
 
 revisionManager:  !br.ufrj.cos.knowledge.theory.manager.revision.BestLeafRevisionManager
-   numberOfLeavesToRevise: 1
+   numberOfLeavesToRevise: -1
    treeTheory:             *tree
    revisionHeuristic:      !br.ufrj.cos.knowledge.theory.manager.revision.heuristic.EntropyHeuristic {}
 

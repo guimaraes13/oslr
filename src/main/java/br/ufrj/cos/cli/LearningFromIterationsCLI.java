@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ import static br.ufrj.cos.util.time.TimeUtils.formatNanoDifference;
  *
  * @author Victor Guimarães
  */
-public class LearningFromIterationsCLI extends LearningFromFilesCLI {
+public class LearningFromIterationsCLI extends LearningFromBatchCLI {
 
     /**
      * The logger
