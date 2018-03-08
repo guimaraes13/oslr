@@ -15,7 +15,7 @@ theoryBaseAncestralClassName:
 controlConcurrence:           false
 loadedPreTrainedParameters:   false
 passAllExampleAtOnce:         false
-examplesBatchSize:            1
+examplesBatchSize:            10
 
 engineSystemTranslator: !br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator
    useTernayIndex:         false
@@ -47,9 +47,9 @@ theoryMetrics:
 revisionOperatorSelector:  !br.ufrj.cos.knowledge.theory.manager.revision.BestRevisionOperatorSelector {}
 theoryEvaluator:           !br.ufrj.cos.knowledge.theory.evaluation.TheoryEvaluator {}
 theoryRevisionManager:     !br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager
-   theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.RocCurveMetric {}
-   delta:                  1e-6
-   deltaUpdateExpression:  d
+   theoryMetric:           &metric !br.ufrj.cos.knowledge.theory.evaluation.metric.probabilistic.PrecisionRecallCurveMetric {}
+   delta:                  1e-3
+   deltaUpdateExpression:  "d * 0.5"
    trainUsingAllExamples:  true
 
 incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager
@@ -60,11 +60,16 @@ incomingExampleManager:    !br.ufrj.cos.knowledge.manager.TreeExampleManager
 revisionManager:  !br.ufrj.cos.knowledge.theory.manager.revision.BestLeafRevisionManager
    numberOfLeavesToRevise: -1
    treeTheory:             *tree
-   revisionHeuristic:      !br.ufrj.cos.knowledge.theory.manager.revision.heuristic.EntropyHeuristic {}
+   revisionHeuristic:      !br.ufrj.cos.knowledge.theory.manager.revision.heuristic.RepairableHeuristic {}
 
-featureGenerator: !br.ufrj.cos.knowledge.theory.manager.feature.proppr.UniqueRuleFeatureGenerator {}
+featureGenerator: !br.ufrj.cos.knowledge.theory.manager.feature.proppr.VariableFeatureGenerator
+   substitutionHeuristic: !br.ufrj.cos.knowledge.theory.manager.feature.proppr.heuristic.LeastDistinctSetsHeuristic {}
+   addTargetVariables: false
 
 revisionOperatorEvaluators:
+   - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
+         revisionOperator:   !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.RemoveNodeTreeRevisionOperator
+            treeTheory:       *tree
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
       revisionOperator:    !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator
          treeTheory:       *tree
@@ -72,12 +77,24 @@ revisionOperatorEvaluators:
          maximumSideWayMovements:      0
          improvementThreshold:         0.0
          generic:                      true
-         theoryMetric:           *metric
-         appendOperator:         !br.ufrj.cos.knowledge.theory.manager.revision.operator.RelevantLiteralAppendOperator
-            theoryMetric:        *metric
-            numberOfThreads:     1
-            evaluationTimeout:   30
-            relevantsDepth:      0
+         theoryMetric:            *metric
+         appendOperator:          !br.ufrj.cos.knowledge.theory.manager.revision.operator.RelevantLiteralAppendOperator
+            theoryMetric:         *metric
+            numberOfThreads:      1
+            evaluationTimeout:    30
+            relevantsDepth:       1
+            maximumBasedExamples: 1
    - !br.ufrj.cos.knowledge.theory.manager.revision.RevisionOperatorEvaluator
-         revisionOperator:   !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.RemoveNodeTreeRevisionOperator
-            treeTheory:       *tree
+      revisionOperator:    !br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator
+         treeTheory:       *tree
+         refine:                       false
+         maximumSideWayMovements:      0
+         improvementThreshold:         0.0
+         generic:                      true
+         theoryMetric:            *metric
+         appendOperator:          !br.ufrj.cos.knowledge.theory.manager.revision.operator.PathFindAppendOperator
+            theoryMetric:         *metric
+            numberOfThreads:      1
+            evaluationTimeout:    30
+            relevantsDepth:       1
+            maximumBasedExamples: 1
