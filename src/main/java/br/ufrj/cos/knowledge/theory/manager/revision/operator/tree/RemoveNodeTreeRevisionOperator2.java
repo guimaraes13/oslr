@@ -1,9 +1,17 @@
 /*
- * Probabilist Logic Learner is a system to learn probabilistic logic
- * programs from data and use its learned programs to make inference
- * and answer queries.
+ * Online Structure Learner by Revision (OSLR) is an online relational
+ * learning algorithm that can handle continuous, open-ended
+ * streams of relational examples as they arrive. We employ
+ * techniques from theory revision to take advantage of the already
+ * acquired knowledge as a starting point, find where it should be
+ * modified to cope with the new examples, and automatically update it.
+ * We rely on the Hoeffding's bound statistical theory to decide if the
+ * model must in fact be updated accordingly to the new examples.
+ * The system is built upon ProPPR statistical relational language to
+ * describe the induced models, aiming at contemplating the uncertainty
+ * inherent to real data.
  *
- * Copyright (C) 2018 Victor Guimarães
+ * Copyright (C) 2017-2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

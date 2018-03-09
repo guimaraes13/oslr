@@ -1,1 +1,0 @@
-different(P,Q) :- neq(P,Q) {r}.
