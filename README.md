@@ -1,1 +1,1 @@
-# incremental-srl
+#Online Structure Learner by Revision (OSLR)

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Probabilist Logic Learner is a system to learn probabilistic logic
+  ~ programs from data and use its learned programs to make inference
+  ~ and answer queries.
+  ~
+  ~ Copyright (C) 2018 Victor Guimarães
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<Configuration status="info" strict="true">
+    <Appenders>
+        <Appender type="Console" name="OUT" target="SYSTEM_OUT">
+            <Layout type="PatternLayout"
+                    pattern="[ %d{yyy-MM-dd HH:mm:ss.SSS} ] [ %-5level ] [ %logger{1} ]\t-\t%msg%n%throwable{full}"/>
+            <Filters>
+                <ThresholdFilter level="FATAL" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+        </Appender>
+        <Appender type="Console" name="ERR" target="SYSTEM_ERR">
+            <Layout type="PatternLayout"
+                    pattern="[ %d{yyy-MM-dd HH:mm:ss.SSS} ] [ %-5level ] [ %logger{1} ]\t-\t%msg%n%throwable{full}"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="NEUTRAL" onMismatch="DENY"/>
+                <ThresholdFilter level="FATAL" onMatch="DENY" onMismatch="ACCEPT"/>
+            </Filters>
+        </Appender>
+    </Appenders>
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="OUT"/>
+            <AppenderRef ref="ERR"/>
+        </Root>
+
+        <Logger name="br.ufrj.cos.cli.LearningFromBatchCLI" level="DEBUG"/>
+        <Logger name="br.ufrj.cos.cli.LearningFromIterationsCLI" level="TRACE"/>
+        <Logger name="br.ufrj.cos.cli.nell.NellBaseConverterCLI" level="DEBUG"/>
+
+        <Logger name="br.ufrj.cos.knowledge.theory.manager.HoeffdingBoundTheoryManager" level="TRACE"/>
+        <Logger name="br.ufrj.cos.knowledge.theory.evaluation.AsyncTheoryEvaluator" level="TRACE"/>
+        <Logger name="br.ufrj.cos.knowledge.manager.TreeExampleManager" level="TRACE"/>
+        <Logger name="br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule"
+                level="TRACE"/>
+        <Logger name="br.ufrj.cos.knowledge.theory.manager.revision.operator.tree.AddNodeTreeRevisionOperator"
+                level="TRACE"/>
+        <Logger name="br.ufrj.cos.knowledge.theory.manager.revision.operator.PathFindAppendOperator" level="TRACE"/>
+        <Logger name="br.ufrj.cos.util.multithreading.MultithreadingEvaluation" level="DEBUG"/>
+
+        <!--proppr-->
+        <Logger name="edu.cmu.ml.proppr" level="WARN"/>
+        <!-- scaffolding -->
+        <Logger name="edu.cmu.ml.proppr.GradientFinder" level="INFO"/>
+        <Logger name="edu.cmu.ml.proppr.Grounder" level="INFO"/>
+        <Logger name="edu.cmu.ml.proppr.QueryAnswerer" level="INFO"/>
+        <!--<Logger name="edu.cmu.ml.proppr.Trainer" level="INFO"/>-->
+        <Logger name="edu.cmu.ml.proppr.Trainer" level="WARN"/>
+        <Logger name="edu.cmu.ml.proppr.CachingTrainer" level="INFO"/>
+
+        <!-- learning -->
+        <Logger name="edu.cmu.ml.proppr.learn" level="INFO"/>
+        <!-- <Logger name="edu.cmu.ml.proppr.learn.SRW" level="INFO" /> -->
+        <!-- <Logger name="edu.cmu.ml.proppr.learn.AprSRW" level="DEBUG" /> -->
+        <!-- <Logger name="edu.cmu.ml.proppr.learn.L2SRW" level="DEBUG" /> -->
+        <!-- <Logger name="edu.cmu.ml.proppr.learn.LocalL2SRW" level="DEBUG" /> -->
+        <!-- <Logger name="edu.cmu.ml.proppr.learn.tools.LossData" level="DEBUG" /> -->
+
+        <!-- proving -->
+        <Logger name="edu.cmu.ml.proppr.prove" level="INFO"/>
+        <!-- <Logger name="edu.cmu.ml.proppr.prove.PprProver" level="WARN" /> -->
+        <Logger name="edu.cmu.ml.proppr.prove.DprProver" level="WARN"/>
+        <!-- <Logger name="edu.cmu.ml.proppr.prove.TracingDfsProver" level="INFO" /> -->
+        <!-- <Logger name="edu.cmu.ml.proppr.prove.wam" level="DEBUG" /> -->
+        <Logger name="edu.cmu.ml.proppr.prove.wam.WamInterpreter" level="WARN"/>
+        <Logger name="edu.cmu.ml.proppr.prove.wam.plugins" level="INFO"/>
+
+        <!-- util -->
+        <!-- <Logger name="edu.cmu.ml.proppr.util.SymbolTable" level="DEBUG" /> -->
+        <Logger name="edu.cmu.ml.proppr.util.multithreading" level="DEBUG"/>
+        <Logger name="edu.cmu.ml.proppr.util.multithreading.Multithreading" level="WARN"/>
+    </Loggers>
+</Configuration>

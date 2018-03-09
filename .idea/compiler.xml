@@ -6,12 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="OSLR" />
         <module name="probabilistic-logic-learner" />
         <module name="ProbabilisticLogicLearner" />
         <module name="program-notifier" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="OSLR" target="1.8" />
       <module name="probabilistic-logic-learner" target="1.8" />
       <module name="ProbabilisticLogicLearner" target="1.8" />
       <module name="program-notifier" target="1.8" />

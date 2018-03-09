@@ -1,0 +1,2 @@
+words(Doc,Word) :- hasWord#(Doc,Word,Weight).
+words2(Doc,Word) :- hasWord(Doc,Word).
