@@ -77,6 +77,7 @@ public class UniqueRuleFeatureGenerator extends FeatureGenerator {
      * @return the feature name
      */
     protected String createFeatureName(HornClause rule) {
+        //noinspection deprecation
         String shaHex = DigestUtils.shaHex(String.valueOf(rule.hashCode()));
         if (featureNameSize > 0) {
             shaHex = shaHex.substring(0, Math.min(featureNameSize, shaHex.length()));

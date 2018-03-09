@@ -48,7 +48,7 @@ public enum ExceptionMessages {
     ERROR_REVISING_THE_THEORY("Error when revising the theory."),
     ERROR_REVISING_THE_THEORY_REASON("Error when revising the theory, reason:\t{}"),
     ERROR_GETTING_CLASS_BY_NAME("Error when getting the class by its name."),
-    ERROR_FILE_NOT_IN_CLASS_PATH("Default configuration file not in the class path."),
+    @SuppressWarnings("unused") ERROR_FILE_NOT_IN_CLASS_PATH("Default configuration file not in the class path."),
 
     //One additional parameters to format
     ERROR_ANSWERING_QUERY("Error when answering the query {}."),

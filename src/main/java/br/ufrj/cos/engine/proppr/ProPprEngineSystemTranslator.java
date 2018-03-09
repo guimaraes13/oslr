@@ -307,6 +307,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param ground the {@link Ground}
      * @return the {@link Atom}s
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     protected static Collection<Atom> groundToAtoms(Ground ground) {
         ProofGraph proofGraph = ground.getProofGraph();
         GroundedExample groundedExample = ground.getGroundedExample();
@@ -333,6 +334,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      * @param goal the {@link Goal}
      * @return the {@link Atom}
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     protected static Atom goalToAtom(Goal goal) {
         List<Term> terms = new ArrayList<>(goal.getArity());
         for (Argument argument : goal.getArgs()) {

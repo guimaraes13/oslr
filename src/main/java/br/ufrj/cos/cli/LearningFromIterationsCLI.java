@@ -105,6 +105,10 @@ public class LearningFromIterationsCLI extends LearningFromBatchCLI {
      */
     public static final int NO_RELEVANT_DEPTH_FILTER = -1;
     /**
+     * The default target relation to learn the theory.
+     */
+    public static final String DEFAULT_TARGET_RELATION = "examples";
+    /**
      * The example file extension.
      */
     public String examplesFileExtension = DEFAULT_EXAMPLES_FILE_EXTENSION;
@@ -127,7 +131,7 @@ public class LearningFromIterationsCLI extends LearningFromBatchCLI {
     /**
      * The target relation to learn the theory.
      */
-    public String targetRelation;
+    public String targetRelation = DEFAULT_TARGET_RELATION;
 
     /**
      * The set of selected relations to consider. If it is null (or empty), all the relations will be considered,

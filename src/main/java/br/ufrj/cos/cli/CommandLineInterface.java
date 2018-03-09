@@ -315,7 +315,6 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      * @throws FileNotFoundException if the file does not exists
      * @throws YamlException         if an error occurs when reading the yaml
      */
-    @SuppressWarnings("ImplicitDefaultCharsetUsage")
     protected <C extends CommandLineInterface> C readYamlFile(Class<C> clazz,
                                                               String defaultConfigurationFile)
             throws IOException {
@@ -463,9 +462,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     protected void buildOutputDirectory(String configFileContent) {
-        if (this.outputDirectoryPath != null) {
+        if (this.outputDirectoryPath != null && !this.outputDirectoryPath.isEmpty()) {
             outputDirectory = new File(this.outputDirectoryPath);
         } else {
+            //noinspection deprecation
             String suffix = DigestUtils.shaHex(Arrays.deepToString(cliArguments) + configFileContent);
             outputDirectory = new File(LanguageUtils.formatDirectoryName(this, suffix));
         }

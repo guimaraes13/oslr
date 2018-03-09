@@ -106,6 +106,7 @@ public final class ProPprUtils {
      * @param featureRules the possible feature rules from the clause
      * @return the {@link Rule}
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     protected static Rule clauseToRule(Clause clause, Collection<Rule> featureRules) {
         Goal lhs;                      //head
         Goal[] rhs = EMPTY_GOAL;       //body
@@ -137,6 +138,7 @@ public final class ProPprUtils {
      * @param clause the {@link Clause}
      * @return the {@link Rule}
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     protected static Rule clauseToRule(Clause clause) {
         Goal lhs = null;               //head
         Goal[] rhs = EMPTY_GOAL;       //body

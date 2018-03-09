@@ -952,6 +952,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
         saveInputHash();
 
         String outputHash = Hex.encodeHexString(totalHash.digest());
+        //noinspection deprecation
         String configHash = DigestUtils.shaHex(String.valueOf(hashCode()));
         totalHash = MessageDigest.getInstance(hashAlgorithm);
         totalHash.update(outputHash.getBytes(fileEncode));

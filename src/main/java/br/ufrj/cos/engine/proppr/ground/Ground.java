@@ -92,6 +92,7 @@ public class Ground<P extends ProofGraph> implements Callable<Ground<P>> {
      * @param includeUnlabeledGraphs if it is to include unlabeled graph
      * @param status                 the {@link StatusLogger}
      */
+    @SuppressWarnings("OverlyCoupledMethod")
     public Ground(InferenceExample inferenceExample, int id, Prover<P> prover, APROptions aprOptions,
                   SymbolTable<Feature> featureTable, WamProgram masterProgram,
                   WamPlugin[] masterPlugins, Grounder.GroundingStatistics statistics, boolean includeUnlabeledGraphs,
