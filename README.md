@@ -1,4 +1,4 @@
-#Online Structure Learner by Revision (OSLR)
+# Online Structure Learner by Revision (OSLR)
 
 OSLR is an online relational learning algorithm that can handle continuous, open-ended streams of relational examples as
 they arrive. We employ techniques from theory revision to take advantage of the already acquired knowledge as a starting
@@ -15,7 +15,7 @@ This project is under the GPL version 3.0, see the [file](LICENSE.md) for more d
 
 For further details, feel free to contact me at \<my first name\> \<my github id\> at gmail dot com.
 
-##ProPPR
+## ProPPR
 ProPPR is a system for probabilistic logic inference first presented at
 
 > Wang, W. Y., Mazaitis, K., Lao, N., & Cohen, W. W. (2015). Efficient inference and learning in a large knowledge base.
@@ -26,11 +26,11 @@ This system is under the Apache License version 2.0 and is publicly available at
 
 OSLR uses a slightly modified version of ProPPR, as such, its source has been included in this repository.
 
-##Dependencies
+## Dependencies
 - Java 8;
 - Maven;
 
-##Compile
+## Compile
 
 To compile the project, follow the steps below: <br>
 - Download or clone the repository;
@@ -40,19 +40,19 @@ To compile the project, follow the steps below: <br>
 This command will create a jar file `oslr-1.0-SNAPSHOT-jar-with-dependencies.jar`,
 with the correspondent dependencies, in the `target` directory.
 
-##Run
+## Run
 
 There are two ways of running the system: the iteration mode (default), which learns by a set of iterations; and the
 batch mode, which learns from a set of files. Next we will describe the files syntax, the examples bases and show how
 to learn in **iteration** and **batch** mode.
 
-###File Syntax
+### File Syntax
 
 There are two main syntax for the input files of the system. A logic syntax for the background knowledge and
 theories, both initial theories and output theories; and an example syntax for the examples. We will describe both of
 them below.
 
-####Logic Syntax
+#### Logic Syntax
 
 The logic syntax is simple, it is based on a function-free logic similar to Prolog. The elements are defined as follows:
 - A **variable** is represented by a string of letters, digits or underscores, starting with an upper case letter;
@@ -77,7 +77,7 @@ separated by commas between curly braces, for instance:
 
 See the [ProPPR system](https://github.com/TeamCohen/ProPPR) for more details about the language.
 
-####Example Syntax (ProPPR)
+#### Example Syntax (ProPPR)
 
 ProPPR defines an example as composed of a query of the type *p(X1,...,Xn)*, where *p* is a predicate, *n >= 1*, and
 *Xi in X1, ... ,Xn* is either a constant or a variable, and at least one term *Xi in X1, ... , Xn* must be a variable.
@@ -92,29 +92,29 @@ The first atom is the query and the others represent possible answers by groundi
 
 See the [ProPPR system](https://github.com/TeamCohen/ProPPR) for more details about the language.
 
-####Other Syntax
+#### Other Syntax
 
 Other syntax that might be useful for advanced configuration of the system are the yaml syntax and the Log4j 2 xml
 configuration syntax.
 
-#####Yaml
+##### Yaml
 
 For the yaml, we use the [YamlBeans](https://github.com/EsotericSoftware/yamlbeans) library, and their syntax can be
 found at their repository page.
 
-#####Log4j 2
+##### Log4j 2
 
 For the [Log4j 2](https://logging.apache.org/log4j/2.x/) from Apache, the configuration file is the xml file called
 [log4j2.xml](src/main/resources/log4j2.xml)
 placed at `src/main/resources`. The configuration syntax can be found at their page.
 
-###Example Base
+### Example Base
 
 In the [example folder](src/main/resources/examples) there are some examples based on the UWCSE dataset.
 
 > Richardson, M., & Domingos, P. (2006). Markov logic networks. Machine learning, 62(1-2), 107-136.
 
-###Iteration Mode
+### Iteration Mode
 
 The iteration mode is the default learning mode of the system. This mode simulate the online environment by passing
 the examples splitted by iterations.
@@ -123,7 +123,7 @@ The iteration mode is called through the class
 [LearningFromIterationsCLI](src/main/java/br/ufrj/cos/cli/LearningFromIterationsCLI.java).
 Alternatively, since it is the default mode, it can be called by simply running the jar file.
 
-####Input Files
+#### Input Files
 
 To run the iteration learning mode, we need to create a folder with the following structure in it:
 - A set of folders whose name starts with a **prefix** followed by a positive int number, the *iteration folders*;
@@ -137,7 +137,7 @@ The iteration folders will be sorted by the number after the prefix, and each it
 training. After training on iteration *i*, the iteration *i+1* is used to test the current model, before training on
 iteration *i+1*, at the end, the test results for each iteration are logged.
 
-####Output Files
+#### Output Files
 
 The output of the iteration mode is saved into a folder specified by the user. In this folder are saved the following
 files:
@@ -161,7 +161,7 @@ training set of the iteration;
 - **savedFeatureTheory.pl**, the features part of the learned ProPPR theory until at the end of the current iteration;
 - **savedParameters.wts**, the weights learned by ProPPR at the end of the current iteration;
 
-####Running
+#### Running
 
 The simplest way to call the learning from iterations mode is to run the command bellow, assuming the current
 directory is the base folder:
@@ -203,7 +203,7 @@ The output files will be saved in a directory named *\<targetRelation\>\_RUN\_\<
 specified by the *outputDirectory* option. To place the output files strictly in the *outputDirectory*, use the flag
 *--strictOutput* in the command line arguments.
 
-###Batch Mode
+### Batch Mode
 
 Another way of running the system is the batch mode. This mode assumes a fixed training set and optionally, a test set.
 It passes *n* examples (the default *n* is *10*) at a time to train the model, until no more examples are available in
@@ -212,14 +212,14 @@ the training set, finally, it tests the learned model (from the whole training s
 The batch mode is called through the class
 [LearningFromBatchCLI](src/main/java/br/ufrj/cos/cli/LearningFromBatchCLI.java).
 
-####Input Files
+#### Input Files
 
 To run the batch learning mode, we need to provide the following:
 - A set of positive facts, background knowledge;
 - A train set of examples;
 - A test set of examples (optional);
 
-####Output Files
+#### Output Files
 
 The output of the iteration mode is saved into a folder specified by the user. In this folder are saved the following
 files:
@@ -240,7 +240,7 @@ training set;
 - Others:
     - **statistics.yaml**, it is a machine-friendly file containing statistics about the runtime and evaluation measures;
 
-####Running
+#### Running
 
 The simplest way to call the learning from batch mode is to run the command bellow, assuming the current
 directory is the base folder:
@@ -282,7 +282,7 @@ The output files will be saved inside the directory specified by the *outputDire
 omitted, the files will be saved inside a directory called *LFBCLI\_\<hash of the configuration\>*, in the current
 directory.
 
-###Advanced Options
+### Advanced Options
 
 There are two ways of configuring the learning system:
 - By command line arguments, this is an easier but limited way.
@@ -315,10 +315,11 @@ The command line option allows other configurations beside the ones present in t
 the *--theory (or -t)* options allows one to pass an initial theory to the learning system.
 
 Furthermore, use the *--help (or -h)* flag to see the configurations of each class. Since the
-LearningFromIterationsCLI is a subclass of the LearningFromBatchCLI it has inherited some options from its parent,
-that might be ignored by it.
+[LearningFromIterationsCLI](src/main/java/br/ufrj/cos/cli/LearningFromIterationsCLI.java) is a subclass of the 
+[LearningFromBatchCLI](src/main/java/br/ufrj/cos/cli/LearningFromBatchCLI.java) it has inherited some options from its 
+parent, that might be ignored by it.
 
-###Log
+### Log
 This system uses the Apache Log4j 2 framework. The log configuration file is [log4j2.xml](src/main/resources/log4j2.xml)
 and is already a very verbose log.
 
