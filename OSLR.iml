@@ -48,15 +48,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.4" level="project" />
-    <orderEntry type="library" name="Maven: com.lmax:disruptor:3.3.6" level="project" />
-    <orderEntry type="library" name="Maven: com.esotericsoftware.yamlbeans:yamlbeans:1.11" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.5" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.8.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.8.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jfree:jfreechart:1.0.19" level="project" />
-    <orderEntry type="library" name="Maven: org.jfree:jcommon:1.0.23" level="project" />
-    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -69,5 +60,31 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.4" level="project" />
+    <orderEntry type="library" name="Maven: com.lmax:disruptor:3.3.6" level="project" />
+    <orderEntry type="library" name="Maven: com.esotericsoftware.yamlbeans:yamlbeans:1.11" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.5" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jfree:jfreechart:1.0.19" level="project" />
+    <orderEntry type="library" name="Maven: org.jfree:jcommon:1.0.23" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:commons-cli:1.3.1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:concurrentlinkedhashmap-lru:1.3.1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:geronimo-jta_1.1_spec:1.1.1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:java-bloomfilter-javadoc:1.0" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:java-bloomfilter-sources:1.0" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:java-bloomfilter:1.0" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:junit:4.11-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:junit-dep:4.11-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:la4j:0.4.5" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:log4j:1.2.16" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:log4j-api:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:log4j-core:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:lucene-core:3.6.2" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:org.apache.servicemix.bundles.jline:0.9.94_1" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:scala-library:2.10.0" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:server-api:1.9.4" level="project" />
+    <orderEntry type="library" name="Maven: dependence.proppr:trove:3.0.3" level="project" />
   </component>
 </module>

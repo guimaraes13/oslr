@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ public enum FileIOLog {
     READING_INPUT_FILES("Reading input file(s):\t{}"),
 
     ERROR_READING_FILE("Error when reading file, reason: {}"),
+    ERROR_READING_DEFAULT_CONFIGURATION_FILE("Error when reading default configuration file, reason: {}"),
     ERROR_WRITING_FILE("Error when writing file, reason: {}"),
     ERROR_READING_WRITING_FILE("Error when reading/writing file, reason: {}");
 

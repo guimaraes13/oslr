@@ -35,7 +35,6 @@ import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.statistics.IterationStatistics;
 import br.ufrj.cos.util.time.*;
-import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
@@ -557,7 +556,7 @@ public class LearningFromIterationsCLI extends LearningFromBatchCLI {
             cli.outputDirectoryPath = commandLine.getOptionValue(OUTPUT_DIRECTORY.getOptionName());
             cli.strictOutput = commandLine.hasOption(STRICT_OUTPUT_DIRECTORY.getOptionName());
             return cli;
-        } catch (FileNotFoundException | YamlException e) {
+        } catch (IOException e) {
             throw new CommandLineInterrogationException(e);
         }
     }

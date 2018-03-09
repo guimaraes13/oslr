@@ -22,6 +22,7 @@
 package br.ufrj.cos.cli;
 
 import br.ufrj.cos.util.*;
+import br.ufrj.cos.util.log.FileIOLog;
 import br.ufrj.cos.util.time.TimeUtils;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
@@ -39,7 +40,6 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.*;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
@@ -189,6 +189,10 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     public String configurationFilePath;
     /**
+     * The configuration file content.
+     */
+    public String configurationFileContent;
+    /**
      * The output directory to save the files in.
      */
     public String outputDirectoryPath;
@@ -259,20 +263,15 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
     protected <C extends CommandLineInterface> C readYamlFile(CommandLine commandLine,
                                                               Class<C> clazz,
                                                               String defaultConfigurationFile)
-            throws FileNotFoundException, YamlException {
-        File yamlFile;
+            throws IOException {
         if (commandLine.hasOption(CommandLineOptions.YAML.getOptionName())) {
-            yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
+            final File yamlFile = new File(commandLine.getOptionValue(CommandLineOptions.YAML.getOptionName()));
+            return readYamlFile(clazz, yamlFile);
         } else if (defaultConfigurationFile == null) {
             throw new FileNotFoundException(ExceptionMessages.ERROR_NO_YAML_FILE.toString());
-        } else {
-            final URL resource = getClass().getClassLoader().getResource(defaultConfigurationFile);
-            if (resource == null) {
-                throw new FileNotFoundException(ExceptionMessages.ERROR_FILE_NOT_IN_CLASS_PATH.toString());
-            }
-            yamlFile = new File(resource.getFile());
         }
-        return readYamlFile(clazz, yamlFile);
+
+        return readYamlFile(clazz, defaultConfigurationFile);
     }
 
     /**
@@ -291,6 +290,43 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
         YamlReader reader = new YamlReader(new FileReader(yamlFile));
         C cli = reader.read(clazz);
         cli.configurationFilePath = yamlFile.getAbsolutePath();
+        try {
+            cli.configurationFileContent = FileIOUtils.readFileToString(yamlFile.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error(FileIOLog.ERROR_READING_FILE.toString(), e);
+        }
+        return cli;
+    }
+
+    /**
+     * Read the yaml configuration and returns a version of the class from it.
+     *
+     * @param clazz                    the class
+     * @param defaultConfigurationFile the default configuration file
+     * @return the read {@link LearningFromBatchCLI}
+     * @throws FileNotFoundException if the file does not exists
+     * @throws YamlException         if an error occurs when reading the yaml
+     */
+    @SuppressWarnings("ImplicitDefaultCharsetUsage")
+    protected <C extends CommandLineInterface> C readYamlFile(Class<C> clazz,
+                                                              String defaultConfigurationFile)
+            throws IOException {
+        InputStream inputStream = null;
+        C cli = null;
+        try {
+            inputStream = getClass().getClassLoader().getResourceAsStream(defaultConfigurationFile);
+            YamlReader yamlReader =
+                    new YamlReader(new InputStreamReader(inputStream, FileIOUtils.DEFAULT_INPUT_ENCODE));
+            cli = yamlReader.read(clazz);
+            cli.configurationFilePath = defaultConfigurationFile;
+            inputStream.close();
+            inputStream = getClass().getClassLoader().getResourceAsStream(defaultConfigurationFile);
+            cli.configurationFileContent = FileIOUtils.readFileToString(inputStream);
+        } catch (IOException e) {
+            logger.error(FileIOLog.ERROR_READING_DEFAULT_CONFIGURATION_FILE.toString(), e);
+        } finally {
+            if (inputStream != null) { inputStream.close(); }
+        }
         return cli;
     }
 
@@ -322,8 +358,7 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
      */
     protected void saveConfigurations() throws InitializationException {
         try {
-            String configFileContent = FileIOUtils.readFileToString(configurationFilePath);
-            buildOutputDirectory(configFileContent);
+            buildOutputDirectory(configurationFileContent);
             final File standardOutputFile = getStandardOutputFile();
             File outputStdDirectory = standardOutputFile.getParentFile();
             if (!outputStdDirectory.exists()) {
@@ -336,11 +371,11 @@ public abstract class CommandLineInterface implements Runnable, Initializable {
             String commandLineArguments = formatArgumentsWithOption(cliArguments, CommandLineOptions.YAML.getOption(),
                                                                     configurationFile.getCanonicalPath());
             FileIOUtils.writeStringToFile(commandLineArguments, new File(outputDirectory, getArgumentFileName()));
-            FileIOUtils.writeStringToFile(configFileContent, configurationFile);
+            FileIOUtils.writeStringToFile(configurationFileContent, configurationFile);
 
             logger.info(COMMAND_LINE_ARGUMENTS.toString(),
                         Arrays.stream(cliArguments).collect(Collectors.joining(LanguageUtils.ARGUMENTS_SEPARATOR)));
-            logger.info(CONFIGURATION_FILE.toString(), configurationFilePath, configFileContent);
+            logger.info(CONFIGURATION_FILE.toString(), configurationFilePath, configurationFileContent);
         } catch (IOException e) {
             throw new InitializationException(e);
         }

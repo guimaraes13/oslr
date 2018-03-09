@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,6 @@ import br.ufrj.cos.util.nell.converter.AddAtomProcessor;
 import br.ufrj.cos.util.nell.converter.AtomProcessor;
 import br.ufrj.cos.util.nell.converter.FilterAtomProcessor;
 import br.ufrj.cos.util.time.TimeUtils;
-import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Hex;
@@ -307,7 +306,7 @@ public class NellBaseConverterCLI extends CommandLineInterface {
             NellBaseConverterCLI cli = readYamlFile(commandLine, NellBaseConverterCLI.class, null);
             cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName());
             return cli;
-        } catch (FileNotFoundException | YamlException e) {
+        } catch (IOException e) {
             throw new CommandLineInterrogationException(e);
         }
     }

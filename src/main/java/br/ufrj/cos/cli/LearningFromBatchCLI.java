@@ -58,7 +58,6 @@ import br.ufrj.cos.util.*;
 import br.ufrj.cos.util.statistics.RunStatistics;
 import br.ufrj.cos.util.time.RunTimeStamp;
 import br.ufrj.cos.util.time.TimeMeasure;
-import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
@@ -792,7 +791,7 @@ public class LearningFromBatchCLI extends CommandLineInterface {
             cli.outputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.OUTPUT_DIRECTORY.getOptionName(),
                                                                  cli.outputDirectoryPath);
             return cli;
-        } catch (FileNotFoundException | YamlException e) {
+        } catch (IOException e) {
             throw new CommandLineInterrogationException(e);
         }
     }

@@ -31,7 +31,6 @@ import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.InitializationException;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.Plot2D;
-import com.esotericsoftware.yamlbeans.YamlException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,7 +38,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -158,7 +156,7 @@ public class TestCLI extends CommandLineInterface {
                                                       cli.exampleFilePaths);
             cli.inputDirectoryPath = commandLine.getOptionValue(CommandLineOptions.INPUT_DIRECTORY.getOptionName());
             return cli;
-        } catch (FileNotFoundException | YamlException e) {
+        } catch (IOException e) {
             throw new CommandLineInterrogationException(e);
         }
     }

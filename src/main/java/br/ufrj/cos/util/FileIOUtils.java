@@ -3,7 +3,7 @@
  * programs from data and use its learned programs to make inference
  * and answer queries.
  *
- * Copyright (C) 2017 Victor Guimarães
+ * Copyright (C) 2018 Victor Guimarães
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,6 +105,21 @@ public final class FileIOUtils {
      */
     public static String readFileToString(String filePath) throws IOException {
         return readFileToString(new File(filePath));
+    }
+
+    /**
+     * Reads a inputStream to a {@link String}
+     *
+     * @param inputStream the input stream
+     * @return the content of the input stream
+     * @throws FileNotFoundException        if the input stream does not exists
+     * @throws UnsupportedEncodingException if the encoding is not supported
+     */
+    public static String readFileToString(InputStream inputStream) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,
+                                                                              DEFAULT_INPUT_ENCODE))) {
+            return reader.lines().collect(Collectors.joining("\n")).trim();
+        }
     }
 
     /**
