@@ -8,3 +8,4 @@ git.properties
 .DS_Store
 build.*
 .gitignore
+*.pyc

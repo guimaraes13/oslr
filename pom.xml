@@ -205,7 +205,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>br.ufrj.cos.cli.LearningFromBatchCLI</mainClass>
+                            <mainClass>br.ufrj.cos.cli.LearningFromIterationsCLI</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
