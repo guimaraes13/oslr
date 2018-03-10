@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/OSLR.iml" filepath="$PROJECT_DIR$/OSLR.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../ProgramNotifier/program-notifier.iml" filepath="$PROJECT_DIR$/../ProgramNotifier/program-notifier.iml" />
-    </modules>
-  </component>
-</project>
