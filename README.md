@@ -7,9 +7,10 @@ Hoeffding's bound statistical theory to decide if the model must in fact be upda
 The system is built upon ProPPR statistical relational language to describe the induced models, aiming at contemplating
 the uncertainty inherent to real data.
 
-This system was developed as a product of a master theses at the Program of Systems Engendering and Computer Science,
+This system was developed as a product of a master thesis at the Program of Systems Engendering and Computer Science,
 COPPE, Federal University of Rio de Janeiro (UFRJ). The research was funded by Conselho Nacional de Desenvolvimento
-Científico e Tecnológico (CNPq). The work was supervised by Gerson Zaverucha (UFRJ) and Aline Paes (UFF).
+Científico e Tecnológico (CNPq). The work was supervised by Professor Gerson Zaverucha (UFRJ) and Prof. Aline Paes 
+(UFF).
 
 This project is under the GPL version 3.0, see the [file](LICENSE.md) for more details.
 
