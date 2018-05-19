@@ -55,6 +55,8 @@ public enum NellConverterLog {
     TOTAL_NUMBER_NEGATIVES_RATE("Total number of negatives:\t{}{}%"),
     TOTAL_NUMBER_POSITIVES("Total number of positives:\t{}"),
     TOTAL_NUMBER_NEGATIVES("Total number of negatives:\t{}"),
+    PROCESSED_NUMBER_EXAMPLES("Processed\t{} of {} \texamples"),
+    FILTERING_EXAMPLES("Filtering examples to {} percent"),
     FILE_CONTAINS_LINES("File:\t{}\tContains {} lines"),
 
     DONE_ITERATION("Done iteration:\t\t\t{}"),

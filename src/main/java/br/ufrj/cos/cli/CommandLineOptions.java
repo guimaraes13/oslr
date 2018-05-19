@@ -99,6 +99,11 @@ public enum CommandLineOptions {
                         .hasArgs(Option.UNLIMITED_VALUES)
                         .withDescription("the input files.")
                         .create("i")),
+    OUTPUT_FILE(OptionBuilder.withArgName("output")
+                        .withLongOpt("outputFile")
+                        .hasArg()
+                        .withDescription("the output file.")
+                        .create("o")),
     OUTPUT_FILES(OptionBuilder.withArgName("output")
                          .withLongOpt("outputFiles")
                          .hasArg()
@@ -115,6 +120,18 @@ public enum CommandLineOptions {
                            .withDescription("the directory of the iterations data. If not specified, the program " +
                                                     "will try to read it from a yaml configuration file.")
                            .create("d")),
+    PERCENTAGE_FILTER(OptionBuilder.withArgName("percentageFilter")
+                              .withLongOpt("percentageFilter")
+                              .hasArg()
+                              .withDescription("Filters at random, the elements of the initial collection of " +
+                                                       "examples, " +
+                                                       "returning only the percentage defined by this option.")
+                              .create("f")),
+    DEPTH(OptionBuilder.withArgName("relevantsDepth")
+                  .withLongOpt("relevantsDepth")
+                  .hasArg()
+                  .withDescription("The relevantsDepth of the knowledge base.")
+                  .create("d")),
     ITERATION_PREFIX(OptionBuilder.withArgName("iterationPrefix")
                              .withLongOpt("iterationPrefix")
                              .hasArg()

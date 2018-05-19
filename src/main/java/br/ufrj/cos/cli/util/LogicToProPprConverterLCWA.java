@@ -30,6 +30,7 @@
 package br.ufrj.cos.cli.util;
 
 import br.ufrj.cos.cli.CommandLineInterface;
+import br.ufrj.cos.cli.CommandLineInterrogationException;
 import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.logic.Atom;
@@ -39,11 +40,13 @@ import br.ufrj.cos.logic.parser.knowledge.ParseException;
 import br.ufrj.cos.util.FileIOUtils;
 import br.ufrj.cos.util.LanguageUtils;
 import br.ufrj.cos.util.time.TimeUtils;
+import org.apache.commons.cli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static br.ufrj.cos.cli.CommandLineOptions.PERCENTAGE_FILTER;
 import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.NellConverterLog.*;
 
@@ -61,6 +64,14 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
      * The maximum number of attempts to create a corrupt version of the current example.
      */
     public static final int MAXIMUM_ATTEMPTS = 100;
+    /**
+     * The default value of the percentage of examples to be used.
+     */
+    public static final double DEFAULT_PERCENTAGE_FILTER = 1.0;
+    /**
+     * The percentage of examples to be used.
+     */
+    public double percentageFilter = DEFAULT_PERCENTAGE_FILTER;
 
     /**
      * The main method
@@ -81,6 +92,21 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
     }
 
     @Override
+    protected void initializeOptions() {
+        super.initializeOptions();
+        options.addOption(PERCENTAGE_FILTER.getOption());
+    }
+
+    @Override
+    public CommandLineInterface parseOptions(CommandLine commandLine) throws CommandLineInterrogationException {
+        super.parseOptions(commandLine);
+        if (commandLine.hasOption(PERCENTAGE_FILTER.getOptionName())) {
+            percentageFilter = Double.parseDouble(commandLine.getOptionValue(PERCENTAGE_FILTER.getOptionName()));
+        }
+        return this;
+    }
+
+    @Override
     protected void convertExamplesFromLogic(File dataDirectory, String filePrefix)
             throws IOException, ParseException {
         File positiveFile = new File(dataDirectory, filePrefix + positiveExtension);
@@ -89,6 +115,8 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
         FileIOUtils.readAtomKnowledgeFromFile(positiveFile, positives, atomFactory);
 
         logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
+        positives = filterAtRandom(positives);
+        logger.debug(TOTAL_NUMBER_POSITIVES.toString(), numberFormat.format(positives.size()));
         Collection<? extends ProPprExample> examples = convertAtomToExamples(positives, Collections.emptySet());
         logger.debug(TOTAL_NUMBER_EXAMPLES_PROPPR.toString(), numberFormat.format(examples.size()));
         if (negativePortionFilter >= 0.0) { examples = generateNegatives(positives, examples); }
@@ -96,6 +124,30 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
         final File outputFile = new File(outputDirectory, filePrefix + examplesFileExtension);
         FileIOUtils.saveExamplesToFile(examples, outputFile);
         logger.debug(EXAMPLES_SAVING.toString(), outputFile.getName());
+    }
+
+    /**
+     * Filter the elements at random returning a set of size collection * {@link #percentageFilter}, if
+     * {@link #percentageFilter} < 1.0; or collection, otherwise.
+     *
+     * @param collection the initial collection
+     * @param <E>        the type of the elements in collection
+     * @return the new filtered collection
+     */
+    protected <E> List<E> filterAtRandom(List<E> collection) {
+        if (percentageFilter < 1.0) {
+            final List<E> elements = new ArrayList<>();
+            if (percentageFilter > 0.0) {
+                logger.debug(FILTERING_EXAMPLES.toString(), percentageFilter * 100);
+                Random rand = getRandom();
+                for (E e : collection) {
+                    if (rand.nextDouble() < percentageFilter) { elements.add(e); }
+                }
+            }
+            return elements;
+        } else {
+            return collection;
+        }
     }
 
     /**
@@ -143,7 +195,12 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
         return answer;
     }
 
-    @SuppressWarnings("OverlyLongMethod")
+    @Override
+    public String toString() {
+        return super.toString() + "\tExamples Extension:\t" + examplesFileExtension + "\n";
+    }
+
+    @SuppressWarnings({"OverlyLongMethod", "OverlyComplexMethod"})
     private Collection<? extends ProPprExample> generateNegativeExamples(Collection<? extends Atom> positives,
                                                                          Collection<? extends ProPprExample> examples,
                                                                          Map<Predicate, List<Term>> termsByPredicate,
@@ -152,6 +209,9 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
         final Random termRandom = getRandom();
         final Set<ProPprExample> examplesWithNegatives = new LinkedHashSet<>();
         int totalOfNegatives = 0;
+        final int totalOfExamples = examples.size();
+        final int percentage = totalOfExamples / 100;
+        int processedExamples = 0;
         for (ProPprExample example : examples) {
             final int positiveCount = (int) example.getGroundedQuery().stream().filter(AtomExample::isPositive).count();
             final int negativeExamples = (int) (negativePortionFilter * positiveCount);
@@ -182,6 +242,11 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
                 atomExamples.add(new AtomExample(predicate, negative.getTerms(), false));
             }
             examplesWithNegatives.add(new ProPprExample(example.getGoal(), atomExamples));
+            processedExamples++;
+            if (processedExamples % percentage == 0) {
+                logger.debug(PROCESSED_NUMBER_EXAMPLES.toString(),
+                             numberFormat.format(processedExamples), numberFormat.format(totalOfExamples));
+            }
         }
         logger.debug(TOTAL_NUMBER_NEGATIVES.toString(), numberFormat.format(totalOfNegatives));
         return examplesWithNegatives;
