@@ -36,6 +36,8 @@ import br.ufrj.cos.engine.proppr.ground.InferenceExampleIterable;
 import br.ufrj.cos.engine.proppr.query.answerer.Answer;
 import br.ufrj.cos.engine.proppr.query.answerer.InMemoryQueryAnswerer;
 import br.ufrj.cos.engine.proppr.query.answerer.QueryIterable;
+import br.ufrj.cos.knowledge.Knowledge;
+import br.ufrj.cos.knowledge.base.FunctionsPlugin;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -98,6 +100,10 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     public static final String FACTS_PLUGIN_NAME = "facts";
     /**
+     * The functions plugins name.
+     */
+    public static final String FUNCTIONS_PLUGIN_NAME = "functions";
+    /**
      * No limits on the number of solutions.
      */
     public static final int NO_MAX_SOLUTIONS = -1;
@@ -156,6 +162,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     protected SRW srw = new SRW();
     // Input
     protected FactsPlugin factsPlugin;
+    protected FunctionsPlugin functionsPlugin = new FunctionsPlugin(aprOptions, FUNCTIONS_PLUGIN_NAME);
     protected WamProgram program;
 
     // Processing
@@ -185,7 +192,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         if (this.prover == null) { this.prover = (Prover<P>) new DprProver(aprOptions); }
         this.prover.apr = aprOptions;
         this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
-                                               program, factsPlugin);
+                                               program, functionsPlugin, factsPlugin);
         this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
         //IMPROVE: set srw random seed
         this.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
@@ -423,18 +430,17 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     /**
-     * Copes the Answerer to infer example in parallel..
+     * After calling this method, the {@link #initialize()} method must be called, for the changes in the knowledge
+     * base to take effect.
+     * {@inheritDoc}
      *
-     * @param parameters the {@link ParamVector}
-     * @param program    the {@link WamProgram}
-     * @return the copy of the answerer
+     * @param functionBase the {@link KnowledgeBase}
      */
-    protected InMemoryQueryAnswerer<P> buildAnswerer(ParamVector<String, ?> parameters, WamProgram program) {
-        Prover<P> prover = this.prover.copy();
-        InMemoryQueryAnswerer<P> answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
-        answerer.addParams(prover, parameters, squashingFunction);
-        return answerer;
+    @Override
+    public synchronized void setFunctionBase(Knowledge<FunctionalSymbol> functionBase) {
+        this.functionBase = functionBase;
+        this.functionsPlugin = buildFunctionPlugin(aprOptions);
+        addFunctionsToKnowledgeBase(functionBase);
     }
 
     @Override
@@ -464,6 +470,27 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         this.knowledgeBase = knowledgeBase;
         this.factsPlugin = buildFactsPlugin(aprOptions, useTernayIndex);
         addAtomsToKnowledgeBase(knowledgeBase);
+    }
+
+    /**
+     * Builds the {@link FunctionsPlugin}. It is the internal representation of functions used by ProPPR.
+     *
+     * @param aprOptions the {@link APROptions}
+     * @return the {@link FunctionsPlugin}
+     */
+    protected static FunctionsPlugin buildFunctionPlugin(APROptions aprOptions) {
+        return new FunctionsPlugin(aprOptions, FUNCTIONS_PLUGIN_NAME);
+    }
+
+    /**
+     * Adds the functional symbols from the function base into the plugin.
+     *
+     * @param functionBase the function base
+     */
+    protected void addFunctionsToKnowledgeBase(Knowledge<FunctionalSymbol> functionBase) {
+        for (FunctionalSymbol functionalSymbol : functionBase) {
+            functionsPlugin.addFunctionalSymbol(functionalSymbol);
+        }
     }
 
     /**
@@ -536,6 +563,16 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         FactsPlugin factsPlugin = new FactsPlugin(aprOptions, FACTS_PLUGIN_NAME, useTernayIndex);
         addTrueFalseFacts(factsPlugin);
         return factsPlugin;
+    }
+
+    /**
+     * Copes the Answerer to infer example in parallel without retraining parameters.
+     *
+     * @return the copy of the answerer
+     */
+    protected InMemoryQueryAnswerer<P> buildAnswerer() {
+        return new InMemoryQueryAnswerer<>(aprOptions, program, new
+                WamPlugin[]{functionsPlugin, factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
     }
 
     @Override
@@ -624,13 +661,18 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     /**
-     * Copes the Answerer to infer example in parallel without retraining parameters.
+     * Copes the Answerer to infer example in parallel..
      *
+     * @param parameters the {@link ParamVector}
+     * @param program    the {@link WamProgram}
      * @return the copy of the answerer
      */
-    protected InMemoryQueryAnswerer<P> buildAnswerer() {
-        return new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
+    protected InMemoryQueryAnswerer<P> buildAnswerer(ParamVector<String, ?> parameters, WamProgram program) {
+        Prover<P> prover = this.prover.copy();
+        InMemoryQueryAnswerer<P> answerer = new InMemoryQueryAnswerer<>(aprOptions, program, new
+                WamPlugin[]{functionsPlugin, factsPlugin}, prover, normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
+        answerer.addParams(prover, parameters, squashingFunction);
+        return answerer;
     }
 
     /**
@@ -641,7 +683,8 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     protected InMemoryQueryAnswerer<P> buildAnswerer(WamProgram program) {
         return new InMemoryQueryAnswerer<>(aprOptions, program, new
-                WamPlugin[]{factsPlugin}, prover.copy(), normalizeAnswers, numberOfThreads, NO_MAX_SOLUTIONS);
+                WamPlugin[]{functionsPlugin, factsPlugin}, prover.copy(), normalizeAnswers, numberOfThreads,
+                                           NO_MAX_SOLUTIONS);
     }
 
     /**
@@ -672,7 +715,7 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
      */
     protected InMemoryGrounder<P> buildGrounder(WamProgram program) {
         return new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover.copy(),
-                                      program, factsPlugin);
+                                      program, functionsPlugin, factsPlugin);
     }
 
     /**

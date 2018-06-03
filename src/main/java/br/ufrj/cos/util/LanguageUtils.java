@@ -91,6 +91,10 @@ public final class LanguageUtils {
      */
     public static final String WEIGHT_SIGN = "::";
     /**
+     * The function sign.
+     */
+    public static final String FUNCTION_SIGN = "#";
+    /**
      * The feature opening character.
      */
     public static final String FEATURES_OPEN_ARGUMENT_CHARACTER = "{";
@@ -222,6 +226,37 @@ public final class LanguageUtils {
     }
 
     /**
+     * Formats a {@link Iterable} of {@link Object}s to {@link String}, separated by
+     * {@link #LIST_ARGUMENTS_SEPARATOR}. It calls the {@link #toString} method for each {@link Object}.
+     *
+     * @param objects the {@link Iterable} of {@link Object}s
+     * @return the formatted {@link String}
+     */
+    public static String iterableToString(Iterable<?> objects) {
+        StringBuilder stringBuilder = new StringBuilder();
+        objects.forEach(o -> stringBuilder.append(o).append(LIST_ARGUMENTS_SEPARATOR));
+        stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
+        return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Formats a {@link FunctionalSymbol} to {@link String}.
+     *
+     * @param function the {@link FunctionalSymbol}
+     * @return the formatted {@link String}
+     */
+    public static String formatFunctionalSymbol(FunctionalSymbol function) {
+        return FUNCTION_SIGN +
+                String.valueOf(function.getHead()) +
+                " " +
+                IMPLICATION_SIGN +
+                " \"" +
+                function.getFunction() +
+                "\"" +
+                CLAUSE_END_OF_LINE;
+    }
+
+    /**
      * Formats the {@link ProPprExample} to {@link String}.
      *
      * @param proPprExample the{@link ProPprExample}
@@ -250,36 +285,6 @@ public final class LanguageUtils {
     }
 
     /**
-     * Formats the {@link AtomExample} to {@link String} in the ProbLog format.
-     *
-     * @param atomExample the {@link AtomExample}
-     * @return the formatted {@link String}
-     */
-    public static String formatExampleToProbLogString(AtomExample atomExample) {
-        return PROBLOG_EXAMPLE_PREDICATE +
-                PREDICATE_OPEN_ARGUMENT_CHARACTER +
-                formatAtomToString(atomExample) +
-                LIST_ARGUMENTS_SEPARATOR +
-                (atomExample.isPositive() ? PROBLOG_POSITIVE_EXAMPLE_FLAG : PROBLOG_NEGATIVE_EXAMPLE_FLAG) +
-                PREDICATE_CLOSE_ARGUMENT_CHARACTER +
-                CLAUSE_END_OF_LINE;
-    }
-
-    /**
-     * Formats a {@link Iterable} of {@link Object}s to {@link String}, separated by
-     * {@link #LIST_ARGUMENTS_SEPARATOR}. It calls the {@link #toString} method for each {@link Object}.
-     *
-     * @param objects the {@link Iterable} of {@link Object}s
-     * @return the formatted {@link String}
-     */
-    public static String iterableToString(Iterable<?> objects) {
-        StringBuilder stringBuilder = new StringBuilder();
-        objects.forEach(o -> stringBuilder.append(o).append(LIST_ARGUMENTS_SEPARATOR));
-        stringBuilder.delete(stringBuilder.length() - LIST_ARGUMENTS_SEPARATOR.length(), stringBuilder.length());
-        return stringBuilder.toString().trim();
-    }
-
-    /**
      * Formats the {@link Atom} to {@link String}.
      *
      * @param atom the {@link Atom}
@@ -296,6 +301,22 @@ public final class LanguageUtils {
         }
 
         return stringBuilder.toString().trim();
+    }
+
+    /**
+     * Formats the {@link AtomExample} to {@link String} in the ProbLog format.
+     *
+     * @param atomExample the {@link AtomExample}
+     * @return the formatted {@link String}
+     */
+    public static String formatExampleToProbLogString(AtomExample atomExample) {
+        return PROBLOG_EXAMPLE_PREDICATE +
+                PREDICATE_OPEN_ARGUMENT_CHARACTER +
+                formatAtomToString(atomExample) +
+                LIST_ARGUMENTS_SEPARATOR +
+                (atomExample.isPositive() ? PROBLOG_POSITIVE_EXAMPLE_FLAG : PROBLOG_NEGATIVE_EXAMPLE_FLAG) +
+                PREDICATE_CLOSE_ARGUMENT_CHARACTER +
+                CLAUSE_END_OF_LINE;
     }
 
     /**
@@ -424,24 +445,6 @@ public final class LanguageUtils {
     }
 
     /**
-     * Checks if two atoms have the same terms, considering that two terms are the same if they have the same
-     * name. It is weaker that the equals method from the {@link Variable}.
-     *
-     * @param a1 the first atom
-     * @param a2 the second atom
-     * @return {@code true} if the atoms have the same variables, {@code false} otherwise.
-     */
-    public static boolean doesAtomsHaveTheSameVariables(Atom a1, Atom a2) {
-        if (!a1.getPredicate().equals(a2.getPredicate())) { return false; }
-        for (int i = 0; i < a1.getArity(); i++) {
-            if (!a1.getTerms().get(i).getName().equals(a2.getTerms().get(i).getName())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Unifies the given atom to the given goal and returns the substitution {@link Map} of the {@link Term}s. If the
      * unification is not possibly, returns null.
      *
@@ -517,6 +520,24 @@ public final class LanguageUtils {
         }
 
         return variableMap;
+    }
+
+    /**
+     * Checks if two atoms have the same terms, considering that two terms are the same if they have the same
+     * name. It is weaker that the equals method from the {@link Variable}.
+     *
+     * @param a1 the first atom
+     * @param a2 the second atom
+     * @return {@code true} if the atoms have the same variables, {@code false} otherwise.
+     */
+    public static boolean doesAtomsHaveTheSameVariables(Atom a1, Atom a2) {
+        if (!a1.getPredicate().equals(a2.getPredicate())) { return false; }
+        for (int i = 0; i < a1.getArity(); i++) {
+            if (!a1.getTerms().get(i).getName().equals(a2.getTerms().get(i).getName())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

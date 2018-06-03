@@ -67,6 +67,31 @@ public enum CommandLineOptions {
                      .hasArgs(Option.UNLIMITED_VALUES)
                      .withDescription("the input example file(s).")
                      .create("e")),
+    QUERIES(OptionBuilder.withArgName("queries")
+                    .withLongOpt("queries")
+                    .hasArgs(Option.UNLIMITED_VALUES)
+                    .withDescription("the input query file(s).")
+                    .create("q")),
+    WORKING_DIRECTORY(OptionBuilder.withArgName("workingDirectory")
+                              .withLongOpt("workingDirectory")
+                              .hasArg()
+                              .withDescription("the working directory with the logic engine parameter file(s).")
+                              .create("w")),
+    PROPPR_ALPHA_PARAMETER(OptionBuilder.withArgName("alpha")
+                                   .withLongOpt("alpha")
+                                   .hasArg()
+                                   .withDescription("sets the alpha parameter of the ProPPR (default: 0.1).")
+                                   .create("a")),
+    PROPPR_EPSILON_PARAMETER(OptionBuilder.withArgName("epsilon")
+                                     .withLongOpt("epsilon")
+                                     .hasArg()
+                                     .withDescription("sets the epsilon parameter of the ProPPR (default: 1e-4).")
+                                     .create("e")),
+    PROPPR_MAX_DEPTH_PARAMETER(OptionBuilder.withArgName("maxDepth")
+                                       .withLongOpt("maxDepth")
+                                       .hasArg()
+                                       .withDescription("sets the max depth parameter of the ProPPR (default: 20).")
+                                       .create("d")),
     TEST(OptionBuilder.withArgName("test")
                  .withLongOpt("test")
                  .hasArgs(Option.UNLIMITED_VALUES)

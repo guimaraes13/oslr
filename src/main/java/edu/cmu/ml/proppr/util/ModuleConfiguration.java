@@ -388,7 +388,8 @@ public class ModuleConfiguration extends Configuration {
         if (srw != null) {
             sb.append(String.format(FORMAT_STRING, "Walker")).append(": ").append(srw.getClass().getCanonicalName()).append("\n");
             sb.append(String.format(FORMAT_STRING, "Regularizer")).append(": ").append(srw.getRegularizer().description()).append("\n");
-            sb.append(String.format(FORMAT_STRING, "Loss Function")).append(": ").append(srw.getLossFunction().getClass().getCanonicalName()).append("\n");
+            sb.append(String.format(FORMAT_STRING, "Loss FunctionalSymbol")).append(": ").append(srw.getLossFunction
+                    ().getClass().getCanonicalName()).append("\n");
         }
         if (squashingFunction != null) {
             sb.append(String.format(FORMAT_STRING, "Squashing function")).append(": ").append(squashingFunction

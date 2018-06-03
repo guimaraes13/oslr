@@ -38,6 +38,7 @@ import br.ufrj.cos.util.AtomFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.script.ScriptException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
@@ -76,7 +77,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         return clause;
     }
 
-    private final int[] jj_la1 = new int[17];
+    private final int[] jj_la1 = new int[19];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
     /**
@@ -117,7 +118,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -129,7 +130,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -140,12 +141,12 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     private static void jj_la1_init_0() {
-        jj_la1_0 = new int[]{0x240, 0x240, 0x1, 0x1, 0x40, 0x1000, 0x280, 0x1000, 0x240, 0x4000, 0x30000, 0x1000,
-                0x400, 0x40, 0x40300, 0x40200, 0x80,};
+        jj_la1_0 = new int[]{0x1004c0, 0x1004c0, 0x1, 0x1, 0xc0, 0x2000, 0x500, 0x2000, 0x4c0, 0x8000, 0x60000,
+                0x100400, 0xc0, 0x2000, 0x800, 0xc0, 0x200600,0x200400,0x100,};
     }
 
     @Override
@@ -165,7 +166,9 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         while (true) {
             switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
                 case DECIMAL:
-                case CONSTANT: {
+                case INTEGER:
+                case CONSTANT:
+                case FUNCTION_DEFINITION_SIGN: {
                     break;
                 }
                 default:
@@ -186,7 +189,9 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         while (true) {
             switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
                 case DECIMAL:
-                case CONSTANT: {
+                case INTEGER:
+                case CONSTANT:
+                case FUNCTION_DEFINITION_SIGN: {
                     break;
                 }
                 default:
@@ -239,7 +244,8 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
 //	Map variableMap;
 
         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-            case DECIMAL: {
+            case DECIMAL:
+            case INTEGER: {
                 weight = readDecimal();
                 jj_consume_token(WEIGHT_SEPARATOR);
                 weighted = true;
@@ -248,89 +254,125 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
             default:
                 jj_la1[4] = jj_gen;
         }
-        atom = readAtom(variableMap);
         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-            case END_OF_LINE_CHARACTER: {
-                jj_consume_token(END_OF_LINE_CHARACTER);
-                if (weighted) {
-                    atom = new WeightedAtom(weight, atom);
-                }
-                clause = atom;
-                break;
-            }
-            case IMPLICATION_SIGN: {
-                jj_consume_token(IMPLICATION_SIGN);
-                body = new ArrayList();
+            case CONSTANT: {
+                atom = readAtom(variableMap);
                 switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                    case NEGATION:
-                    case CONSTANT: {
-                        readLiteral(body, variableMap);
-                        label_3:
-                        while (true) {
-                            switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                                case LIST_SEPARATOR: {
-                                    break;
-                                }
-                                default:
-                                    jj_la1[5] = jj_gen;
-                                    break label_3;
-                            }
-                            jj_consume_token(LIST_SEPARATOR);
-                            readLiteral(body, variableMap);
-                        }
+                    case END_OF_LINE_CHARACTER:{
+                        jj_consume_token(END_OF_LINE_CHARACTER);
+if (weighted) {
+    atom = new WeightedAtom(weight, atom);
+}
+                        clause = atom;
                         break;
                     }
-                    default:
-                        jj_la1[6] = jj_gen;
-                }
-                switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                    case OPEN_FEATURES: {
-                        jj_consume_token(OPEN_FEATURES);
-                        features = new ArrayList();
+                    case IMPLICATION_SIGN: {
+                        jj_consume_token(IMPLICATION_SIGN);
+                        body = new ArrayList();
                         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                            case DECIMAL:
+                            case NEGATION:
                             case CONSTANT: {
-                                readFeature(features, variableMap);
-                                label_4:
+                                readLiteral(body, variableMap);
+                                label_3:
                                 while (true) {
                                     switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
                                         case LIST_SEPARATOR: {
                                             break;
                                         }
                                         default:
-                                            jj_la1[7] = jj_gen;
-                                            break label_4;
+                                            jj_la1[5] = jj_gen;
+                                            break label_3;
                                     }
                                     jj_consume_token(LIST_SEPARATOR);
-                                    readFeature(features, variableMap);
+                                    readLiteral(body, variableMap);
                                 }
                                 break;
                             }
                             default:
-                                jj_la1[8] = jj_gen;
+                                jj_la1[6] = jj_gen;
                         }
-                        jj_consume_token(CLOSE_FEATURES);
+                        switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+                            case OPEN_FEATURES: {
+                                jj_consume_token(OPEN_FEATURES);
+                                features = new ArrayList();
+                                switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+                                    case DECIMAL:
+                                    case INTEGER:
+                                    case CONSTANT: {
+                                        readFeature(features, variableMap);
+                                        label_4:
+                                        while (true) {
+                                            switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+                                                case LIST_SEPARATOR: {
+                                                    break;
+                                                }
+                                                default:
+                                                    jj_la1[7] = jj_gen;
+                                                    break label_4;
+                                            }
+                                            jj_consume_token(LIST_SEPARATOR);
+                                            readFeature(features, variableMap);
+                                        }
+                                        break;
+                                    }
+                                    default:
+                                        jj_la1[8] = jj_gen;
+                                }
+                                jj_consume_token(CLOSE_FEATURES);
+                                break;
+                            }
+                            default:
+                                jj_la1[9] = jj_gen;
+                        }
+                        jj_consume_token(END_OF_LINE_CHARACTER);
+if (features != null) {
+    clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
+} else if (weighted) {
+    clause = new WeightedClause(weight, atom, new Conjunction(body));
+} else {
+    clause = new HornClause(atom, new Conjunction(body));
+}
                         break;
                     }
                     default:
-                        jj_la1[9] = jj_gen;
-                }
-                jj_consume_token(END_OF_LINE_CHARACTER);
-                if (features != null) {
-                    clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
-                } else if (weighted) {
-                    clause = new WeightedClause(weight, atom, new Conjunction(body));
-                } else {
-                    clause = new HornClause(atom, new Conjunction(body));
+                        jj_la1[10] = jj_gen;
+                        jj_consume_token(-1);
+                        throw new ParseException();
                 }
                 break;
             }
+            case FUNCTION_DEFINITION_SIGN: {
+                jj_consume_token(FUNCTION_DEFINITION_SIGN);
+                clause = readFunction();
+                break;
+            }
             default:
-                jj_la1[10] = jj_gen;
+                jj_la1[11] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
         {if ("" != null) { return clause; }}
+        throw new Error("Missing return statement in function");
+    }
+
+    public final FunctionalSymbol readFunction() throws ParseException {
+        String predicate;
+        Token arityToken;
+        Token function;
+        int arity;
+        predicate = readPredicate();
+        jj_consume_token(ARITY_SEPARATOR_CHARACTER);
+        arityToken = jj_consume_token(INTEGER);
+        arity = Integer.parseInt(arityToken.image);
+        jj_consume_token(IMPLICATION_SIGN);
+        function = jj_consume_token(QUOTED);
+        function.image = function.image.substring(1, function.image.length() - 1);
+        jj_consume_token(END_OF_LINE_CHARACTER);
+        try {
+            {if ("" != null) { return new FunctionalSymbol(new Predicate(predicate, arity), function.image); }}
+        } catch (ScriptException e) {
+            {if (true) { throw new ParseException("Bad formatted function:\t" + e.getMessage()); }}
+        }
         throw new Error("Missing return statement in function");
     }
 
@@ -343,7 +385,20 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
 
     public final double readDecimal() throws ParseException {
         Token decimal;
-        decimal = jj_consume_token(DECIMAL);
+        switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+            case DECIMAL: {
+                decimal = jj_consume_token(DECIMAL);
+                break;
+            }
+            case INTEGER: {
+                decimal = jj_consume_token(INTEGER);
+                break;
+            }
+            default:
+                jj_la1[12] = jj_gen;
+                jj_consume_token(-1);
+                throw new ParseException();
+        }
         {if ("" != null) { return Double.parseDouble(decimal.image); }}
         throw new Error("Missing return statement in function");
     }
@@ -363,7 +418,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
                             break;
                         }
                         default:
-                            jj_la1[11] = jj_gen;
+                            jj_la1[13] = jj_gen;
                             break label_5;
                     }
                     jj_consume_token(LIST_SEPARATOR);
@@ -373,7 +428,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
                 break;
             }
             default:
-                jj_la1[12] = jj_gen;
+                jj_la1[14] = jj_gen;
         }
         Predicate value = factory.getPredicate(predicate, terms.size());
         {if ("" != null) { return new Atom(value, terms); }}
@@ -385,14 +440,15 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         double weight = -1;
         Atom atom = null;
         switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-            case DECIMAL: {
+            case DECIMAL:
+            case INTEGER: {
                 weight = readDecimal();
                 jj_consume_token(WEIGHT_SEPARATOR);
                 weighted = true;
                 break;
             }
             default:
-                jj_la1[13] = jj_gen;
+                jj_la1[15] = jj_gen;
         }
         atom = readAtom(variableMap);
         if (weighted) {
@@ -423,7 +479,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
                 break;
             }
             default:
-                jj_la1[14] = jj_gen;
+                jj_la1[16] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
@@ -438,11 +494,11 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
             }
             case QUOTED: {
                 constant = jj_consume_token(QUOTED);
-                token.image = token.image.substring(1, token.image.length() - 1);
+                constant.image = constant.image.substring(1, constant.image.length() - 1);
                 break;
             }
             default:
-                jj_la1[15] = jj_gen;
+                jj_la1[17] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
         }
@@ -471,7 +527,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
                 break;
             }
             default:
-                jj_la1[16] = jj_gen;
+                jj_la1[18] = jj_gen;
         }
         atom = readAtom(variableMap);
         literals.add(new Literal(atom, negated));
@@ -495,7 +551,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -515,7 +571,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -526,7 +582,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 17; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 19; i++) { jj_la1[i] = -1; }
     }
 
     private Token jj_consume_token(int kind) throws ParseException {
@@ -576,12 +632,12 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
      */
     public ParseException generateParseException() {
         jj_expentries.clear();
-        boolean[] la1tokens = new boolean[19];
+        boolean[] la1tokens = new boolean[22];
         if (jj_kind >= 0) {
             la1tokens[jj_kind] = true;
             jj_kind = -1;
         }
-        for (int i = 0; i < 17; i++) {
+        for (int i = 0; i < 19; i++) {
             if (jj_la1[i] == jj_gen) {
                 for (int j = 0; j < 32; j++) {
                     if ((jj_la1_0[i] & (1 << j)) != 0) {
@@ -590,7 +646,7 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
                 }
             }
         }
-        for (int i = 0; i < 19; i++) {
+        for (int i = 0; i < 22; i++) {
             if (la1tokens[i]) {
                 jj_expentry = new int[1];
                 jj_expentry[0] = i;

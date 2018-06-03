@@ -43,7 +43,8 @@ public enum EngineSystemLog {
     TRAINING_PARAMETERS("Training the parameters of the engine system."),
     SAVING_TRAINED_PARAMETERS_AS_CURRENT("Saving the trained parameters as current."),
     SAVING_PARAMETERS_TO_FILE("Saving the trained parameters to file:\t{}"),
-    LOADING_PARAMETERS_FROM_FILE("Loading the parameters from file:\t{}");
+    LOADING_PARAMETERS_FROM_FILE("Loading the parameters from file:\t{}"),
+    ADDING_NON_GROUND_FACT("Adding non ground fact:\t{}.");
 
     protected final String message;
 

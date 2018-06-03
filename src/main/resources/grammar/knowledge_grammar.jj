@@ -37,6 +37,8 @@ import br.ufrj.cos.logic.*;
 import java.util.*;
 import br.ufrj.cos.util.AtomFactory;
 
+import javax.script.ScriptException;
+
 import static br.ufrj.cos.util.log.ParsingLog.ERROR_PARSING_LINE;
 
 /**
@@ -85,7 +87,8 @@ SKIP : {
 }
 
 TOKEN : {
-	<DECIMAL: (( ["0"-"9"] )* ".")? ( ["0"-"9"] )+ >
+	<DECIMAL: ((["0"-"9"])* ".") ( ["0"-"9"] )+ >
+|   <INTEGER: (["0"-"9"])+>
 |	<NEGATION: "not">
 |	<VARIABLE: ["A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
 |	<CONSTANT: ["a"-"z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
@@ -97,14 +100,26 @@ TOKEN : {
 |	<CLOSE_FEATURES: "}">
 |	<IMPLICATION_SIGN: ":-">
 |	<END_OF_LINE_CHARACTER: ".">
+|	<ARITY_SEPARATOR_CHARACTER: "/">
+|	<FUNCTION_DEFINITION_SIGN: "#">
 |	<QUOTED:
-    	"\""
     	(
-        	"\\" ~[]	//any escaped character
-	        |			//or
-	        ~["\""]		//any non-quote character
-	    )+
-	    "\""
+            "\""
+            (
+                "\\" ~[]	//any escaped character
+                |			//or
+                ~["\""]		//any non-quote character
+            )+
+            "\""
+            |
+            "\'"
+            (
+                "\\" ~[]	//any escaped character
+                |			//or
+                ~["\'"]		//any non-quote character
+            )+
+            "\'"
+        )
 	>
 }
 
@@ -167,51 +182,82 @@ protected Clause readKnowledgeLine() :
 	// gets the first atom, weighted or not
 	// Do not use readFeature() because, if the line is a clause, the weight belongs to the clause, not to the atom
 	[weight = readDecimal() <WEIGHT_SEPARATOR> {weighted = true;}]
-	atom = readAtom(variableMap)
 	(
-		// end of line character, it is just an atom, returns it
-		<END_OF_LINE_CHARACTER>
-		{
-			if (weighted) {
-				atom = new WeightedAtom(weight, atom);
-			}
-			clause = atom;
-		}
-		|
-		// implication sign, it a horn clause (body might still be empty)
-		<IMPLICATION_SIGN>
-		{
-			body = new ArrayList();
-		}
-		// reads the body (if exists)
-		[readLiteral(body, variableMap) (<LIST_SEPARATOR> readLiteral(body, variableMap))*]
-		(
-			// gets feature(s), if exists
-			[
-				<OPEN_FEATURES>
-				{
-					features = new ArrayList();
-				}
-				[readFeature(features, variableMap)
-				(<LIST_SEPARATOR> readFeature(features, variableMap))*]
-				<CLOSE_FEATURES>
-			]
-			// end of line character, it is a Horn clause, with a possibly empty body, returns it
-			<END_OF_LINE_CHARACTER>
-		)
-		{
-			if (features != null) {
-				clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
-			} else if (weighted) {
-				clause = new WeightedClause(weight, atom, new Conjunction(body));
-			} else {
-				clause = new HornClause(atom, new Conjunction(body));
-			}
-		}
-	)
+        atom = readAtom(variableMap)
+        (
+            // end of line character, it is just an atom, returns it
+            <END_OF_LINE_CHARACTER>
+            {
+                if (weighted) {
+                    atom = new WeightedAtom(weight, atom);
+                }
+                clause = atom;
+            }
+            |
+            // implication sign, it a horn clause (body might still be empty)
+            <IMPLICATION_SIGN>
+            {
+                body = new ArrayList();
+            }
+            // reads the body (if exists)
+            [readLiteral(body, variableMap) (<LIST_SEPARATOR> readLiteral(body, variableMap))*]
+            (
+                // gets feature(s), if exists
+                [
+                    <OPEN_FEATURES>
+                    {
+                        features = new ArrayList();
+                    }
+                    [readFeature(features, variableMap)
+                    (<LIST_SEPARATOR> readFeature(features, variableMap))*]
+                    <CLOSE_FEATURES>
+                ]
+                // end of line character, it is a Horn clause, with a possibly empty body, returns it
+                <END_OF_LINE_CHARACTER>
+            )
+            {
+                if (features != null) {
+                    clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
+                } else if (weighted) {
+                    clause = new WeightedClause(weight, atom, new Conjunction(body));
+                } else {
+                    clause = new HornClause(atom, new Conjunction(body));
+                }
+            }
+        )
+        |
+        <FUNCTION_DEFINITION_SIGN>
+        clause = readFunction()
+    )
 	{
 		return clause;
 	}
+}
+
+FunctionalSymbol readFunction() :
+{
+    String predicate;
+    Token arityToken;
+    Token function;
+    int arity;
+}
+{
+    predicate = readPredicate()
+    <ARITY_SEPARATOR_CHARACTER>
+    arityToken = <INTEGER>
+    { arity = Integer.parseInt(arityToken.image); }
+    <IMPLICATION_SIGN>
+    function = <QUOTED>
+    // removing surrounding quotes
+    {function.image = function.image.substring(1, function.image.length() - 1);}
+    <END_OF_LINE_CHARACTER>
+    {
+        try {
+            return new FunctionalSymbol(new Predicate(predicate, arity), function.image);
+        } catch (ScriptException e) {
+            throw new ParseException("Bad formatted function:\t" + e.getMessage());
+        }
+    }
 }
 
 boolean readHasNext() :
@@ -227,7 +273,7 @@ double readDecimal() :
 	Token decimal;
 }
 {
-	decimal = <DECIMAL> {return Double.parseDouble(decimal.image);}
+	(decimal = <DECIMAL> | decimal = <INTEGER>) {return Double.parseDouble(decimal.image);}
 }
 
 Atom readAtom(Map variableMap) :
@@ -295,7 +341,7 @@ Term readConstant() :
 		|
 		constant = <QUOTED>
 		// removing surrounding quotes
-		{token.image = token.image.substring(1, token.image.length() - 1);}
+		{constant.image = constant.image.substring(1, constant.image.length() - 1);}
 	)
 	{
 	    return factory.getConstant(token.image);

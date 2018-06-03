@@ -83,7 +83,6 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
     /**
      * The script engine name.
      */
-    @SuppressWarnings("SpellCheckingInspection")
     public static final String ENGINE_NAME = "nashorn";
 
     /**
@@ -119,7 +118,7 @@ public class HoeffdingBoundTheoryManager extends TheoryRevisionManager {
             final String functionExpression = String.format(JAVA_FUNCTION_FORMAT, deltaUpdateExpression);
             //noinspection unchecked
             deltaUpdateFunction = (Function<? super Double, Double>) engine.eval(functionExpression);
-        } catch (ScriptException | ClassCastException e) {
+        } catch (ScriptException | RuntimeException e) {
             throw new InitializationException(String.format(ERROR_COMPILING_DELTA_UPDATE_FUNCTION.toString(), e), e);
         }
     }

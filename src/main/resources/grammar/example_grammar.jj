@@ -82,14 +82,24 @@ TOKEN : {
 |	<END_OF_LINE_CHARACTER: ".">
 |	<VARIABLE: ["A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
 |	<CONSTANT: ["a"-"z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
-|	<QUOTED: 
-    	"\"" 
-    	(
-        	"\\" ~[]	//any escaped character
-	        |			//or
-	        ~["\""]		//any non-quote character
-	    )+ 
-	    "\""
+|	<QUOTED:
+        (
+            "\""
+            (
+                "\\" ~[]	//any escaped character
+                |			//or
+                ~["\""]		//any non-quote character
+            )+
+            "\""
+            |
+            "\'"
+            (
+                "\\" ~[]	//any escaped character
+                |			//or
+                ~["\'"]		//any non-quote character
+            )+
+            "\'"
+        )
 	>
 }
 
@@ -160,7 +170,7 @@ void readProPprExample(List proPprExamples) :
 		)
 		example = readAtom()
 		{examples.add(new AtomExample(example, positive));}
-	)+
+	)*
 	{proPprExamples.add(new ProPprExample(goal, examples));}
 }
 

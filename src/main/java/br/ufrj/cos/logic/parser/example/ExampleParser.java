@@ -240,6 +240,15 @@ public class ExampleParser implements ExampleParserConstants {
         label_3:
         while (true) {
             switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+                case POSTIVE_SIGN:
+                case NEGATIVE_SIGN: {
+                    break;
+                }
+                default:
+                    jj_la1[5] = jj_gen;
+                    break label_3;
+            }
+            switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
                 case POSTIVE_SIGN: {
                     jj_consume_token(POSTIVE_SIGN);
                     positive = true;
@@ -251,21 +260,12 @@ public class ExampleParser implements ExampleParserConstants {
                     break;
                 }
                 default:
-                    jj_la1[5] = jj_gen;
+                    jj_la1[6] = jj_gen;
                     jj_consume_token(-1);
                     throw new ParseException();
             }
             example = readAtom();
             examples.add(new AtomExample(example, positive));
-            switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                case POSTIVE_SIGN:
-                case NEGATIVE_SIGN: {
-                    break;
-                }
-                default:
-                    jj_la1[6] = jj_gen;
-                    break label_3;
-            }
         }
         proPprExamples.add(new ProPprExample(goal, examples));
 }

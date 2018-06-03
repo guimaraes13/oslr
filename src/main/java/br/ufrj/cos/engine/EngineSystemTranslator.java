@@ -29,11 +29,13 @@
 
 package br.ufrj.cos.engine;
 
+import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
 import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.theory.Theory;
 import br.ufrj.cos.knowledge.theory.manager.revision.operator.generalization.BottomClauseBoundedRule;
 import br.ufrj.cos.logic.Atom;
+import br.ufrj.cos.logic.FunctionalSymbol;
 import br.ufrj.cos.logic.HornClause;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.util.Initializable;
@@ -69,6 +71,7 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
     public static final Logger logger = LogManager.getLogger();
 
     protected KnowledgeBase knowledgeBase;
+    protected Knowledge<FunctionalSymbol> functionBase;
     protected Theory theory;
 
     @Override
@@ -258,6 +261,22 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
      * @param knowledgeBase the {@link KnowledgeBase}
      */
     public abstract void setKnowledgeBase(KnowledgeBase knowledgeBase);
+
+    /**
+     * Gets the function {@link Knowledge}.
+     *
+     * @return the function {@link KnowledgeBase}
+     */
+    public Knowledge<FunctionalSymbol> getFunctionBase() {
+        return functionBase;
+    }
+
+    /**
+     * Sets the function {@link Knowledge}.
+     *
+     * @param functionBase the function {@link Knowledge}
+     */
+    public abstract void setFunctionBase(Knowledge<FunctionalSymbol> functionBase);
 
     /**
      * Gets the {@link Theory}.

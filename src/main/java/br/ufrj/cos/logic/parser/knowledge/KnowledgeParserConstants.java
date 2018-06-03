@@ -49,51 +49,63 @@ public interface KnowledgeParserConstants {
     /**
      * RegularExpression Id.
      */
-    int NEGATION = 7;
+    int INTEGER = 7;
     /**
      * RegularExpression Id.
      */
-    int VARIABLE = 8;
+    int NEGATION = 8;
     /**
      * RegularExpression Id.
      */
-    int CONSTANT = 9;
+    int VARIABLE = 9;
     /**
      * RegularExpression Id.
      */
-    int OPEN_PREDICATE_ARGUMENT = 10;
+    int CONSTANT = 10;
     /**
      * RegularExpression Id.
      */
-    int CLOSE_PREDICATE_ARGUMENT = 11;
+    int OPEN_PREDICATE_ARGUMENT = 11;
     /**
      * RegularExpression Id.
      */
-    int LIST_SEPARATOR = 12;
+    int CLOSE_PREDICATE_ARGUMENT = 12;
     /**
      * RegularExpression Id.
      */
-    int WEIGHT_SEPARATOR = 13;
+    int LIST_SEPARATOR = 13;
     /**
      * RegularExpression Id.
      */
-    int OPEN_FEATURES = 14;
+    int WEIGHT_SEPARATOR = 14;
     /**
      * RegularExpression Id.
      */
-    int CLOSE_FEATURES = 15;
+    int OPEN_FEATURES = 15;
     /**
      * RegularExpression Id.
      */
-    int IMPLICATION_SIGN = 16;
+    int CLOSE_FEATURES = 16;
     /**
      * RegularExpression Id.
      */
-    int END_OF_LINE_CHARACTER = 17;
+    int IMPLICATION_SIGN = 17;
     /**
      * RegularExpression Id.
      */
-    int QUOTED = 18;
+    int END_OF_LINE_CHARACTER = 18;
+    /**
+     * RegularExpression Id.
+     */
+    int ARITY_SEPARATOR_CHARACTER = 19;
+    /**
+     * RegularExpression Id.
+     */
+    int FUNCTION_DEFINITION_SIGN = 20;
+    /**
+     * RegularExpression Id.
+     */
+    int QUOTED = 21;
 
     /**
      * Lexical state.
@@ -111,6 +123,7 @@ public interface KnowledgeParserConstants {
             "\"\\n\"",
             "<token of kind 5>",
             "<DECIMAL>",
+            "<INTEGER>",
             "\"not\"",
             "<VARIABLE>",
             "<CONSTANT>",
@@ -122,6 +135,8 @@ public interface KnowledgeParserConstants {
             "\"}\"",
             "\":-\"",
             "\".\"",
+            "\"/\"",
+            "\"#\"",
             "<QUOTED>",
     };
 
