@@ -40,6 +40,7 @@ import br.ufrj.cos.logic.Predicate;
 import br.ufrj.cos.logic.Term;
 import br.ufrj.cos.logic.Variable;
 import br.ufrj.cos.util.AtomFactory;
+import br.ufrj.cos.util.VariableGenerator;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -60,7 +61,7 @@ public class ExampleParser implements ExampleParserConstants {
         jj_la1_init_0();
     }
 
-    private final int[] jj_la1 = new int[11];
+    private final int[] jj_la1 = new int[12];
     private final List<int[]> jj_expentries = new ArrayList<int[]>();
     private final int trace_indent = 0;
     public AtomFactory factory = new AtomFactory();
@@ -78,6 +79,7 @@ public class ExampleParser implements ExampleParserConstants {
     public Token jj_nt;
     protected List probLogFormatExamples;
     protected List proPprFormatExamples;
+    protected VariableGenerator variableGenerator = new VariableGenerator();
     SimpleCharStream jj_input_stream;
     private int jj_ntk;
     private int jj_gen;
@@ -103,7 +105,7 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -115,7 +117,7 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -126,12 +128,12 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     private static void jj_la1_init_0() {
-        jj_la1_0 = new int[]{0x10040, 0x10040, 0x10040, 0x10040, 0x180, 0x3000, 0x3000, 0x800, 0x200, 0x38000,
-                0x30000,};
+        jj_la1_0 = new int[]{0x20040, 0x20040, 0x20040, 0x20040, 0x180, 0x3000, 0x3000, 0x800, 0x200, 0x78000,
+                0x60000, 0x18000,};
     }
 
     public List getProbLogFormatExamples() {
@@ -318,6 +320,7 @@ public class ExampleParser implements ExampleParserConstants {
                 terms.add(term);
                 break;
             }
+            case ANONIMOUS_VARIABLE:
             case VARIABLE: {
                 term = readVariable();
                 terms.add(term);
@@ -352,9 +355,25 @@ public class ExampleParser implements ExampleParserConstants {
     }
 
     public final Term readVariable() throws ParseException {
-        Token variable;
-        variable = jj_consume_token(VARIABLE);
-        {if ("" != null) { return new Variable(variable.image); }}
+        Token variableToken;
+        Variable variable;
+        switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
+            case VARIABLE: {
+                variableToken = jj_consume_token(VARIABLE);
+                variable = new Variable(variableToken.image);
+                break;
+            }
+            case ANONIMOUS_VARIABLE: {
+                variableToken = jj_consume_token(ANONIMOUS_VARIABLE);
+                variable = variableGenerator.next();
+                break;
+            }
+            default:
+                jj_la1[11] = jj_gen;
+                jj_consume_token(-1);
+                throw new ParseException();
+        }
+        {if ("" != null) { return variable; }}
         throw new Error("Missing return statement in function");
     }
 
@@ -376,7 +395,7 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -396,7 +415,7 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     /**
@@ -407,7 +426,7 @@ public class ExampleParser implements ExampleParserConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 11; i++) { jj_la1[i] = -1; }
+        for (int i = 0; i < 12; i++) { jj_la1[i] = -1; }
     }
 
     private Token jj_consume_token(int kind) throws ParseException {
@@ -457,12 +476,12 @@ public class ExampleParser implements ExampleParserConstants {
      */
     public ParseException generateParseException() {
         jj_expentries.clear();
-        boolean[] la1tokens = new boolean[18];
+        boolean[] la1tokens = new boolean[19];
         if (jj_kind >= 0) {
             la1tokens[jj_kind] = true;
             jj_kind = -1;
         }
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 12; i++) {
             if (jj_la1[i] == jj_gen) {
                 for (int j = 0; j < 32; j++) {
                     if ((jj_la1_0[i] & (1 << j)) != 0) {
@@ -471,7 +490,7 @@ public class ExampleParser implements ExampleParserConstants {
                 }
             }
         }
-        for (int i = 0; i < 18; i++) {
+        for (int i = 0; i < 19; i++) {
             if (la1tokens[i]) {
                 jj_expentry = new int[1];
                 jj_expentry[0] = i;

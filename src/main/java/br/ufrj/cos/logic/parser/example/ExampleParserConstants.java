@@ -81,15 +81,19 @@ public interface ExampleParserConstants {
     /**
      * RegularExpression Id.
      */
-    int VARIABLE = 15;
+    int ANONIMOUS_VARIABLE = 15;
     /**
      * RegularExpression Id.
      */
-    int CONSTANT = 16;
+    int VARIABLE = 16;
     /**
      * RegularExpression Id.
      */
-    int QUOTED = 17;
+    int CONSTANT = 17;
+    /**
+     * RegularExpression Id.
+     */
+    int QUOTED = 18;
 
     /**
      * Lexical state.
@@ -115,6 +119,7 @@ public interface ExampleParserConstants {
             "\"+\"",
             "\"-\"",
             "\".\"",
+            "\"_\"",
             "<VARIABLE>",
             "<CONSTANT>",
             "<QUOTED>",

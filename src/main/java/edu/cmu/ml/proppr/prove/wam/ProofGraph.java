@@ -46,6 +46,7 @@ package edu.cmu.ml.proppr.prove.wam;
 import edu.cmu.ml.proppr.examples.GroundedExample;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
+import edu.cmu.ml.proppr.prove.FeatureDictWeighter;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.prove.wam.plugins.builtin.FilterPluginCollection;
 import edu.cmu.ml.proppr.prove.wam.plugins.builtin.PluginFunction;
@@ -155,8 +156,8 @@ public abstract class ProofGraph {
 
     protected abstract void init(SymbolTable<Feature> featureTab);
 
-	
-	
+    public abstract Iterable<State> getOutState(State state, FeatureDictWeighter weighter) throws LogicProgramException;
+
 	/* **************** proving ****************** */
 
     protected List<Outlink> computeOutlinks(State state, boolean trueLoop) throws LogicProgramException {

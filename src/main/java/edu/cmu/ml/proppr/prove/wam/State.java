@@ -126,7 +126,7 @@ public abstract class State {
      * @return
      */
     public int dereference(int heapIndex) {
-        while (!hasConstantAt(heapIndex) && !hasFreeAt(heapIndex)) {
+        while (heapIndex >= 0 && !hasConstantAt(heapIndex) && !hasFreeAt(heapIndex)) {
             heapIndex = getVariableAt(heapIndex);
         }
         return heapIndex;
@@ -136,7 +136,7 @@ public abstract class State {
      * True iff there is a constant at heap position i.
      */
     public boolean hasConstantAt(int i) {
-        return heap[i] < 0;
+        return i >= 0 && heap[i] < 0;
     }
 
     /**

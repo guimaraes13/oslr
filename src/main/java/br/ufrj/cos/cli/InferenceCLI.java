@@ -221,6 +221,7 @@ public class InferenceCLI extends CommandLineInterface {
      */
     protected void inferQueries() {
         final Map<Example, Map<Atom, Double>> inferExamples = engineSystemTranslator.inferExamples(queries);
+//        engineSystemTranslator.groundExamples(queries);
         for (Example example : queries) {
             final Map<Atom, Double> atomDoubleMap = inferExamples.get(example);
             if (atomDoubleMap == null) { continue; }

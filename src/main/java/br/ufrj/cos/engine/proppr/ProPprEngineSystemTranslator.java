@@ -362,6 +362,11 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
     }
 
     @Override
+    public Set<Atom> groundExamples(Iterable<? extends Example> examples) {
+        return getGroundedAtoms(new InferenceExampleIterable(examples));
+    }
+
+    @Override
     public synchronized void trainParameters(Example... examples) {
         logger.debug(TRAINING_PARAMETERS);
         currentParamVector = trainParameters(new InferenceExampleIterable(examples), savedParamVector, grounder);

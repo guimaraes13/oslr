@@ -105,6 +105,15 @@ public abstract class EngineSystemTranslator extends ThreadLocal<EngineSystemTra
     public abstract Set<Atom> groundExamples(Example... examples);
 
     /**
+     * Method to call the logic engine and retrieve the grounding/proved form of the given iterator. This method must
+     * be as simple as possible and returns only the grounded iterator. No probabilities are required here.
+     *
+     * @param examples the array to ground/prove
+     * @return the grounded/proved set of {@link Atom}s
+     */
+    public abstract Set<Atom> groundExamples(Iterable<? extends Example> examples);
+
+    /**
      * Method to train the parameters of the logic engine.
      *
      * @param examples the array to train with

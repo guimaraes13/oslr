@@ -31,8 +31,11 @@ package br.ufrj.cos.cli;
 
 import br.ufrj.cos.core.LearningSystem;
 import br.ufrj.cos.engine.proppr.ProPprEngineSystemTranslator;
+import br.ufrj.cos.knowledge.Knowledge;
 import br.ufrj.cos.knowledge.base.KnowledgeBase;
+import br.ufrj.cos.knowledge.example.Example;
 import br.ufrj.cos.knowledge.example.Examples;
+import br.ufrj.cos.knowledge.example.ProPprExample;
 import br.ufrj.cos.knowledge.filter.ClausePredicate;
 import br.ufrj.cos.knowledge.filter.GroundedFactPredicate;
 import br.ufrj.cos.knowledge.theory.Theory;
@@ -63,6 +66,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static br.ufrj.cos.util.log.EngineSystemLog.ADDING_NON_GROUND_FACT;
 import static br.ufrj.cos.util.log.GeneralLog.TOTAL_PROGRAM_TIME;
 import static br.ufrj.cos.util.log.SystemLog.KNOWLEDGE_BASE_SIZE;
 
@@ -76,7 +80,63 @@ public class Main {
 
     public static final Logger logger = LogManager.getLogger();
 
-    public static void main(String[] args) throws IOException, ParseException {
+    public static void main(String[] args) throws IOException, ParseException, IllegalAccessException,
+            InstantiationException {
+        List<Clause> clauses = FileIOUtils.readInputKnowledge(
+                FileIOUtils.readPathsToFiles(new String[]{"/Users/Victor/Desktop/runs/plain2_proppr.pl",
+                                                     "/Users/Victor/Desktop/runs/xml0.pl"},
+                                             CommandLineOptions.KNOWLEDGE_BASE.getOptionName()));
+//        List<Clause> clauses = FileIOUtils.readInputKnowledge(
+//                FileIOUtils.readPathsToFiles(new String[]{"/Users/Victor/Desktop/test.pl"},
+//                                             CommandLineOptions.KNOWLEDGE_BASE.getOptionName()));
+        ClausePredicate predicate = new GroundedFactPredicate();
+        KnowledgeBase knowledgeBase = new KnowledgeBase(new ArrayList<>(), predicate);
+        Knowledge<FunctionalSymbol> functionBase = new Knowledge<>(new ArrayList<>());
+        Theory theory = new Theory(new ArrayList<>());
+
+        List<HornClause> nonGroundFacts = new ArrayList<>();
+        for (Clause clause : clauses) {
+            if (clause.isFact() && !clause.isGrounded()) {
+                logger.trace(ADDING_NON_GROUND_FACT.toString(), clause);
+                final Atom head = (Atom) clause;
+                nonGroundFacts.add(new HornClause(head, new Conjunction(Literal.TRUE_LITERAL)));
+            }
+        }
+
+        knowledgeBase.addAll(clauses, Atom.class);
+        functionBase.addAll(clauses, FunctionalSymbol.class);
+        theory.addAll(clauses, HornClause.class);
+        theory.addAll(nonGroundFacts, HornClause.class);
+
+        ProPprEngineSystemTranslator engineSystemTranslator = new ProPprEngineSystemTranslator();
+        engineSystemTranslator.aprOptions.alpha = 1e-3;
+        engineSystemTranslator.aprOptions.epsilon = 1e-5;
+        engineSystemTranslator.aprOptions.maxDepth = 20;
+        engineSystemTranslator.aprOptions.traceDepth = 30;
+//        logger.error("test");
+        engineSystemTranslator.setKnowledgeBase(knowledgeBase);
+        engineSystemTranslator.setFunctionBase(functionBase);
+        engineSystemTranslator.setTheory(theory);
+        engineSystemTranslator.initialize();
+        List<Term> terms = new ArrayList<>(2);
+        terms.add(new Constant("us-patent-grant0"));
+        terms.add(new Variable("X"));
+        final Set<ProPprExample> examples = Collections.singleton(new ProPprExample(new Atom("has_attributes", terms),
+                                                                                    Collections.emptyList()));
+//        Examples examples = FileIOUtils.buildExampleSet(new String[]{"/Users/Victor/Desktop/query.pl"});
+        final Map<Example, Map<Atom, Double>> inferExamples = engineSystemTranslator.inferExamples(examples);
+        for (Example example : examples) {
+            final Map<Atom, Double> atomDoubleMap = inferExamples.get(example);
+            if (atomDoubleMap == null) { return; }
+            logger.info(example.getGoalQuery());
+            for (Map.Entry<Atom, Double> entry : atomDoubleMap.entrySet()) {
+                logger.info("\t{}:\t{}", entry.getValue(), entry.getKey());
+            }
+        }
+        logger.fatal("End!");
+    }
+
+    protected static void test2() throws IOException, ParseException {
         Locale.setDefault(new Locale("en", "us"));
         delta();
         System.exit(0);

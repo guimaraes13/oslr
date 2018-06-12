@@ -36,6 +36,7 @@ import br.ufrj.cos.knowledge.example.AtomExample;
 import br.ufrj.cos.knowledge.example.ProPprExample;
 
 import br.ufrj.cos.util.AtomFactory;
+import br.ufrj.cos.util.VariableGenerator;
 import br.ufrj.cos.logic.*;
 
 /**
@@ -49,6 +50,7 @@ public class ExampleParser {
 	protected List proPprFormatExamples;
 
 	public AtomFactory factory = new AtomFactory();
+	protected VariableGenerator variableGenerator = new VariableGenerator();
 
 	public List getProbLogFormatExamples() {
 		return probLogFormatExamples;
@@ -80,6 +82,7 @@ TOKEN : {
 |	<POSTIVE_SIGN: "+">
 |	<NEGATIVE_SIGN: "-">
 |	<END_OF_LINE_CHARACTER: ".">
+|	<ANONIMOUS_VARIABLE: "_">
 |	<VARIABLE: ["A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
 |	<CONSTANT: ["a"-"z"] ( ["a"-"z","A"-"Z","0"-"9","_","-"] )* >
 |	<QUOTED:
@@ -230,11 +233,14 @@ Term readConstant() :
 
 Term readVariable() :
 {
-	Token variable;
+	Token variableToken;
+	Variable variable;
 }
 {
-	variable = <VARIABLE>
-	{
-		return new Variable(variable.image);
-	}
+	(
+	    variableToken = <VARIABLE> { variable = new Variable(variableToken.image); }
+	    |
+	    variableToken = <ANONIMOUS_VARIABLE> { variable = variableGenerator.next(); }
+	)
+	{ return variable; }
 }

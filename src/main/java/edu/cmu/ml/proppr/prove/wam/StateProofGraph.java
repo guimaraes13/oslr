@@ -46,6 +46,7 @@ package edu.cmu.ml.proppr.prove.wam;
 import edu.cmu.ml.proppr.examples.InferenceExample;
 import edu.cmu.ml.proppr.graph.InferenceGraph;
 import edu.cmu.ml.proppr.graph.LightweightStateGraph;
+import edu.cmu.ml.proppr.prove.FeatureDictWeighter;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
 import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.SymbolTable;
@@ -120,6 +121,11 @@ public class StateProofGraph extends ProofGraph {
 
     public int pgDegree(State state, boolean trueLoop) throws LogicProgramException {
         return this.pgOutlinks(state, trueLoop).size();
+    }
+
+    @Override
+    public Iterable<State> getOutState(State state, FeatureDictWeighter weighter) throws LogicProgramException {
+        return graph.near(state);
     }
 
     /**

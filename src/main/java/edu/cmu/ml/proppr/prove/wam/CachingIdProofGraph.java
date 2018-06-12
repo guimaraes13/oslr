@@ -201,6 +201,17 @@ public class CachingIdProofGraph extends ProofGraph implements InferenceGraph {
     }
 
     @Override
+    public Iterable<State> getOutState(State state, FeatureDictWeighter weighter) throws LogicProgramException {
+        int degree = getDegreeByIdWithoutLazyExpansion(getId(state));
+        List<State> outStates = new ArrayList<>(degree);
+        for (int i = 0; i < degree; i++) {
+            int vi = getIthNeighborById(degree, i, weighter);
+            outStates.add(getState(vi));
+        }
+        return outStates;
+    }
+
+    @Override
     public void setOutlinks(int uid, List<Outlink> outlinks) {
         setOutlinks(uid, outlinks, null);
     }

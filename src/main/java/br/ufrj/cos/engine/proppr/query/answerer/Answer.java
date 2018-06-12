@@ -32,6 +32,7 @@ package br.ufrj.cos.engine.proppr.query.answerer;
 import br.ufrj.cos.util.ExceptionMessages;
 import br.ufrj.cos.util.FileIOUtils;
 import edu.cmu.ml.proppr.examples.InferenceExample;
+import edu.cmu.ml.proppr.prove.FeatureDictWeighter;
 import edu.cmu.ml.proppr.prove.Prover;
 import edu.cmu.ml.proppr.prove.wam.*;
 import edu.cmu.ml.proppr.prove.wam.plugins.WamPlugin;
@@ -39,13 +40,11 @@ import edu.cmu.ml.proppr.util.APROptions;
 import edu.cmu.ml.proppr.util.Dictionary;
 import edu.cmu.ml.proppr.util.StatusLogger;
 import edu.cmu.ml.proppr.util.SymbolTable;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static br.ufrj.cos.util.log.InferenceLog.*;
@@ -139,7 +138,11 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
                                      program, plugins);
         logger.trace(ANSWERING_QUERY.toString(), query);
         Map<State, Double> dist = prove(prover, pg);
-        if (dist == null) { return null; }
+        if (dist == null) {
+            logger.info("Null proof!");
+            return null;
+        }
+        if (aprOptions.traceDepth != 0) { logProveGraph(pg, prover.getWeighter(), aprOptions.traceDepth); }
         solutions = new TreeMap<>();
         for (Map.Entry<State, Double> s : dist.entrySet()) {
             if (s.getKey().isCompleted()) {
@@ -173,6 +176,55 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
             logger.trace(ERROR_PROVING_GOAL.toString(), Arrays.deepToString(query.getRhs()));
         }
         return null;
+    }
+
+    private void logProveGraph(P pg, FeatureDictWeighter weighter, int traceDepth) {
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Graph:\n");
+            stringBuilder.append("graph graphname {\n");
+            Queue<State> queue = new ArrayDeque<>();
+            Map<Integer, Integer> distanceToRoot = new HashMap<>();
+            State startState = pg.getStartState();
+            queue.add(startState);
+            distanceToRoot.put(pg.getId(startState), 0);
+            Set<String> addedLinks = new HashSet<>();
+            while (!queue.isEmpty()) {
+                final State state = queue.poll();
+                final int distance = distanceToRoot.get(pg.getId(state)) + 1;
+                final String fillState = pg.fill(state).toString();
+                if (traceDepth > 0 && distance > traceDepth) {
+                    stringBuilder.append(StringUtils.repeat("\t", distance));
+                    stringBuilder.append("\"").append(fillState).append("\"");
+                    stringBuilder.append(" -- ");
+                    stringBuilder.append("\"...").append(fillState).append("...\"").append(";").append("\n");
+                }
+                for (State child : pg.getOutState(state, weighter)) {
+                    final String fillChild = pg.fill(child).toString();
+                    final String link = fillState + fillChild;
+                    if (fillState.equals(fillChild) || addedLinks.contains(link)) { continue; }
+                    try {
+                        final StringBuilder subStringBuilder = new StringBuilder();
+                        subStringBuilder.append(StringUtils.repeat("\t", distance));
+                        subStringBuilder.append("\"").append(fillState).append("\"");
+                        subStringBuilder.append(" -- ");
+                        subStringBuilder.append("\"").append(fillChild).append("\"").append(";").append("\n");
+                        stringBuilder.append(subStringBuilder);
+                        addedLinks.add(link);
+                        if (!distanceToRoot.containsKey(pg.getId(child))) {
+                            queue.add(child);
+                            distanceToRoot.put(pg.getId(child), distance);
+                        }
+                    } catch (Exception ignored) {
+                        throw ignored;
+                    }
+                }
+            }
+            stringBuilder.append("}\n");
+            logger.info(stringBuilder.toString());
+        } catch (Exception e) {
+            logger.error("Error logging proof graph, reason:\t", e);
+        }
     }
 
     /**
