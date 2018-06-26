@@ -109,7 +109,7 @@ TOKEN : {
                 "\\" ~[]	//any escaped character
                 |			//or
                 ~["\""]		//any non-quote character
-            )+
+            )*
             "\""
             |
             "\'"
@@ -117,7 +117,7 @@ TOKEN : {
                 "\\" ~[]	//any escaped character
                 |			//or
                 ~["\'"]		//any non-quote character
-            )+
+            )*
             "\'"
         )
 	>

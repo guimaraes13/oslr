@@ -38,106 +38,106 @@ package br.ufrj.cos.logic.parser.knowledge;
  */
 public interface KnowledgeParserConstants {
 
-    /**
-     * End of File.
-     */
-    int EOF = 0;
-    /**
-     * RegularExpression Id.
-     */
-    int DECIMAL = 6;
-    /**
-     * RegularExpression Id.
-     */
-    int INTEGER = 7;
-    /**
-     * RegularExpression Id.
-     */
-    int NEGATION = 8;
-    /**
-     * RegularExpression Id.
-     */
-    int VARIABLE = 9;
-    /**
-     * RegularExpression Id.
-     */
-    int CONSTANT = 10;
-    /**
-     * RegularExpression Id.
-     */
-    int OPEN_PREDICATE_ARGUMENT = 11;
-    /**
-     * RegularExpression Id.
-     */
-    int CLOSE_PREDICATE_ARGUMENT = 12;
-    /**
-     * RegularExpression Id.
-     */
-    int LIST_SEPARATOR = 13;
-    /**
-     * RegularExpression Id.
-     */
-    int WEIGHT_SEPARATOR = 14;
-    /**
-     * RegularExpression Id.
-     */
-    int OPEN_FEATURES = 15;
-    /**
-     * RegularExpression Id.
-     */
-    int CLOSE_FEATURES = 16;
-    /**
-     * RegularExpression Id.
-     */
-    int IMPLICATION_SIGN = 17;
-    /**
-     * RegularExpression Id.
-     */
-    int END_OF_LINE_CHARACTER = 18;
-    /**
-     * RegularExpression Id.
-     */
-    int ARITY_SEPARATOR_CHARACTER = 19;
-    /**
-     * RegularExpression Id.
-     */
-    int FUNCTION_DEFINITION_SIGN = 20;
-    /**
-     * RegularExpression Id.
-     */
-    int QUOTED = 21;
+  /**
+   * End of File.
+   */
+  int EOF = 0;
+  /**
+   * RegularExpression Id.
+   */
+  int DECIMAL = 6;
+  /**
+   * RegularExpression Id.
+   */
+  int INTEGER = 7;
+  /**
+   * RegularExpression Id.
+   */
+  int NEGATION = 8;
+  /**
+   * RegularExpression Id.
+   */
+  int VARIABLE = 9;
+  /**
+   * RegularExpression Id.
+   */
+  int CONSTANT = 10;
+  /**
+   * RegularExpression Id.
+   */
+  int OPEN_PREDICATE_ARGUMENT = 11;
+  /**
+   * RegularExpression Id.
+   */
+  int CLOSE_PREDICATE_ARGUMENT = 12;
+  /**
+   * RegularExpression Id.
+   */
+  int LIST_SEPARATOR = 13;
+  /**
+   * RegularExpression Id.
+   */
+  int WEIGHT_SEPARATOR = 14;
+  /**
+   * RegularExpression Id.
+   */
+  int OPEN_FEATURES = 15;
+  /**
+   * RegularExpression Id.
+   */
+  int CLOSE_FEATURES = 16;
+  /**
+   * RegularExpression Id.
+   */
+  int IMPLICATION_SIGN = 17;
+  /**
+   * RegularExpression Id.
+   */
+  int END_OF_LINE_CHARACTER = 18;
+  /**
+   * RegularExpression Id.
+   */
+  int ARITY_SEPARATOR_CHARACTER = 19;
+  /**
+   * RegularExpression Id.
+   */
+  int FUNCTION_DEFINITION_SIGN = 20;
+  /**
+   * RegularExpression Id.
+   */
+  int QUOTED = 21;
 
-    /**
-     * Lexical state.
-     */
-    int DEFAULT = 0;
+  /**
+   * Lexical state.
+   */
+  int DEFAULT = 0;
 
-    /**
-     * Literal token values.
-     */
-    String[] tokenImage = {
-            "<EOF>",
-            "\" \"",
-            "\"\\t\"",
-            "\"\\r\"",
-            "\"\\n\"",
-            "<token of kind 5>",
-            "<DECIMAL>",
-            "<INTEGER>",
-            "\"not\"",
-            "<VARIABLE>",
-            "<CONSTANT>",
-            "\"(\"",
-            "\")\"",
-            "\",\"",
-            "\"::\"",
-            "\"{\"",
-            "\"}\"",
-            "\":-\"",
-            "\".\"",
-            "\"/\"",
-            "\"#\"",
-            "<QUOTED>",
-    };
+  /**
+   * Literal token values.
+   */
+  String[] tokenImage = {
+          "<EOF>",
+          "\" \"",
+          "\"\\t\"",
+          "\"\\r\"",
+          "\"\\n\"",
+          "<token of kind 5>",
+          "<DECIMAL>",
+          "<INTEGER>",
+          "\"not\"",
+          "<VARIABLE>",
+          "<CONSTANT>",
+          "\"(\"",
+          "\")\"",
+          "\",\"",
+          "\"::\"",
+          "\"{\"",
+          "\"}\"",
+          "\":-\"",
+          "\".\"",
+          "\"/\"",
+          "\"#\"",
+          "<QUOTED>",
+  };
 
 }

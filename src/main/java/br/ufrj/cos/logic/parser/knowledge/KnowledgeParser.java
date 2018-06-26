@@ -258,11 +258,11 @@ public class KnowledgeParser implements Iterable<Clause>, Iterator<Clause>, Know
             case CONSTANT: {
                 atom = readAtom(variableMap);
                 switch ((jj_ntk == -1) ? jj_ntk_f() : jj_ntk) {
-                    case END_OF_LINE_CHARACTER:{
+                    case END_OF_LINE_CHARACTER: {
                         jj_consume_token(END_OF_LINE_CHARACTER);
-if (weighted) {
-    atom = new WeightedAtom(weight, atom);
-}
+                        if (weighted) {
+                            atom = new WeightedAtom(weight, atom);
+                        }
                         clause = atom;
                         break;
                     }
@@ -325,13 +325,13 @@ if (weighted) {
                                 jj_la1[9] = jj_gen;
                         }
                         jj_consume_token(END_OF_LINE_CHARACTER);
-if (features != null) {
-    clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
-} else if (weighted) {
-    clause = new WeightedClause(weight, atom, new Conjunction(body));
-} else {
-    clause = new HornClause(atom, new Conjunction(body));
-}
+                        if (features != null) {
+                            clause = new FeaturedClause(atom, new Conjunction(body), new Features(features));
+                        } else if (weighted) {
+                            clause = new WeightedClause(weight, atom, new Conjunction(body));
+                        } else {
+                            clause = new HornClause(atom, new Conjunction(body));
+                        }
                         break;
                     }
                     default:

@@ -352,7 +352,7 @@ public class ExampleParser implements ExampleParserConstants {
         }
         {if ("" != null) { return factory.getConstant(token.image); }}
         throw new Error("Missing return statement in function");
-    }
+}
 
     public final Term readVariable() throws ParseException {
         Token variableToken;
