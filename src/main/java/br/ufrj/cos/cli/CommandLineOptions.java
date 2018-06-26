@@ -92,6 +92,9 @@ public enum CommandLineOptions {
                                        .hasArg()
                                        .withDescription("sets the max depth parameter of the ProPPR (default: 20).")
                                        .create("d")),
+    INDIVIDUALLY_INFERENCE(OptionBuilder.withLongOpt("individuallyInference")
+                                   .withDescription("makes the inference one query at a time.")
+                                   .create("ind")),
     TEST(OptionBuilder.withArgName("test")
                  .withLongOpt("test")
                  .hasArgs(Option.UNLIMITED_VALUES)

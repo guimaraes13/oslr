@@ -86,6 +86,7 @@ public class InferenceCLI extends CommandLineInterface {
     protected double alpha = APROptions.MINALPH_DEFAULT;
     protected double epsilon = APROptions.EPS_DEFAULT;
     protected int maxDepth = APROptions.MAXDEPTH_DEFAULT;
+    protected boolean individually;
 
     /**
      * The main method
@@ -106,6 +107,7 @@ public class InferenceCLI extends CommandLineInterface {
         options.addOption(PROPPR_ALPHA_PARAMETER.getOption());
         options.addOption(CommandLineOptions.PROPPR_EPSILON_PARAMETER.getOption());
         options.addOption(CommandLineOptions.PROPPR_MAX_DEPTH_PARAMETER.getOption());
+        options.addOption(CommandLineOptions.INDIVIDUALLY_INFERENCE.getOption());
     }
 
     @Override
@@ -127,6 +129,7 @@ public class InferenceCLI extends CommandLineInterface {
         if (commandLine.hasOption(PROPPR_MAX_DEPTH_PARAMETER.getOptionName())) {
             maxDepth = Integer.parseInt(commandLine.getOptionValue(PROPPR_MAX_DEPTH_PARAMETER.getOptionName()));
         }
+        individually = commandLine.hasOption(INDIVIDUALLY_INFERENCE.getOptionName());
         return this;
     }
 
@@ -137,7 +140,7 @@ public class InferenceCLI extends CommandLineInterface {
             queries = FileIOUtils.buildExampleSet(queryFilePaths);
             logKnowledge();
             buildEngineSystemTranslator();
-            inferQueries();
+            if (individually) { inferQueriesIndividually(); } else { inferQueries(); }
         } catch (FileNotFoundException | IllegalAccessException | InstantiationException e) {
             logger.error(e);
         }
@@ -219,9 +222,23 @@ public class InferenceCLI extends CommandLineInterface {
     /**
      * Infer the queries
      */
+    protected void inferQueriesIndividually() {
+        for (Example example : queries) {
+            final Map<Example, Map<Atom, Double>> inferExamples = engineSystemTranslator.inferExamples(example);
+            final Map<Atom, Double> atomDoubleMap = inferExamples.get(example);
+            if (atomDoubleMap == null) { continue; }
+            logger.info(example.getGoalQuery());
+            for (Map.Entry<Atom, Double> entry : atomDoubleMap.entrySet()) {
+                logger.info("\t{}:\t{}", entry.getValue(), entry.getKey());
+            }
+        }
+    }
+
+    /**
+     * Infer the queries
+     */
     protected void inferQueries() {
         final Map<Example, Map<Atom, Double>> inferExamples = engineSystemTranslator.inferExamples(queries);
-//        engineSystemTranslator.groundExamples(queries);
         for (Example example : queries) {
             final Map<Atom, Double> atomDoubleMap = inferExamples.get(example);
             if (atomDoubleMap == null) { continue; }
