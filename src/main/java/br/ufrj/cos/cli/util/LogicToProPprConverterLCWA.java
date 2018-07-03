@@ -210,7 +210,7 @@ public class LogicToProPprConverterLCWA extends LogicToProPprConverter {
         final Set<ProPprExample> examplesWithNegatives = new LinkedHashSet<>();
         int totalOfNegatives = 0;
         final int totalOfExamples = examples.size();
-        final int percentage = totalOfExamples / 100;
+        final double percentage = totalOfExamples / 100.0;
         int processedExamples = 0;
         for (ProPprExample example : examples) {
             final int positiveCount = (int) example.getGroundedQuery().stream().filter(AtomExample::isPositive).count();
