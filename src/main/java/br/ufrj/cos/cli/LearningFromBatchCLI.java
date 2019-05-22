@@ -11,7 +11,7 @@
  * describe the induced models, aiming at contemplating the uncertainty
  * inherent to real data.
  *
- * Copyright (C) 2017-2018 Victor Guimarães
+ * Copyright (C) 2017-2019 Victor
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -561,6 +561,7 @@ public class LearningFromBatchCLI extends CommandLineInterface {
 
         ClausePredicate predicate = null;
         if (theoryPredicateClass != null && theoryBaseAncestralClass != null) {
+            //noinspection ClassGetClass
             predicate = theoryPredicateClass.getConstructor(theoryBaseAncestralClass.getClass())
                     .newInstance(theoryBaseAncestralClass);
             logger.debug(CREATING_THEORY_WITH_PREDICATE.toString(), predicate);

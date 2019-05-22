@@ -11,7 +11,7 @@
  * describe the induced models, aiming at contemplating the uncertainty
  * inherent to real data.
  *
- * Copyright (C) 2017-2018 Victor Guimarães
+ * Copyright (C) 2017-2019 Victor
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -185,26 +185,31 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         return new Query(ProPprUtils.atomToGoal(atom, new HashMap<>()));
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public synchronized void initialize() {
-        super.initialize();
-        if (this.prover == null) { this.prover = (Prover<P>) new DprProver(aprOptions); }
-        this.prover.apr = aprOptions;
-        this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
-                                               program, functionsPlugin, factsPlugin);
-        this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
-        //IMPROVE: set srw random seed
-        this.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
-        this.trainer = new Trainer(srw, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
-        this.savedParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
-                                                                                              DEFAULT_LOAD,
-                                                                                              numberOfThreads));
-        this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<String, Double>(DEFAULT_CAPACITY,
-                                                                                                DEFAULT_LOAD,
-                                                                                                numberOfThreads));
-        this.answerer = buildAnswerer();
-        answerer.addParams(prover, savedParamVector, squashingFunction);
+    /**
+     * Checks if the goal of the clause has been already covered by another clause. If it has, skips the clause.
+     * <p>
+     * In addition, it adds the goal to the coveredGoal, if it is not covered yet.
+     *
+     * @param goal         the goal
+     * @param coveredGoals the goals already covered
+     * @return {@code true} if the goal of the clause has been already covered by another clause
+     */
+    protected static boolean isToSkipClause(Atom goal, Map<String, Set<Atom>> coveredGoals) {
+        String label = goal.getPredicate().toString();
+        Set<Atom> atoms = coveredGoals.get(label);
+        if (atoms == null) {
+            atoms = new HashSet<>();
+            atoms.add(goal);
+            coveredGoals.put(label, atoms);
+        } else {
+            for (Atom atom : atoms) {
+                if (LanguageUtils.isAtomUnifiableToGoal(atom, goal)) {
+                    return true;
+                }
+            }
+            atoms.add(goal);
+        }
+        return false;
     }
 
     @Override
@@ -245,32 +250,24 @@ public class ProPprEngineSystemTranslator<P extends ProofGraph> extends EngineSy
         return getGroundedAtoms(inferenceExamples);
     }
 
-    /**
-     * Checks if the goal of the clause has been already covered by another clause. If it has, skips the clause.
-     * <p>
-     * In addition, it adds the goal to the coveredGoal, if it is not covered yet.
-     *
-     * @param goal         the goal
-     * @param coveredGoals the goals already covered
-     * @return {@code true} if the goal of the clause has been already covered by another clause
-     */
-    protected static boolean isToSkipClause(Atom goal, Map<String, Set<Atom>> coveredGoals) {
-        String label = goal.getPredicate().toString();
-        Set<Atom> atoms = coveredGoals.get(label);
-        if (atoms == null) {
-            atoms = new HashSet<>();
-            atoms.add(goal);
-            coveredGoals.put(label, atoms);
-            return false;
-        } else {
-            for (Atom atom : atoms) {
-                if (LanguageUtils.isAtomUnifiableToGoal(atom, goal)) {
-                    return true;
-                }
-            }
-            atoms.add(goal);
-            return false;
-        }
+    @Override
+    @SuppressWarnings("unchecked")
+    public synchronized void initialize() {
+        super.initialize();
+        if (this.prover == null) { this.prover = (Prover<P>) new DprProver(aprOptions); }
+        this.prover.apr = aprOptions;
+        this.grounder = new InMemoryGrounder<>(numberOfThreads, Multithreading.DEFAULT_THROTTLE, aprOptions, prover,
+                                               program, functionsPlugin, factsPlugin);
+        this.srw = new SRW(new SRWOptions(aprOptions, squashingFunction));
+        //IMPROVE: set srw random seed
+        this.srw.setRegularizer(new RegularizationSchedule(this.srw, regularize));
+        this.trainer = new Trainer(srw, numberOfThreads, Multithreading.DEFAULT_THROTTLE);
+        this.savedParamVector = new SimpleParamVector<>(new ConcurrentHashMap<>(DEFAULT_CAPACITY, DEFAULT_LOAD,
+                                                                                numberOfThreads));
+        this.currentParamVector = new SimpleParamVector<>(new ConcurrentHashMap<>(DEFAULT_CAPACITY, DEFAULT_LOAD,
+                                                                                  numberOfThreads));
+        this.answerer = buildAnswerer();
+        answerer.addParams(prover, savedParamVector, squashingFunction);
     }
 
     /**

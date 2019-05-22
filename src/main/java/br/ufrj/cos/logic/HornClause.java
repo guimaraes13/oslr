@@ -11,7 +11,7 @@
  * describe the induced models, aiming at contemplating the uncertainty
  * inherent to real data.
  *
- * Copyright (C) 2017-2018 Victor Guimarães
+ * Copyright (C) 2017-2019 Victor
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,8 +110,8 @@ public class HornClause extends Clause {
         HornClause that = (HornClause) o;
 
         if (head != null ? head.equals(that.head) : that.head == null) {
-            if (body != null ? body.equals(that.body)
-                    : that.body == null) {
+            //noinspection RedundantIfStatement
+            if (body != null ? body.equals(that.body) : that.body == null) {
                 return true;
             }
         }

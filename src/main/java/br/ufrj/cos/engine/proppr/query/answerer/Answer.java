@@ -11,7 +11,7 @@
  * describe the induced models, aiming at contemplating the uncertainty
  * inherent to real data.
  *
- * Copyright (C) 2017-2018 Victor Guimarães
+ * Copyright (C) 2017-2019 Victor
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,6 +178,7 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
         return null;
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     private void logProveGraph(P pg, FeatureDictWeighter weighter, int traceDepth) {
         try {
             StringBuilder stringBuilder = new StringBuilder();
@@ -215,8 +216,8 @@ public class Answer<P extends ProofGraph> implements Callable<Answer<P>> {
                             queue.add(child);
                             distanceToRoot.put(pg.getId(child), distance);
                         }
-                    } catch (Exception ignored) {
-                        throw ignored;
+                    } catch (Exception e) {
+                        throw e;
                     }
                 }
             }

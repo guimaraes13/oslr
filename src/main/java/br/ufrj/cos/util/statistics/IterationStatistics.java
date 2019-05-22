@@ -11,7 +11,7 @@
  * describe the induced models, aiming at contemplating the uncertainty
  * inherent to real data.
  *
- * Copyright (C) 2017-2018 Victor Guimarães
+ * Copyright (C) 2017-2019 Victor
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,6 +262,7 @@ public class IterationStatistics<T> {
      *
      * @return the sorted metrics.
      */
+    @SuppressWarnings("unchecked")
     protected List getSortedMetrics() {
         final Set<Object> metricSet = new HashSet<>();
         iterationTrainEvaluation.stream().flatMap(m -> m.keySet().stream()).forEach(metricSet::add);
